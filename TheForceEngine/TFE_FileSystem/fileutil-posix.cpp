@@ -12,6 +12,9 @@
 #include <TFE_System/system.h>
 #include "fileutil.h"
 #include "filestream.h"
+#ifdef __APPLE__
+#include <mach-o/dyld.h>	// For macOS-specific executable path
+#endif
 
 // implement TFE FileUtil for Linux and compatibles.
 namespace FileUtil
@@ -108,6 +111,29 @@ namespace FileUtil
 		}
 	}
 
+#ifdef __APPLE__
+
+	void getExecutionDirectory(char *dir)
+	{
+		char exe[PATH_MAX];
+		uint32_t size = PATH_MAX;
+
+		if (_NSGetExecutablePath(exe, &size) != 0) {
+			TFE_System::logWrite(LOG_CRITICAL, "getExecutionDirectory", "Failed to retrieve executable path");
+			return;
+		}
+
+		// Resolve symbolic links, if any.
+		realpath(exe, dir);
+
+		// kill trailing slash
+		char *c = strrchr(dir, '/');
+		if (c)
+			*c = '\0';
+	}
+
+#else 	// Linux
+
 	void getExecutionDirectory(char *dir)
 	{
 		char exe[PATH_MAX], *c;
@@ -127,6 +153,7 @@ namespace FileUtil
 		if (c)
 			*c = 0;
 	}
+#endif
 
 	void setCurrentDirectory(const char *dir)
 	{
@@ -351,7 +378,6 @@ namespace FileUtil
 
 	u64 getModifiedTime(const char *path)
 	{
-		struct timespec tslw;
 		struct stat st;
 		u64 mtim;
 
@@ -360,8 +386,12 @@ namespace FileUtil
 			TFE_System::logWrite(LOG_WARNING, "getModifiedTime", "stat(%s) failed with %d\n", path, errno);
 			return (u64)-1;  // revisit
 		}
-		tslw = st.st_mtim;
-		mtim = (u64)tslw.tv_sec * 10000 + (u64) ((double)tslw.tv_nsec / 100.0);
+
+#ifdef __APPLE__
+		mtim = (u64)st.st_mtimespec.tv_sec * 10000 + (u64)((double)st.st_mtimespec.tv_nsec / 100.0);
+#else
+		mtim = (u64)st.st_mtim.tv_sec * 10000 + (u64)((double)st.st_mtim.tv_nsec / 100.0);
+#endif
 
 		return mtim;
 	}

@@ -1,3 +1,4 @@
+#include <TFE_RenderBackend/renderBackend.h>
 #include <TFE_RenderBackend/vertexBuffer.h>
 #include "gl.h"
 #include <memory.h>
@@ -81,6 +82,8 @@ void VertexBuffer::update(const void* buffer, size_t size)
 
 void VertexBuffer::bind() const
 {
+	TFE_RenderBackend::bindGlobalVAO();	// for macOS GL
+
 	glBindBuffer(GL_ARRAY_BUFFER, m_gpuHandle);
 	for (u32 i = 0; i < m_attrCount; i++)
 	{

@@ -41,7 +41,7 @@ The current release only supports “STAR WARS™: Dark Forces”. All weapon
 
 ## Minimum Requirements
 * OpenGL 3.3
-* Windows 7, 64 bit / modern Linux distro.
+* Windows 7, 64 bit / modern Linux distro / macOS
 
 Note that there are plans to lower the requirements for using the classic software renderer in the future. However, the minimum requirements for GPU rendering are here to stay. For now, only OpenGL is supported, which may limit the use of some older Intel integrated GPUs that would otherwise be capable. There are near term plans to add Direct3D 10/11, Vulkan, and maybe Metal render backends which should enable more GPUs to run the engine efficiently.
 
@@ -94,6 +94,25 @@ This can be overridden by defining the `TFE_DATA_HOME` environment variable.
 
 ##### Launch
 * Start the engine by clicking on the “The Force Engine” desktop icon or by running `theforceengine` in a shell.
+
+## MacOS
+
+Prerequisites available via Homebrew:
+
+```bash
+brew install cmake sdl2 sdl2_image rtmidi
+```
+
+You also need Xcode Command Line Tools:
+```bash
+xcode-select --install
+```
+
+```bash
+mkdir build && cd build
+cmake ..
+make
+```
 
 ## Packaging
 TFE comes with the build‑in “[AdjustableHud](TheForceEngine/Mods/TFE/AdjustableHud)” mod. Package maintainers may wish and are encouraged to package “AdjustableHud” into a separate *required* or *recommended* package.

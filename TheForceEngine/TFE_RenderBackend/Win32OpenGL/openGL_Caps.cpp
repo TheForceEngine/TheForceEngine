@@ -39,6 +39,31 @@ namespace OpenGL_Caps
 		glGetIntegerv(GL_MAJOR_VERSION, &gl_maj);
 		glGetIntegerv(GL_MINOR_VERSION, &gl_min);
 
+#ifdef __APPLE__
+		if (gl_maj >= 4) {
+			m_supportFlags = CAP_PBO | CAP_VBO | CAP_FBO | CAP_UBO | CAP_NON_POW_2 | CAP_TEXTURE_ARRAY;
+
+			if (SDL_GL_ExtensionSupported("GL_EXT_texture_filter_anisotropic")) {
+				m_supportFlags |= CAP_ANISO;
+			}
+
+			// Get texture buffer maximum size
+			glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &m_textureBufferMaxSize);
+
+			// Get max anisotropy if supported
+			if (m_supportFlags & CAP_ANISO) {
+				glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &m_maxAnisotropy);
+			} else {
+				m_maxAnisotropy = 0.0f;
+			}
+
+			// Set to Tier 2 as macOS OpenGL tops out at 4.1
+			if (m_textureBufferMaxSize >= GLSPEC_MAX_TEXTURE_BUFFER_SIZE_MIN) {
+				m_deviceTier = DEV_TIER_2;
+			}
+		}
+		return;
+#endif
 		if (SDL_GL_ExtensionSupported("GL_ARB_pixel_buffer_object"))
 			m_supportFlags |= CAP_PBO | CAP_NON_POW_2;
 		if (SDL_GL_ExtensionSupported("GL_ARB_vertex_buffer_object"))

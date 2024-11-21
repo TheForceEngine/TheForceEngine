@@ -11,7 +11,13 @@
 
 namespace TFE_Ui
 {
-const char* glsl_version = "#version 130";
+#ifdef __APPLE__
+	const char *glsl_version = "#version 410";
+#else
+	const char *glsl_version = "#version 130";
+#endif
+
+
 static s32 s_uiScale = 100;
 static bool s_guiFrameActive;
 

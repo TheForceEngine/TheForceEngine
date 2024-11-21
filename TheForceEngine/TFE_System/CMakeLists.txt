@@ -9,4 +9,8 @@ elseif(LINUX)
 	target_sources(tfe PRIVATE ${SRCLNXTHRD}
 		"${CMAKE_CURRENT_SOURCE_DIR}/CrashHandler/crashHandlerLinux.cpp"
 	)
+elseif(APPLE)
+	target_sources(tfe PRIVATE ${SRCMACHTHRD}
+		"${CMAKE_CURRENT_SOURCE_DIR}/CrashHandler/crashHandlerMac.cpp"
+	)
 endif()

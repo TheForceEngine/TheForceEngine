@@ -170,4 +170,7 @@ namespace TFE_RenderBackend
 
 	// Generic line draw.
 	void drawLines(u32 lineCount);
+
+	// macOS: Bind the global VAO
+	void bindGlobalVAO();
 };
