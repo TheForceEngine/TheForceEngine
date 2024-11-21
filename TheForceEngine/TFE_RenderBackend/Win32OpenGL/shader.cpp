@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <vector>
 #include <string>
+#include <SDL.h> 
 
 namespace ShaderGL
 {
@@ -35,15 +36,13 @@ bool Shader::create(const char* vertexShaderGLSL, const char* fragmentShaderGLSL
 	// Create shaders
 	m_shaderVersion = version;
 
-#ifdef __APPLE__
-	// Force GLSL version 410 for macOS
-	const GLchar *version_string = "#version 410\n";
-#else
-	const GLchar *version_string = ShaderGL::c_glslVersionString[m_shaderVersion];
-#endif
-
-	// Log shader source for debugging
-	//TFE_System::logWrite(LOG_MSG, "Shader", "Creating shader with defines:\n%s", defineString ? defineString : "None");
+	const GLchar* version_string;
+	if (strcmp(SDL_GetPlatform(), "Mac OS X") == 0) {
+		// Force GLSL version 410 for macOS
+		version_string = "#version 410\n";
+	} else {
+		version_string = ShaderGL::c_glslVersionString[m_shaderVersion];
+	}
 
 	const GLchar *vertex_shader_with_version[3] = { version_string, defineString ? defineString : "", vertexShaderGLSL };
 	u32 vertHandle = glCreateShader(GL_VERTEX_SHADER);

@@ -11,18 +11,15 @@
 
 namespace TFE_Ui
 {
-#ifdef __APPLE__
-	const char *glsl_version = "#version 410";
-#else
-	const char *glsl_version = "#version 130";
-#endif
-
+const char* glsl_version = nullptr;
 
 static s32 s_uiScale = 100;
 static bool s_guiFrameActive;
 
 bool init(void* window, void* context, s32 uiScale)
 {
+	glsl_version = strcmp(SDL_GetPlatform(), "Mac OS X") == 0 ? "#version 410" : "#version 130";
+	
 	s_uiScale = uiScale;
 
 	// Setup Dear ImGui context
