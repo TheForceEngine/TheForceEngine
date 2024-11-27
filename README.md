@@ -100,7 +100,7 @@ This can be overridden by defining the `TFE_DATA_HOME` environment variable.
 Prerequisites available via Homebrew:
 
 ```bash
-brew install cmake sdl2 sdl2_image rtmidi
+brew install cmake pkg-config sdl2 sdl2_image rtmidi
 ```
 
 You also need Xcode Command Line Tools:
