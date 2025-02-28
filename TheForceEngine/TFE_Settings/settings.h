@@ -115,6 +115,7 @@ struct TFE_Settings_Enhancements
 	bool enableHdSprites = false;
 	bool enableHdHud = false;
 	bool enableHdCutscenes = false;
+	bool enableHdPda = false;
 };
 
 enum TFE_HudScale

@@ -1475,17 +1475,45 @@ namespace TFE_FrontEndUI
 		return FileUtil::exists(testFile);
 	}
 
+	bool enhanceLFDExists()
+	{
+		TFE_GameHeader* darkForces = TFE_Settings::getGameHeader("Dark Forces");
+		char testDir1[TFE_MAX_PATH];
+		char testDir2[TFE_MAX_PATH];
+		char testFile1[TFE_MAX_PATH];
+		char testFile2[TFE_MAX_PATH];
+		char testFile3[TFE_MAX_PATH];
+		sprintf(testDir1, "%slfd/enhanced/menu", darkForces->sourcePath);
+		sprintf(testDir2, "%slfd/enhanced/dfbrief", darkForces->sourcePath);
+		sprintf(testFile1, "%slfd/enhanced/menu/ANIMpda_0.png", darkForces->sourcePath);
+		sprintf(testFile2, "%slfd/enhanced/dfbrief/ANIMguns_0.png", darkForces->sourcePath);
+		sprintf(testFile3, "%slfd/enhanced/dfbrief/ANIMitems_0.png", darkForces->sourcePath);
+
+		// Test for the existence of the 2 required enhanced LFD directories and 3 of the files
+		return FileUtil::directoryExists(testDir1) &&
+			FileUtil::directoryExists(testDir2) &&
+			FileUtil::exists(testFile1) && 
+			FileUtil::exists(testFile2) &&
+			FileUtil::exists(testFile3);
+	}
+
 	// Expose the function to toggle enhancements.
 	bool toggleEnhancements()
 	{
 		if (enhanceGOBExists())
 		{
 			TFE_Settings_Enhancements* enhancements = TFE_Settings::getEnhancementsSettings();
-			bool useHdAssets = enhancements->enableHdTextures && enhancements->enableHdSprites && enhancements->enableHdHud && enhancements->enableHdCutscenes;
+			bool useHdAssets = enhancements->enableHdTextures && enhancements->enableHdSprites && enhancements->enableHdHud && enhancements->enableHdCutscenes && enhancements->enableHdHud;
 			enhancements->enableHdTextures = !useHdAssets;
 			enhancements->enableHdSprites = !useHdAssets;
 			enhancements->enableHdHud = !useHdAssets;
 			enhancements->enableHdCutscenes = !useHdAssets;
+
+			if (enhanceLFDExists())
+			{
+				enhancements->enableHdPda = !useHdAssets;
+				if (enhancements->enableHdPda) { TFE_DarkForces::pda_resetState(); }
+			}
 
 			renderBackground(true);
 			return useHdAssets;
@@ -1595,6 +1623,41 @@ namespace TFE_FrontEndUI
 			forceTextureUpdate = true;
 		}
         #endif
+
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+
+		// Try to find enhanced LFD content
+		bool enhancedLfdExists = enhancedGobExists && enhanceLFDExists();
+
+		if (enhancedLfdExists)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.25f, 1.0f, 0.25f, 1.0f));
+			ImGui::TextWrapped("Enhanced LFD assets found.");
+			ImGui::PopStyleColor();
+		}
+
+		ImGui::Spacing();
+
+		if (!enhancedLfdExists || graphics->colorMode != COLORMODE_TRUE_COLOR)
+		{
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+			enhancements->enableHdPda = false;
+		}
+
+		bool useHdPda = enhancements->enableHdPda;
+		if (ImGui::Checkbox("Use HD PDA", &useHdPda))
+		{
+			enhancements->enableHdPda = useHdPda;
+		}
+
+		if (!enhancedLfdExists || graphics->colorMode != COLORMODE_TRUE_COLOR)
+		{
+			ImGui::PopItemFlag();
+			ImGui::PopStyleVar();
+		}
 
 		return forceTextureUpdate;
 	}
