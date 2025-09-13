@@ -9,6 +9,7 @@
 #include <TFE_DarkForces/pickup.h>
 #include <TFE_DarkForces/player.h>
 #include <TFE_DarkForces/mission.h>
+#include <TFE_DarkForces/Actor/actor.h>
 #include <TFE_ForceScript/forceScript.h>
 #include <TFE_ForceScript/scriptAPI.h>
 #include <TFE_Jedi/Level/levelData.h>
@@ -277,6 +278,14 @@ namespace TFE_DarkForces
 		if (s_nightVisionActive) { disableNightVision(); }
 	}
 
+	void sendMessageToObject(MessageType messageType, ScriptObject* sObject)
+	{
+		if (!doesObjectExist(sObject)) { return; }
+		
+		SecObject* obj = TFE_Jedi::s_objectRefList[sObject->m_id].object;
+		message_sendToObj(obj, messageType, actor_messageFunc);
+	}
+
 	void ScriptObject::registerType()
 	{
 		s32 res = 0;
@@ -314,5 +323,6 @@ namespace TFE_DarkForces
 		ScriptObjFunc("void delete()", deleteObject);
 		ScriptObjFunc("void addLogic(string)", addLogicToObject);
 		ScriptObjFunc("void setCamera()", setCamera);
+		ScriptObjFunc("void sendMessage(int)", sendMessageToObject)
 	}
 }
