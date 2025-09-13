@@ -54,8 +54,8 @@ namespace TFE_ForceScript
 			Vec2f float2Value;
 			Vec3f float3Value;
 			Vec4f float4Value;
+			char strValue[32];
 		};
-		std::string stdStr;
 	};
 
 	// Opaque Handles.
@@ -109,8 +109,8 @@ namespace TFE_ForceScript
 	inline ScriptArg scriptArg(u32 value) { ScriptArg arg; arg.type = ARG_U32; arg.uValue = value; return arg; }
 	inline ScriptArg scriptArg(f32 value) { ScriptArg arg; arg.type = ARG_F32; arg.fValue = value; return arg; }
 	inline ScriptArg scriptArg(bool value) { ScriptArg arg; arg.type = ARG_BOOL; arg.bValue = value; return arg; }
-	inline ScriptArg scriptArg(const std::string& value) { ScriptArg arg; arg.type = ARG_STRING; arg.stdStr = value; return arg; }
-	inline ScriptArg scriptArg(const char* value) { ScriptArg arg; arg.type = ARG_STRING; arg.stdStr = value; return arg; }
+	inline ScriptArg scriptArg(const std::string& value) { ScriptArg arg; arg.type = ARG_STRING; strcpy(arg.strValue, value.c_str()); return arg; }
+	inline ScriptArg scriptArg(const char* value) { ScriptArg arg; arg.type = ARG_STRING; strcpy(arg.strValue, value); return arg; }
 	inline ScriptArg scriptArg(Vec2f value) { ScriptArg arg; arg.type = ARG_FLOAT2; arg.float2Value = value; return arg; }
 	inline ScriptArg scriptArg(Vec3f value) { ScriptArg arg; arg.type = ARG_FLOAT3; arg.float3Value = value; return arg; }
 	inline ScriptArg scriptArg(Vec4f value) { ScriptArg arg; arg.type = ARG_FLOAT4; arg.float4Value = value; return arg; }

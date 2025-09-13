@@ -181,7 +181,7 @@ namespace TFE_Jedi
 			TFE_System::logWrite(LOG_ERROR, "ScriptArg Serialization", "Cannot serialize type \"object\"");
 			break;
 		case TFE_ForceScript::ARG_STRING:
-			SERIALIZE_STRING(version, arg->stdStr);
+			SERIALIZE_CSTRING(version, arg->strValue);
 			break;
 		case TFE_ForceScript::ARG_FLOAT2:
 			SERIALIZE_BUF(version, arg->float2Value.m, sizeof(Vec2f));

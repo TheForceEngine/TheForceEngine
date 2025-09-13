@@ -919,7 +919,8 @@ namespace TFE_ForceScript
 				} break;
 				case ARG_STRING:
 				{
-					context->SetArgObject(i, (void*)&arg[i].stdStr);
+					std::string stdStr(arg[i].strValue);
+					context->SetArgObject(i, (void*)&stdStr);
 				} break;
 				case ARG_FLOAT2:
 				{

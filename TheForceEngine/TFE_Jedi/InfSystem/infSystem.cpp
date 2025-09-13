@@ -2034,7 +2034,9 @@ namespace TFE_Jedi
 					memcpy(unquotedStr, &value[1], newLen);
 					unquotedStr[newLen] = 0;
 
-					arg[argCount].stdStr = std::string(unquotedStr);
+					// Force string to fixed-size.
+					unquotedStr[31] = 0;
+					strcpy(arg[argCount].strValue, unquotedStr);
 					arg[argCount].type = TFE_ForceScript::ARG_STRING;
 					argCount++;
 				}
