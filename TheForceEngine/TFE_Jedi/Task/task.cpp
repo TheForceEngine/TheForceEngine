@@ -565,6 +565,12 @@ namespace TFE_Jedi
 		{
 			return JFALSE;
 		}
+		// Timing still breaks down if the frames are too short - even with fractional ticks.
+		if (time - s_prevTime < 0.5f * s_minIntervalInSec)
+		{
+			return JFALSE;
+		}
+
 		s_prevTime = time;
 		s_currentMsg = MSG_RUN_TASK;
 		s_frameActiveTaskCount = 0;
