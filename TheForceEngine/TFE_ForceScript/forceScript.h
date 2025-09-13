@@ -6,6 +6,7 @@
 #include <TFE_System/types.h>
 #include <TFE_System/system.h>
 #include <TFE_FileSystem/stream.h>
+#include <cstring>
 #include <string>
 
 namespace TFE_ForceScript
