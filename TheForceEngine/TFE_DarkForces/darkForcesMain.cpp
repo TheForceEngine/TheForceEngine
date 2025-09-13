@@ -1617,6 +1617,12 @@ namespace TFE_DarkForces
 		// TFE - Scripting.
 		serialization_setVersion(curVersion);
 		TFE_ForceScript::serialize(stream);
+		if (!writeState)
+		{
+			// Setup the level script after script serialization and fixup INF function pointers.
+			loadLevelScript();
+			inf_fixupScriptCalls();
+		}
 
 		TFE_System::messages_serialize(stream);
 

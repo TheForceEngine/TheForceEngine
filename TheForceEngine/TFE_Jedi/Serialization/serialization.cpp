@@ -151,4 +151,47 @@ namespace TFE_Jedi
 			frame = (id < 0) ? nullptr : TFE_Sprite_Jedi::getFrameByIndex(ID_GET_INDEX(id), ID_GET_POOL(id));
 		}
 	}
+
+	void serialization_serializeScriptArg(Stream* stream, u32 version, TFE_ForceScript::ScriptArg* arg)
+	{
+		const bool write = s_sMode == SMODE_WRITE;
+		const bool read = !write;
+
+		// Use a fixed type rather than relying on the enum type.
+		s32 type = write ? s32(arg->type) : 0;
+		SERIALIZE(version, type, 0);
+		if (read) { arg->type = TFE_ForceScript::ScriptArgType(type); }
+
+		switch (arg->type)
+		{
+		case TFE_ForceScript::ARG_S32:
+			SERIALIZE(version, arg->iValue, 0);
+			break;
+		case TFE_ForceScript::ARG_U32:
+			SERIALIZE(version, arg->uValue, 0);
+			break;
+		case TFE_ForceScript::ARG_F32:
+			SERIALIZE(version, arg->fValue, 0.0f);
+			break;
+		case TFE_ForceScript::ARG_BOOL:
+			SERIALIZE(version, arg->bValue, false);
+			break;
+		case TFE_ForceScript::ARG_OBJECT:
+			// Not yet supported.
+			TFE_System::logWrite(LOG_ERROR, "ScriptArg Serialization", "Cannot serialize type \"object\"");
+			break;
+		case TFE_ForceScript::ARG_STRING:
+			SERIALIZE_STRING(version, arg->stdStr);
+			break;
+		case TFE_ForceScript::ARG_FLOAT2:
+			SERIALIZE_BUF(version, arg->float2Value.m, sizeof(Vec2f));
+			break;
+		case TFE_ForceScript::ARG_FLOAT3:
+			SERIALIZE_BUF(version, arg->float3Value.m, sizeof(Vec3f));
+			break;
+		case TFE_ForceScript::ARG_FLOAT4:
+			SERIALIZE_BUF(version, arg->float4Value.m, sizeof(Vec4f));
+			break;
+		}
+	}
 }

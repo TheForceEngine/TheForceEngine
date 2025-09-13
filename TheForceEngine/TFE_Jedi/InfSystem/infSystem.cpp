@@ -2375,7 +2375,8 @@ namespace TFE_Jedi
 				Stop* stop = inf_getStopByIndex(elev, index);
 				if (stop)
 				{
-					TFE_ForceScript::FunctionHandle func = getLevelScriptFunc(s_infArg1);
+					std::string funcName = s_infArg1;
+					TFE_ForceScript::FunctionHandle func = getLevelScriptFunc(funcName.c_str());
 					if (func)
 					{
 						if (!stop->scriptCalls)
@@ -2388,6 +2389,16 @@ namespace TFE_Jedi
 						// Up to 4 arguments.
 						scriptCall->argCount = inf_parseScriptCallArg(elev, stop, scriptCall->args, argCount - 3, s_infArg2, s_infArg3, s_infArg4, s_infArgExtra);
 						scriptCall->funcPtr = func;
+						// Copy the name, zero out any unused space to avoid saving to disk.
+						memset(scriptCall->funcName, 0, MAX_SCRIPT_CALL_NAME_LEN);
+						if (funcName.length() >= MAX_SCRIPT_CALL_NAME_LEN)
+						{
+							TFE_System::logWrite(LOG_ERROR, "InfSerialization", "Function name %s too long, the limit is 63 characters.", funcName.c_str());
+						}
+						else
+						{
+							strcpy(scriptCall->funcName, funcName.c_str());
+						}
 					}
 				}
 			} break;

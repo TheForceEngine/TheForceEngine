@@ -15,12 +15,15 @@ namespace TFE_Jedi
 	enum InfStateVersion : u32
 	{
 		InfState_InitVersion = 1,
-		InfState_CurVersion = InfState_InitVersion,
+		InfState_ScriptCall,
+		InfState_CurVersion = InfState_ScriptCall,
 	};
 
 	// INF State
 	InfSerializableState s_infSerState = { };
 	InfState s_infState = { };
+
+	static std::vector<InfScriptCall*> s_infScriptCallsToFixup;
 
 	/////////////////////////////////////////////
 	// Forward Declarations
@@ -493,6 +496,8 @@ namespace TFE_Jedi
 		
 	void inf_serialize(Stream* stream)
 	{
+		s_infScriptCallsToFixup.clear();
+
 		SERIALIZE_VERSION(InfState_CurVersion);
 		
 		s32 elevCount, teleCount, trigCount;
@@ -627,6 +632,32 @@ namespace TFE_Jedi
 		SERIALIZE(InfState_InitVersion, msg->arg2, 0);
 	}
 
+	void inf_serializeSciptCall(Stream* stream, Stop* stop, InfScriptCall* call)
+	{
+		SERIALIZE(InfState_ScriptCall, call->argCount, 0);
+		for (s32 i = 0; i < call->argCount; i++)
+		{
+			serialization_serializeScriptArg(stream, InfState_ScriptCall, &call->args[i]);
+		}
+		SERIALIZE_CSTRING(InfState_ScriptCall, call->funcName);
+		if (serialization_getMode() == SMODE_READ)
+		{
+			call->funcPtr = nullptr;
+			s_infScriptCallsToFixup.push_back(call);
+		}
+	}
+
+	void inf_fixupScriptCalls()
+	{
+		const s32 count = (s32)s_infScriptCallsToFixup.size();
+		for (s32 i = 0; i < count; i++)
+		{
+			InfScriptCall* call = s_infScriptCallsToFixup[i];
+			call->funcPtr = getLevelScriptFunc(call->funcName);
+		}
+		s_infScriptCallsToFixup.clear();
+	}
+
 	void inf_serializeAdjoin(Stream* stream, Stop* stop, AdjoinCmd* adjCmd)
 	{
 		serialization_serializeSectorPtr(stream, InfState_InitVersion, adjCmd->sector0);
@@ -684,6 +715,35 @@ namespace TFE_Jedi
 			}
 		}
 
+		// Script Calls
+		s32 scriptCallCount = 0;
+		if (serialization_getMode() == SMODE_WRITE)
+		{
+			scriptCallCount = allocator_getCount(stop->scriptCalls);
+		}
+		SERIALIZE(InfState_ScriptCall, scriptCallCount, 0);
+		if (serialization_getMode() == SMODE_WRITE)
+		{
+			allocator_saveIter(stop->scriptCalls);
+			InfScriptCall* call = (InfScriptCall*)allocator_getHead(stop->scriptCalls);
+			while (call)
+			{
+				inf_serializeSciptCall(stream, stop, call);
+				call = (InfScriptCall*)allocator_getNext(stop->scriptCalls);
+			}
+			allocator_restoreIter(stop->scriptCalls);
+		}
+		else if (scriptCallCount > 0) // SMODE_READ
+		{
+			stop->scriptCalls = allocator_create(sizeof(InfScriptCall));
+			for (s32 c = 0; c < scriptCallCount; c++)
+			{
+				InfScriptCall* call = (InfScriptCall*)allocator_newItem(stop->scriptCalls);
+				if (!call) { return; } 
+				inf_serializeSciptCall(stream, stop, call);
+			}
+		}
+
 		// Adjoin Commands
 		s32 adjCount;
 		if (serialization_getMode() == SMODE_WRITE)
@@ -708,8 +768,7 @@ namespace TFE_Jedi
 			for (s32 a = 0; a < adjCount; a++)
 			{
 				AdjoinCmd* adjCmd = (AdjoinCmd*)allocator_newItem(stop->adjoinCmds);
-				if (!adjCmd)
-					return;
+				if (!adjCmd) { return; }
 				inf_serializeAdjoin(stream, stop, adjCmd);
 			}
 		}

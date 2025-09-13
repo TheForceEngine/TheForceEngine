@@ -83,6 +83,12 @@ namespace TFE_Jedi
 		TELEPORT_CHUTE = 1
 	};
 
+	enum ScriptCallConst
+	{
+		MAX_SCRIPT_CALL_NAME_LEN = 64,
+		MAX_SCRIPT_CALL_ARG = 5,
+	};
+
 	struct Teleport
 	{
 		RSector* sector;
@@ -150,7 +156,8 @@ namespace TFE_Jedi
 	{
 		void* funcPtr;
 		s32 argCount;
-		TFE_ForceScript::ScriptArg args[5];
+		TFE_ForceScript::ScriptArg args[MAX_SCRIPT_CALL_ARG];
+		char funcName[MAX_SCRIPT_CALL_NAME_LEN];	// Needed for serialization.
 	};
 
 	struct Slave
