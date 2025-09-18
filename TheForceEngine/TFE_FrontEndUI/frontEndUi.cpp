@@ -1201,18 +1201,6 @@ namespace TFE_FrontEndUI
 			gameSettings->df_enableAutoaim = enableAutoaim;
 		}
 
-		bool showSecretMsg = gameSettings->df_showSecretFoundMsg;
-		if (ImGui::Checkbox("Show Secret Found Message", &showSecretMsg))
-		{
-			gameSettings->df_showSecretFoundMsg = showSecretMsg;
-		}
-
-		bool showKeysUsed = gameSettings->df_showKeyUsed;
-		if (ImGui::Checkbox("Show Key Used messages", &showKeysUsed))
-		{
-			gameSettings->df_showKeyUsed = showKeysUsed;
-		}
-
 		bool autorun = gameSettings->df_autorun;
 		if (ImGui::Checkbox("Autorun", &autorun))
 		{
@@ -1243,11 +1231,42 @@ namespace TFE_FrontEndUI
 			gameSettings->df_autoEndMission = autoEndMission;
 		}
 
+		ImGui::Separator();
+
+		ImGui::PushFont(s_versionFont);
+		ImGui::LabelText("##ConfigLabel", "UI Settings");
+		ImGui::PopFont();
+
 		bool showKeyColors = gameSettings->df_showKeyColors;
 		if (ImGui::Checkbox("Show the key color of the door on the map", &showKeyColors))
 		{
 			gameSettings->df_showKeyColors = showKeyColors;
 		}
+
+		bool centerDataPos = gameSettings->df_centerHudPosition;
+		if (ImGui::Checkbox("Center the hud LADATA overlay", &centerDataPos))
+		{
+			gameSettings->df_centerHudPosition = centerDataPos;
+		}
+
+		bool showSecretMsg = gameSettings->df_showSecretFoundMsg;
+		if (ImGui::Checkbox("Show Secret Found Message", &showSecretMsg))
+		{
+			gameSettings->df_showSecretFoundMsg = showSecretMsg;
+		}
+
+		bool showSecretCount = gameSettings->df_showSecretCount;
+		if (ImGui::Checkbox("Show the Total Number of Secrets Found", &showSecretCount))
+		{
+			gameSettings->df_showSecretCount = showSecretCount;
+		}
+
+		bool showKeysUsed = gameSettings->df_showKeyUsed;
+		if (ImGui::Checkbox("Show Key Used messages", &showKeysUsed))
+		{
+			gameSettings->df_showKeyUsed = showKeysUsed;
+		}
+
 
 		ImGui::Separator();
 
