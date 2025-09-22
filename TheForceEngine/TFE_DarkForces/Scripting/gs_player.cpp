@@ -1,6 +1,5 @@
 #include "gs_player.h"
 #include "assert.h"
-#include <TFE_DarkForces/player.h>
 #include <TFE_DarkForces/mission.h>
 #include <TFE_DarkForces/pickup.h>
 #include <TFE_DarkForces/weapon.h>

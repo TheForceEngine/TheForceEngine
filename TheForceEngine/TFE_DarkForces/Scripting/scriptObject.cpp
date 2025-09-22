@@ -1,4 +1,5 @@
 #include "gs_level.h"
+#include "gs_player.h"
 #include "scriptObject.h"
 #include "scriptSector.h"
 #include <angelscript.h>
@@ -14,9 +15,17 @@
 #include <TFE_ForceScript/scriptAPI.h>
 #include <TFE_Jedi/Level/levelData.h>
 #include <TFE_Jedi/Collision/collision.h>
+#include <TFE_Jedi/Memory/allocator.h>
 
 namespace TFE_DarkForces
 {
+	// The "special" actors can all be cast to this struct (eg. bosses, dark troopers, mousebot, turret)
+	struct SpecialActor	
+	{
+		Logic logic;
+		PhysicsActor actor;
+	};
+
 	bool isScriptObjectValid(ScriptObject* sObject)
 	{
 		return sObject->m_id >= 0 && sObject->m_id < s_objectRefList.size();
@@ -278,12 +287,295 @@ namespace TFE_DarkForces
 		if (s_nightVisionActive) { disableNightVision(); }
 	}
 
+
 	void sendMessageToObject(MessageType messageType, ScriptObject* sObject)
 	{
 		if (!doesObjectExist(sObject)) { return; }
 		
 		SecObject* obj = TFE_Jedi::s_objectRefList[sObject->m_id].object;
 		message_sendToObj(obj, messageType, actor_messageFunc);
+	}
+
+	//////////////////////////////////////////////////////
+	// Logic related functionality
+	//////////////////////////////////////////////////////
+
+	// Helper function - gets the first Dispatch actor linked to an object
+	ActorDispatch* getDispatch(SecObject* obj)
+	{
+		Logic** logicPtr = (Logic**)allocator_getHead((Allocator*)obj->logic);
+		while (logicPtr)
+		{
+			Logic* logic = *logicPtr;
+			if (logic->type == LOGIC_DISPATCH)
+			{
+				return (ActorDispatch*)logic;
+			}
+			logicPtr = (Logic**)allocator_getNext((Allocator*)obj->logic);
+		}
+
+		return nullptr;
+	}
+
+	// Helper function - gets the damage module from a dispatch logic
+	DamageModule* getDamageModule(ActorDispatch* dispatch)
+	{
+		for (s32 i = 0; i < ACTOR_MAX_MODULES; i++)
+		{
+			ActorModule* module = dispatch->modules[ACTOR_MAX_MODULES - 1 - i];
+			if (module && module->type == ACTMOD_DAMAGE)
+			{
+				return (DamageModule*)module;
+			}
+		}
+
+		return nullptr;
+	}
+
+	// Helper function - gets the attack module from a dispatch logic
+	AttackModule* getAttackModule(ActorDispatch* dispatch)
+	{
+		for (s32 i = 0; i < ACTOR_MAX_MODULES; i++)
+		{
+			ActorModule* module = dispatch->modules[ACTOR_MAX_MODULES - 1 - i];
+			if (module && module->type == ACTMOD_ATTACK)
+			{
+				return (AttackModule*)module;
+			}
+		}
+
+		return nullptr;
+	}
+
+	int getHitPoints(ScriptObject* sObject)
+	{
+		if (!doesObjectExist(sObject)) { return -1; }
+		SecObject* obj = TFE_Jedi::s_objectRefList[sObject->m_id].object;
+
+		// First try to find a dispatch logic
+		ActorDispatch* dispatch = getDispatch(obj);
+		if (dispatch)
+		{
+			DamageModule* damageMod = getDamageModule(dispatch);
+			if (damageMod)
+			{
+				return floor16(damageMod->hp);
+			}
+		}
+
+		// Then try other logics
+		Logic** logicPtr = (Logic**)allocator_getHead((Allocator*)obj->logic);
+		while (logicPtr)
+		{
+			Logic* logic = *logicPtr;
+			PhysicsActor* actor = nullptr;
+
+			switch (logic->type)
+			{
+				case LOGIC_BOBA_FETT:
+				case LOGIC_DRAGON:
+				case LOGIC_PHASE_ONE:
+				case LOGIC_PHASE_TWO:
+				case LOGIC_PHASE_THREE:
+				case LOGIC_TURRET:
+				case LOGIC_WELDER:
+				case LOGIC_MOUSEBOT:
+					SpecialActor* data = (SpecialActor*)logic;
+					actor = &data->actor;
+					break;
+			}
+			
+			if (actor)
+			{
+				return floor16(actor->hp);
+			}
+			
+			logicPtr = (Logic**)allocator_getNext((Allocator*)obj->logic);
+		}
+
+		return -1;
+	}
+
+	void setHitPoints(int hitpoints, ScriptObject* sObject)
+	{
+		if (!doesObjectExist(sObject)) { return; }
+		SecObject* obj = TFE_Jedi::s_objectRefList[sObject->m_id].object;
+
+		// First try to find a dispatch logic
+		ActorDispatch* dispatch = getDispatch(obj);
+		if (dispatch)
+		{
+			DamageModule* damageMod = getDamageModule(dispatch);
+			if (damageMod)
+			{
+				damageMod->hp = FIXED(hitpoints);
+				return;
+			}
+		}
+
+		// Then try other logics
+		Logic** logicPtr = (Logic**)allocator_getHead((Allocator*)obj->logic);
+		while (logicPtr)
+		{
+			Logic* logic = *logicPtr;
+			PhysicsActor* actor = nullptr;
+
+			switch (logic->type)
+			{
+				case LOGIC_BOBA_FETT:
+				case LOGIC_DRAGON:
+				case LOGIC_PHASE_ONE:
+				case LOGIC_PHASE_TWO:
+				case LOGIC_PHASE_THREE:
+				case LOGIC_TURRET:
+				case LOGIC_WELDER:
+				case LOGIC_MOUSEBOT:
+					SpecialActor* data = (SpecialActor*)logic;
+					actor = &data->actor;
+					break;
+			}
+
+			if (actor)
+			{
+				actor->hp = FIXED(hitpoints);
+				return;
+			}
+
+			logicPtr = (Logic**)allocator_getNext((Allocator*)obj->logic);
+		}
+	}
+
+	void setProjectile(ProjectileType projectile, ScriptObject* sObject)
+	{
+		if (!doesObjectExist(sObject)) { return; }
+		SecObject* obj = TFE_Jedi::s_objectRefList[sObject->m_id].object;
+
+		ActorDispatch* dispatch = getDispatch(obj);
+		if (dispatch)
+		{
+			AttackModule* attackMod = getAttackModule(dispatch);
+			if (attackMod)
+			{
+				attackMod->projType = projectile;
+			}
+		}
+	}
+	
+	vec3_float getVelocity(ScriptObject* sObject)
+	{
+		if (!doesObjectExist(sObject)) { return { 0, 0, 0,}; }
+		SecObject* obj = TFE_Jedi::s_objectRefList[sObject->m_id].object;
+
+		// Is it the player?
+		if (obj->entityFlags & ETFLAG_PLAYER)
+		{
+			return getPlayerVelocity();
+		}
+
+		// First try to find a dispatch logic
+		ActorDispatch* dispatch = getDispatch(obj);
+		if (dispatch)
+		{
+			return
+			{
+				fixed16ToFloat(dispatch->vel.x),
+				-fixed16ToFloat(dispatch->vel.y),
+				fixed16ToFloat(dispatch->vel.z)
+			};
+		}
+
+		// Then try other logics
+		Logic** logicPtr = (Logic**)allocator_getHead((Allocator*)obj->logic);
+		while (logicPtr)
+		{
+			Logic* logic = *logicPtr;
+			PhysicsActor* actor = nullptr;
+
+			switch (logic->type)
+			{
+			case LOGIC_BOBA_FETT:
+			case LOGIC_DRAGON:
+			case LOGIC_PHASE_ONE:
+			case LOGIC_PHASE_TWO:
+			case LOGIC_PHASE_THREE:
+			case LOGIC_TURRET:
+			case LOGIC_WELDER:
+			case LOGIC_MOUSEBOT:
+				SpecialActor* data = (SpecialActor*)logic;
+				actor = &data->actor;
+				break;
+			}
+
+			if (actor)
+			{
+				return
+				{
+					fixed16ToFloat(actor->vel.x),
+					-fixed16ToFloat(actor->vel.y),
+					fixed16ToFloat(actor->vel.z)
+				};
+			}
+
+			logicPtr = (Logic**)allocator_getNext((Allocator*)obj->logic);
+		}
+
+		return { 0, 0, 0 };
+	}
+
+	void setVelocity(vec3_float vel, ScriptObject* sObject)
+	{
+		if (!doesObjectExist(sObject)) { return; }
+		SecObject* obj = TFE_Jedi::s_objectRefList[sObject->m_id].object;
+
+		// Is it the player?
+		if (obj->entityFlags & ETFLAG_PLAYER)
+		{
+			setPlayerVelocity(vel);
+			return;
+		}
+		
+		// First try to find a dispatch logic
+		ActorDispatch* dispatch = getDispatch(obj);
+		if (dispatch)
+		{
+			dispatch->vel.x = floatToFixed16(vel.x);
+			dispatch->vel.y = -floatToFixed16(vel.y);
+			dispatch->vel.z = floatToFixed16(vel.z);
+			return;
+		}
+
+		// Then try other logics
+		Logic** logicPtr = (Logic**)allocator_getHead((Allocator*)obj->logic);
+		while (logicPtr)
+		{
+			Logic* logic = *logicPtr;
+			PhysicsActor* actor = nullptr;
+
+			switch (logic->type)
+			{
+			case LOGIC_BOBA_FETT:
+			case LOGIC_DRAGON:
+			case LOGIC_PHASE_ONE:
+			case LOGIC_PHASE_TWO:
+			case LOGIC_PHASE_THREE:
+			case LOGIC_TURRET:
+			case LOGIC_WELDER:
+			case LOGIC_MOUSEBOT:
+				SpecialActor* data = (SpecialActor*)logic;
+				actor = &data->actor;
+				break;
+			}
+
+			if (actor)
+			{
+				actor->vel.x = floatToFixed16(vel.x);
+				actor->vel.y = -floatToFixed16(vel.y);
+				actor->vel.z = floatToFixed16(vel.z);
+				return;
+			}
+
+			logicPtr = (Logic**)allocator_getNext((Allocator*)obj->logic);
+		}
 	}
 
 	void ScriptObject::registerType()
@@ -294,6 +586,28 @@ namespace TFE_DarkForces
 		ScriptValueType("Object");
 		// Variables
 		ScriptMemberVariable("int id", m_id);
+
+		// Enums
+		ScriptEnumRegister("Projectiles");
+		ScriptEnumStr(PROJ_PUNCH);
+		ScriptEnumStr(PROJ_PISTOL_BOLT);
+		ScriptEnumStr(PROJ_RIFLE_BOLT);
+		ScriptEnumStr(PROJ_THERMAL_DET);
+		ScriptEnumStr(PROJ_REPEATER);
+		ScriptEnumStr(PROJ_PLASMA);
+		ScriptEnumStr(PROJ_MORTAR);
+		ScriptEnumStr(PROJ_LAND_MINE);
+		ScriptEnumStr(PROJ_LAND_MINE_PROX);
+		ScriptEnumStr(PROJ_LAND_MINE_PLACED);
+		ScriptEnumStr(PROJ_CONCUSSION);
+		ScriptEnumStr(PROJ_CANNON);
+		ScriptEnumStr(PROJ_MISSILE);
+		ScriptEnumStr(PROJ_TURRET_BOLT);
+		ScriptEnumStr(PROJ_REMOTE_BOLT);
+		ScriptEnumStr(PROJ_EXP_BARREL);
+		ScriptEnumStr(PROJ_HOMING_MISSILE);
+		ScriptEnumStr(PROJ_PROBE_PROJ);
+		ScriptEnum("PROJ_BOBAFETT_BALL", PROJ_BOBAFET_BALL);
 
 		// Checks
 		ScriptObjFunc("bool isValid()", isScriptObjectValid);
@@ -323,6 +637,13 @@ namespace TFE_DarkForces
 		ScriptObjFunc("void delete()", deleteObject);
 		ScriptObjFunc("void addLogic(string)", addLogicToObject);
 		ScriptObjFunc("void setCamera()", setCamera);
-		ScriptObjFunc("void sendMessage(int)", sendMessageToObject)
+		ScriptObjFunc("void sendMessage(int)", sendMessageToObject);
+
+		// Logic getters & setters
+		ScriptPropertyGetFunc("int get_hitPoints()", getHitPoints);
+		ScriptPropertySetFunc("void set_hitPoints(int)", setHitPoints);
+		ScriptPropertySetFunc("void set_projectile(int)", setProjectile);
+		ScriptPropertyGetFunc("float3 get_velocity()", getVelocity);
+		ScriptPropertySetFunc("void set_velocity(float3)", setVelocity);
 	}
 }
