@@ -4,6 +4,9 @@
 #include <TFE_FileSystem/fileutil.h>
 #include <TFE_Input/inputMapping.h>
 #include <TFE_RenderBackend/renderBackend.h>
+#include <TFE_ExternalData/dfLogics.h>
+#include <TFE_ExternalData/weaponExternal.h>
+#include <TFE_ExternalData/pickupExternal.h>
 #include <TFE_Settings/gameSourceData.h>
 #include <TFE_System/system.h>
 #include <cassert>
@@ -247,6 +250,14 @@ namespace TFE_SaveSystem
 		{
 			SaveHeader header;
 			loadHeader(&stream, &header, filename);
+			
+			// Clear out custom logics and external data before loading
+			TFE_ExternalData::getExternalLogics()->actorLogics.clear();
+			TFE_ExternalData::clearExternalWeapons();
+			TFE_ExternalData::clearExternalProjectiles();
+			TFE_ExternalData::clearExternalEffects();
+			TFE_ExternalData::clearExternalPickups();
+
 			ret = s_game->serializeGameState(&stream, filename, false);
 			stream.close();
 		}
