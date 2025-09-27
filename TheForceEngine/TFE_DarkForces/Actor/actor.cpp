@@ -305,6 +305,14 @@ namespace TFE_DarkForces
 		attackMod->meleeDmg = 0;
 		attackMod->meleeRate = FIXED(230);
 		attackMod->attackFlags = ATTFLAG_RANGED | ATTFLAG_LIT_RNG;
+		
+		// new to TFE - burstfire
+		attackMod->hasBurstFire = JFALSE;
+		attackMod->burstFire.burstNumber = 5;
+		attackMod->burstFire.variation = 2;
+		attackMod->burstFire.interval = 29;
+		attackMod->burstFire.shotCount = 5;
+		attackMod->burstFire.lastShot = 0;
 
 		// Why is this being returned? This function maybe should be a void? 
 		return attackMod->fireOffset.y;
@@ -1049,7 +1057,39 @@ namespace TFE_DarkForces
 					obj->flags |= OBJ_FLAG_FULLBRIGHT;
 				}
 
-				attackMod->anim.state = STATE_ANIMATE1;
+				// Burst fire option - set via custom logics
+				if (attackMod->hasBurstFire)
+				{
+					if (s_curTick < attackMod->burstFire.lastShot + attackMod->burstFire.interval)
+					{
+						break;
+					}
+
+					if (attackMod->burstFire.shotCount <= 1)
+					{
+						// Burst is finished, reset the shot count
+						attackMod->anim.state = STATE_ANIMATE1;
+						
+						s32 var = random(attackMod->burstFire.variation * 2);
+						s32 nextBurstNumber = attackMod->burstFire.burstNumber - attackMod->burstFire.variation + var;
+						attackMod->burstFire.shotCount = max(nextBurstNumber, 2);
+					}
+					else
+					{
+						// Reorient towards the player
+						attackMod->target.yaw = vec2ToAngle(s_playerObject->posWS.x - obj->posWS.x, s_playerObject->posWS.z - obj->posWS.z);
+
+						// Fire the next shot in the burst
+						attackMod->burstFire.lastShot = s_curTick;
+						attackMod->burstFire.shotCount--;
+					}
+				}
+				else
+				{
+					// No burst fire -- vanilla logic
+					attackMod->anim.state = STATE_ANIMATE1;
+				}
+				
 				vec3_fixed fireOffset = {};
 
 				// Calculate the X,Z fire offsets based on where the enemy is facing. It doesn't matter for Y. 

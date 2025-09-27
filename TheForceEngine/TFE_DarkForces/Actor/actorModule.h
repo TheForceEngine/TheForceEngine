@@ -142,6 +142,15 @@ struct ActorTarget
 	u32 flags;
 };
 
+struct ActorBurstFire
+{
+	u32 burstNumber;
+	u32 variation;
+	Tick interval;
+	Tick lastShot;
+	s32 shotCount;
+};
+
 struct AttackModule
 {
 	ActorModule header;
@@ -162,6 +171,10 @@ struct AttackModule
 	fixed16_16 meleeDmg;
 	fixed16_16 meleeRate;
 	u32 attackFlags;		// see AttackFlags above.
+
+	// New in TFE - Burst fire properties
+	JBool hasBurstFire;
+	ActorBurstFire burstFire;
 };
 
 struct MovementModule
