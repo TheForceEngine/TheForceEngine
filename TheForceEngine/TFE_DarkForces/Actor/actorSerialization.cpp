@@ -298,6 +298,13 @@ namespace TFE_DarkForces
 		SERIALIZE(SaveVersionInit, attackMod->meleeDmg, 0);
 		SERIALIZE(SaveVersionInit, attackMod->meleeRate, 0);
 		SERIALIZE(SaveVersionInit, attackMod->attackFlags, 0);
+
+		SERIALIZE(ObjState_BurstFire, attackMod->hasBurstFire, JFALSE);
+		SERIALIZE(ObjState_BurstFire, attackMod->burstFire.burstNumber, 5);
+		SERIALIZE(ObjState_BurstFire, attackMod->burstFire.variation, 2);
+		SERIALIZE(ObjState_BurstFire, attackMod->burstFire.interval, 29);
+		SERIALIZE(ObjState_BurstFire, attackMod->burstFire.shotCount, 5);
+		SERIALIZE(ObjState_BurstFire, attackMod->burstFire.lastShot, 0);
 	}
 
 	void actor_serializeAttackModule(Stream* stream, ActorModule*& mod, ActorDispatch* dispatch)

@@ -69,7 +69,8 @@ enum ObjStateVersion : u32
 	ObjState_RefList = 9,
 	ObjState_ExternalCamera = 10,
 	ObjState_LogicScriptCallV1 = 11,	// adds ScriptCalls on pickup, death, alert
-	ObjState_CurVersion = ObjState_LogicScriptCallV1,
+	ObjState_BurstFire = 12,
+	ObjState_CurVersion = ObjState_BurstFire,
 };
 
 // TFE Scripting
