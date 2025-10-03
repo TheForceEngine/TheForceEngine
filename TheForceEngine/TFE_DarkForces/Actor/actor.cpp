@@ -995,6 +995,11 @@ namespace TFE_DarkForces
 							// Do ranged attack (primary)
 							attackMod->anim.state = STATE_ATTACK1;
 							attackMod->timing.delay = attackMod->timing.rangedDelay;
+
+							if (attackMod->hasBurstFire)
+							{ 
+								attackMod->anim.flags &= ~AFLAG_PLAYONCE;	// if logic has burst fire, allow attack anim to loop
+							}
 						}
 
 						if (obj->type == OBJ_TYPE_SPRITE)
@@ -1028,7 +1033,7 @@ namespace TFE_DarkForces
 			} break;
 			case STATE_ATTACK1:
 			{
-				if (!(attackMod->anim.flags & AFLAG_READY))
+				if (!(attackMod->anim.flags & AFLAG_READY) && !attackMod->hasBurstFire)
 				{
 					break;
 				}
@@ -1067,8 +1072,9 @@ namespace TFE_DarkForces
 
 					if (attackMod->burstFire.shotCount <= 1)
 					{
-						// Burst is finished, reset the shot count
+						// Burst is finished, end the looping & reset the shot count
 						attackMod->anim.state = STATE_ANIMATE1;
+						attackMod->anim.flags |= AFLAG_PLAYONCE;
 						
 						s32 var = random(attackMod->burstFire.variation * 2);
 						s32 nextBurstNumber = attackMod->burstFire.burstNumber - attackMod->burstFire.variation + var;
