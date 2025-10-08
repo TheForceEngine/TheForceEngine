@@ -338,7 +338,7 @@ namespace TFE_DarkForces
 		sinCosFixed(velAngle, &cosVelAngle, &sinVelAngle);
 
 		newThrustPitch -= (mul16(physicsActor->vel.z, cosVelAngle) + mul16(physicsActor->vel.x, sinVelAngle));
-		newThrustPitch = clamp(div16(newThrustPitch, FIXED(100)), moveState->thrustPitchRange, -moveState->thrustPitchRange);
+		newThrustPitch = clamp(div16(newThrustPitch, FIXED(100)), -moveState->thrustPitchRange, moveState->thrustPitchRange);
 
 		fixed16_16 targetThrustPitch = floor16(mul16(newThrustPitch, FIXED(2048)));
 		fixed16_16 maxThrustPitchDelta = floor16(mul16(FIXED(1365), s_deltaTime));
@@ -459,7 +459,6 @@ namespace TFE_DarkForces
 					if (local(phase) == ATTACK_POINT)
 					{
 						local(nextPhaseChangeTick)   = s_curTick + ATTACK_POINT_DURATION;
-						local(moveState)->thrustPitch = ONE_16;
 						local(moveState)->thrustScale = ONE_16;
 						local(phase) = ATTACK_POINT1;
 
