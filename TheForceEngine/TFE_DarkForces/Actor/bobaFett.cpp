@@ -262,12 +262,13 @@ namespace TFE_DarkForces
 			fixed16_16 dy = target - pos;
 			if (vel != dy)
 			{
-				vel = max(0, dy - vel);
+				fixed16_16 targetThrust = max(0, dy - vel);
 				*thrustPitchRange = clamp(ONE_16 - (vel - 0x13333), 0, ONE_16);
-				vel = min(ONE_16, vel);
-
-				fixed16_16 maxChange = mul16(TFE_Jedi::abs(dy) + FIXED(4), s_deltaTime);
-				return clamp(vel - curThrust, -maxChange, maxChange) + curThrust;
+				
+				s32 maxDelta = mul16(TFE_Jedi::abs(dy) + FIXED(4), s_deltaTime);
+				fixed16_16 deltaThrust = min(ONE_16, targetThrust) - curThrust;
+				fixed16_16 newThrust = clamp(deltaThrust, -maxDelta, maxDelta) + curThrust;
+				return newThrust;
 			}
 		}
 		return 0;
