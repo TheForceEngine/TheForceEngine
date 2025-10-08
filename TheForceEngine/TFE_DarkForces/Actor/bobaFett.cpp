@@ -68,10 +68,10 @@ namespace TFE_DarkForces
 	struct BobaFettMoveState
 	{
 		vec3_fixed target;
-		fixed16_16 yAccel;
+		fixed16_16 thrustFactor;
 		SoundSourceId soundSrc;
 		angle14_32 thrustPitchRange;
-		fixed16_16 thrustPitch;
+		angle14_32 thrustPitch;
 		fixed16_16 thrustScale;
 		fixed16_16 lateralAccel;
 	};
@@ -275,11 +275,12 @@ namespace TFE_DarkForces
 		return 0;
 	}
 
-	void bobaFett_handleForces(PhysicsActor* physicsActor, fixed16_16 thrustScale, angle14_32 thrustPitch, fixed16_16 thrustMax, SoundSourceId soundSrc)
+	void bobaFett_handleForces(PhysicsActor* physicsActor, fixed16_16 thrustScale, angle14_32 thrustPitch, fixed16_16 thrustFactor, SoundSourceId soundSrc)
 	{
 		SecObject* obj = physicsActor->moveMod.header.obj;
 		if (thrustScale)
 		{
+			// Set the sound effect volume
 			physicsActor->moveSndId = sound_maintain(physicsActor->moveSndId, soundSrc, obj->posWS);
 			if (s_lastMaintainVolume)
 			{
@@ -287,7 +288,7 @@ namespace TFE_DarkForces
 				sound_setVolume(physicsActor->moveSndId, vol);
 			}
 
-			const fixed16_16 thrust = mul16(mul16(thrustScale, thrustMax), s_deltaTime);
+			const fixed16_16 thrust = mul16(mul16(thrustScale, thrustFactor), s_deltaTime);
 
 			// Vertical thrust.
 			fixed16_16 sinPitch, cosPitch;
@@ -330,7 +331,7 @@ namespace TFE_DarkForces
 			obj->yaw = (obj->yaw + angleDelta) & ANGLE_MASK;
 		}
 
-		// Adjust the vertical movement angle.
+		// Adjust the thrust pitch.
 		fixed16_16 dist = distApprox(obj->posWS.x, obj->posWS.z, moveState->target.x, moveState->target.z);
 		fixed16_16 scaledDist = min(ONE_16, dist >> 7);
 		fixed16_16 newThrustPitch = mul16(scaledDist, FIXED(100));
@@ -341,12 +342,12 @@ namespace TFE_DarkForces
 		newThrustPitch -= (mul16(physicsActor->vel.z, cosVelAngle) + mul16(physicsActor->vel.x, sinVelAngle));
 		newThrustPitch = clamp(div16(newThrustPitch, FIXED(100)), -moveState->thrustPitchRange, moveState->thrustPitchRange);
 
-		fixed16_16 targetThrustPitch = floor16(mul16(newThrustPitch, FIXED(2048)));
-		fixed16_16 maxThrustPitchDelta = floor16(mul16(FIXED(1365), s_deltaTime));
-		fixed16_16 thrustPitchDelta    = clamp(targetThrustPitch - moveState->thrustPitch, -maxThrustPitchDelta, maxThrustPitchDelta);
+		angle14_32 targetThrustPitch = floor16(mul16(newThrustPitch, FIXED(2048))); // 2048 = 45 degrees
+		angle14_32 maxThrustPitchDelta = floor16(mul16(FIXED(1365), s_deltaTime)); // 1365 = 30 degrees
+		angle14_32 thrustPitchDelta    = clamp(targetThrustPitch - moveState->thrustPitch, -maxThrustPitchDelta, maxThrustPitchDelta);
 		moveState->thrustPitch += thrustPitchDelta;
 
-		// Change the Y velocity offset and vertical angle range.
+		// Change the thrust scale and thrust pitch range.
 		moveState->thrustScale = bobaFett_thrust(moveState->target.y, obj->posWS.y, physicsActor->vel.y, moveState->thrustScale, &moveState->thrustPitchRange);
 		
 		// Apply lateral acceleration
@@ -361,7 +362,7 @@ namespace TFE_DarkForces
 		}
 
 		// Handle velocity adjustments based on forces.
-		bobaFett_handleForces(physicsActor, moveState->thrustScale, moveState->thrustPitch, moveState->yAccel, moveState->soundSrc);
+		bobaFett_handleForces(physicsActor, moveState->thrustScale, moveState->thrustPitch, moveState->thrustFactor, moveState->soundSrc);
 	}
 
 	void bobaFett_handleMovement(BobaFett* bobaFett)
@@ -909,7 +910,7 @@ namespace TFE_DarkForces
 		SERIALIZE(SaveVersionInit, physicsActor->state, BOBASTATE_DEFAULT);
 
 		SERIALIZE(SaveVersionInit, bobaFett->moveState.target, { 0 });
-		SERIALIZE(SaveVersionInit, bobaFett->moveState.yAccel, 0);
+		SERIALIZE(SaveVersionInit, bobaFett->moveState.thrustFactor, 0);
 		SERIALIZE(SaveVersionInit, bobaFett->moveState.thrustPitchRange, 0);
 		SERIALIZE(SaveVersionInit, bobaFett->moveState.thrustPitch, 0);
 		SERIALIZE(SaveVersionInit, bobaFett->moveState.thrustScale, 0);
@@ -940,7 +941,7 @@ namespace TFE_DarkForces
 
 		bobaFett->unused   = 0;
 		bobaFett->hitSndId = 0;
-		bobaFett->moveState.yAccel = FIXED(220);
+		bobaFett->moveState.thrustFactor = FIXED(220);
 		bobaFett->moveState.thrustPitchRange = ONE_16;
 		bobaFett->moveState.thrustPitch = 0;
 		bobaFett->moveState.thrustScale = 0;
