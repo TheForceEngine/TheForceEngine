@@ -55,10 +55,11 @@ namespace TFE_DarkForces
 	enum Timing : u32
 	{
 		SHOOT_DELAY_RANGE_VANILLA = 291,
-		SHOOT_DELAY_RANGE_ENH = 145,
+		SHOOT_DELAY_RANGE_ENH = 291,
 		ATTACK_POINT_DURATION = 728,    // 5 seconds
 		ATTACK_CIRCLE_DURATION = 1456,  // 10 seconds
 		ATTACK_FIGURE8_DURATION = 2184, // 15 seconds
+		FIGURE8_INTERVAL = 291,         // 2 seconds
 		CHANGE_HEIGHT_INTERVAL = 728,   // 5 seconds
 		SEARCH_DURATION = 8739,         // 60 seconds
 		SEARCH_PHASE_INTERVAL = 1456,   // 10 seconds
@@ -506,8 +507,7 @@ namespace TFE_DarkForces
 					if (local(phase) == ATTACK_FIGURE8)
 					{
 						local(nextPhaseChangeTick) = s_curTick + ATTACK_FIGURE8_DURATION;
-						local(nextSwapAccelTick)   = s_curTick +
-							(TFE_Settings::getGameSettings()->df_bobaFettFacePlayer ? SHOOT_DELAY_RANGE_ENH : SHOOT_DELAY_RANGE_VANILLA);
+						local(nextSwapAccelTick)   = s_curTick + FIGURE8_INTERVAL;
 						local(phase) = ATTACK_FIGURE8_1;
 						local(lateralAccel) = FIXED(50);
 					}
@@ -521,8 +521,7 @@ namespace TFE_DarkForces
 					if (local(nextSwapAccelTick) < s_curTick)
 					{
 						local(lateralAccel) = -local(lateralAccel);
-						local(nextSwapAccelTick) = s_curTick +
-							(TFE_Settings::getGameSettings()->df_bobaFettFacePlayer ? SHOOT_DELAY_RANGE_ENH : SHOOT_DELAY_RANGE_VANILLA);
+						local(nextSwapAccelTick) = s_curTick + FIGURE8_INTERVAL;
 					}
 				}
 				else if (local(phase) == ATTACK_NEWMODE)
