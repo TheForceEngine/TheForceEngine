@@ -485,6 +485,10 @@ namespace TFE_DarkForces
 		{
 			weapon->frame = 2;
 		}
+		else
+		{
+			weapon->frame = 0;
+		}
 	}
 
 	void weapon_computeMatrix(fixed16_16* mtx, angle14_32 pitch, angle14_32 yaw)
