@@ -775,7 +775,7 @@ namespace TFE_DarkForces
 		// s_prevWeapon is the weapon we are switching away from.
 		s_weaponAnimState =
 		{
-			0,							// frame
+			s_curPlayerWeapon->frame,	// frame
 			30, 40,						// startOffsetX, startOffsetY: was 14, 40
 			-3, -4,						// xSpeed, ySpeed
 			10, s_superCharge ? 1u : 2u	// frameCount, ticksPerFrame
@@ -1020,10 +1020,6 @@ namespace TFE_DarkForces
 			
 			const u8* atten = RClassic_Fixed::computeLighting(weaponLightingZDist, 0);
 			TextureData* tex = weapon->frames[weapon->frame];
-			if (weapon->ammo && *weapon->ammo == 0 && (weapon->ammo == &s_playerInfo.ammoDetonator || weapon->ammo == &s_playerInfo.ammoMine))
-			{
-				tex = s_playerWeaponList[WPN_FIST].frames[0];
-			}
 			
 			u32 dispWidth, dispHeight;
 			vfb_getResolution(&dispWidth, &dispHeight);
