@@ -10,6 +10,7 @@
 
 #include <TFE_System/types.h>
 #include <TFE_System/iniParser.h>
+#include <TFE_Jedi/Level/rtexture.h>
 #include <TFE_FileSystem/paths.h>
 #include <TFE_Audio/midiDevice.h>
 #include "gameSourceData.h"
@@ -382,12 +383,18 @@ static const char* modBoolOverrides[] =
 	"bryarOnly"
 };
 
+static const char* modTextureOverrides[] =
+{
+	"loadScreen",
+};
+
 struct ModSettingLevelOverride
 {
 	std::string levName;
 	std::map<std::string, int>  intOverrideMap = {};
 	std::map<std::string, float> floatOverrideMap = {};
 	std::map<std::string, bool> boolOverrideMap = {};
+	std::map<std::string, TextureData*> textureOverrideMap = {};
 };
 
 struct TFE_ModSettings
