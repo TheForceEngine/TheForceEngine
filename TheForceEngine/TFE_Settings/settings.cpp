@@ -1445,15 +1445,15 @@ namespace TFE_Settings
 	// Mod Settings/Overrides.
 	//////////////////////////////////////////////////
 
-	ModSettingLevelOverride getLevelOverrides(string levelName)
+	ModSettingLevelOverride* getLevelOverrides(string levelName)
 	{
 		string lowerLevel = TFE_A11Y::toLower(levelName);
 		if (s_modSettings.levelOverrides.find(lowerLevel) != s_modSettings.levelOverrides.end())
 		{
-			return s_modSettings.levelOverrides[lowerLevel];
+			return &s_modSettings.levelOverrides[lowerLevel];
 		}
-		ModSettingLevelOverride empty;
-		return empty;
+		
+		return nullptr;
 	}
 
 	ModSettingOverride parseJSonBoolToOverride(const cJSON* item)

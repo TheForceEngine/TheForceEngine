@@ -448,7 +448,7 @@ namespace TFE_Settings
 	bool jsonAiLogics();
 
 	// Settings for level mod overrides.
-	ModSettingLevelOverride getLevelOverrides(string levelName);
+	ModSettingLevelOverride* getLevelOverrides(string levelName);
 
 	bool validatePath(const char* path, const char* sentinel);
 	void autodetectGamePaths();

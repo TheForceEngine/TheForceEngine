@@ -738,6 +738,25 @@ namespace TFE_DarkForces
 				
 	void blitLoadingScreen()
 	{
+		// Moddable loading screen
+		const char* levelName = agent_getLevelName();
+		ModSettingLevelOverride* modLevelOverride = TFE_Settings::getLevelOverrides(levelName);
+		if (modLevelOverride && !modLevelOverride->levName.empty())
+		{
+			if (modLevelOverride->textureOverrideMap["loadScreen"])
+			{
+				s_loadScreen = modLevelOverride->textureOverrideMap["loadScreen"];
+			}
+			else
+			{
+				s_loadScreen = s_defaultLoadScreen;
+			}
+		}
+		else
+		{
+			s_loadScreen = s_defaultLoadScreen;
+		}
+		
 		if (!s_loadScreen) { return; }
 		blitTextureToScreen(s_loadScreen, (DrawRect*)vfb_getScreenRect(VFB_RECT_UI), 0/*x0*/, 0/*y0*/, s_framebuffer, JFALSE, JTRUE);
 	}

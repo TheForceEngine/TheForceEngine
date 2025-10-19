@@ -937,10 +937,10 @@ namespace TFE_DarkForces
 		TFE_System::logWrite(LOG_MSG, "Player", "Setting up level '%s'", levelName);
 
 		// Handle custom level player overrides
-		ModSettingLevelOverride modLevelOverride = TFE_Settings::getLevelOverrides(levelName);
-		if (!modLevelOverride.levName.empty())
+		ModSettingLevelOverride* modLevelOverride = TFE_Settings::getLevelOverrides(levelName);
+		if (modLevelOverride && !modLevelOverride->levName.empty())
 		{
-			player_handleLevelOverrides(modLevelOverride);
+			player_handleLevelOverrides(*modLevelOverride);
 		}
 		else if (!strcasecmp(levelName, "jabship"))
 		{
