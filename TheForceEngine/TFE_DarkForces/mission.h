@@ -55,6 +55,7 @@ namespace TFE_DarkForces
 	
 	extern JBool s_gamePaused;
 	extern GameMissionMode s_missionMode;
+	extern TextureData* s_defaultLoadScreen;
 	extern TextureData* s_loadScreen;
 	extern u8 s_loadingScreenPal[];
 	extern u8 s_levelPalette[];

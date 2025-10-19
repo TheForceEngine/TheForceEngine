@@ -54,6 +54,7 @@ namespace TFE_DarkForces
 	JBool s_canTeleport = JTRUE;
 	GameMissionMode s_missionMode = MISSION_MODE_MAIN;
 
+	TextureData* s_defaultLoadScreen = nullptr;
 	TextureData* s_loadScreen = nullptr;
 	u8 s_loadingScreenPal[768];
 	u8 s_levelPalette[768];
