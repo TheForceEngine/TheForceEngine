@@ -7,6 +7,7 @@
 
 namespace TFE_ExternalData
 {
+	// Numeric defaults are based on what is set by default in the original code
 	struct CustomActorLogic
 	{
 		const char* logicName;
@@ -15,18 +16,23 @@ namespace TFE_ExternalData
 		u32 fov = 210;			// 9557 in DF angle
 		u32 awareRange = 20;
 
+		// Sound effects
 		const char* alertSound = "";
 		const char* painSound = "";
 		const char* attack1Sound = "";
 		const char* attack2Sound = "";
 		const char* dieSound = "";
 
-		// Defaults are based on what is set by default in the original code
+		bool officerAlerts = false;
+		bool troopAlerts = false;
+
+		// Damage
 		u32 hitPoints = 4;
 		s32 dropItem = -1;
 		s32 dieEffect = -1;
 		bool stopOnDamage = true;
 
+		// Attack
 		bool hasMeleeAttack = false;
 		bool hasRangedAttack = true;
 		bool litWithMeleeAttack = false;
@@ -43,6 +49,7 @@ namespace TFE_ExternalData
 		u32 fireSpread = 30;
 		vec3_float fireOffset = { 0, -1000, 0 };	// (y = -1000) will be treated as default
 
+		// Thinker and movement
 		u32 speed = 4;
 		u32 verticalSpeed = 10;
 		u32 rotationSpeed = 720;	// 0x7fff in DF angle

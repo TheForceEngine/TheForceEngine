@@ -370,6 +370,18 @@ namespace TFE_ExternalData
 			return true;
 		}
 
+		if (cJSON_IsBool(data) && strcasecmp(data->string, "officerAlerts") == 0)
+		{
+			customLogic.officerAlerts = cJSON_IsTrue(data);
+			return true;
+		}
+
+		if (cJSON_IsBool(data) && strcasecmp(data->string, "troopAlerts") == 0)
+		{
+			customLogic.troopAlerts = cJSON_IsTrue(data);
+			return true;
+		}
+
 		// When it comes to offsets these are considered from the perspective of the actor.
 		//
 		// Projectile spawn details guide.

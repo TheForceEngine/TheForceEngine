@@ -131,7 +131,7 @@ namespace TFE_DarkForces
 					if (!head) { break; }		// JK: This is to prevent a crash happening when an invalid logic is set to a generator
 					ActorDispatch* actorLogic = *((ActorDispatch**)head);
 
-					actorLogic->flags &= ~1;
+					actorLogic->flags &= ~ACTOR_IDLE;
 					actorLogic->freeTask = task_getCurrent();
 					gen->aliveCount++;
 					gen->numTerminate--;

@@ -2013,7 +2013,7 @@ namespace TFE_DarkForces
 					{
 						dispatch->alertSndID = sound_playCued(s_officerAlertSndSrc[s_actorState.officerAlertIndex], obj->posWS);
 						s_actorState.officerAlertIndex++;
-						if (s_actorState.officerAlertIndex >= 4)
+						if (s_actorState.officerAlertIndex >= OFFICER_ALERT_COUNT)
 						{
 							s_actorState.officerAlertIndex = 0;
 						}
@@ -2022,7 +2022,7 @@ namespace TFE_DarkForces
 					{
 						dispatch->alertSndID = sound_playCued(s_stormAlertSndSrc[s_actorState.stormtrooperAlertIndex], obj->posWS);
 						s_actorState.stormtrooperAlertIndex++;
-						if (s_actorState.stormtrooperAlertIndex >= 8)
+						if (s_actorState.stormtrooperAlertIndex >= STORM_ALERT_COUNT)
 						{
 							s_actorState.stormtrooperAlertIndex = 0;
 						}

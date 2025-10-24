@@ -193,6 +193,14 @@ namespace TFE_DarkForces
 		dispatch->fov = floatToAngle((f32)cust->fov);
 		dispatch->awareRange = FIXED(cust->awareRange);
 
+		if (cust->officerAlerts)
+		{
+			dispatch->flags |= ACTOR_OFFIC_ALERT;
+		}
+		if (cust->troopAlerts)
+		{
+			dispatch->flags |= ACTOR_TROOP_ALERT;
+		}
 		// Damage Module
 		DamageModule* damageMod = actor_createDamageModule(dispatch);
 		damageMod->hp = FIXED(cust->hitPoints);
