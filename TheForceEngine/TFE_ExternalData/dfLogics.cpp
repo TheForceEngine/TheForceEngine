@@ -382,6 +382,18 @@ namespace TFE_ExternalData
 			return true;
 		}
 
+		if (cJSON_IsNumber(data) && strcasecmp(data->string, "stepUpHeight") == 0)
+		{
+			customLogic.stepUpHeight = data->valuedouble;
+			return true;
+		}
+
+		if (cJSON_IsNumber(data) && strcasecmp(data->string, "stepDownHeight") == 0)
+		{
+			customLogic.stepDownHeight = data->valuedouble;
+			return true;
+		}
+
 		// When it comes to offsets these are considered from the perspective of the actor.
 		//
 		// Projectile spawn details guide.

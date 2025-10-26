@@ -59,6 +59,8 @@ namespace TFE_ExternalData
 
 		f32 collisionWidth = -1;
 		f32 collisionHeight = -1;
+		f32 stepUpHeight = 3.5;
+		f32 stepDownHeight = 4;
 	};
 
 	struct ExternalLogics

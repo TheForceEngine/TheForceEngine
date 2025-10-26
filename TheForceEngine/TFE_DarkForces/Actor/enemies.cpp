@@ -261,6 +261,8 @@ namespace TFE_DarkForces
 		dispatch->moveMod = moveMod;
 		moveMod->physics.width = cust->collisionWidth < 0 ? obj->worldWidth : floatToFixed16(cust->collisionWidth);
 		moveMod->physics.height = cust->collisionHeight < 0 ? moveMod->physics.height : floatToFixed16(cust->collisionHeight);
+		moveMod->physics.stepUpHeight = floatToFixed16(cust->stepUpHeight);
+		moveMod->physics.stepDownHeight = floatToFixed16(cust->stepDownHeight);
 		
 		if (cust->isFlying)
 		{
