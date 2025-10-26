@@ -191,8 +191,8 @@ namespace TFE_DarkForces
 		SERIALIZE(SaveVersionInit, colInfo->offsetX, 0);
 		SERIALIZE(SaveVersionInit, colInfo->offsetY, 0);
 		SERIALIZE(SaveVersionInit, colInfo->offsetZ, 0);
-		SERIALIZE(SaveVersionInit, colInfo->botOffset, 0);
-		SERIALIZE(SaveVersionInit, colInfo->yPos, 0);
+		SERIALIZE(SaveVersionInit, colInfo->stepUpHeight, 0);
+		SERIALIZE(SaveVersionInit, colInfo->stepDownHeight, 0);
 		SERIALIZE(SaveVersionInit, colInfo->height, 0);
 		SERIALIZE(SaveVersionInit, colInfo->u24, 0);
 		SERIALIZE(SaveVersionInit, colInfo->width, 0);

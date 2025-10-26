@@ -38,22 +38,27 @@ struct CollisionInterval
 	fixed16_16 dirZ;
 };
 
+enum CollisionInfoFlags : u32
+{
+	COLINFO_INFINITE_DROP = FLAG_BIT(0),	// when set, the entity can move over an "infinitely" high cliff edge (up to 9999 units)
+};
+
 struct CollisionInfo
 {
 	SecObject* obj;
 	fixed16_16 offsetX;
 	fixed16_16 offsetY;
 	fixed16_16 offsetZ;
-	fixed16_16 botOffset;
-	fixed16_16 yPos;
-	fixed16_16 height;
+	fixed16_16 stepUpHeight;    // entity will be able to "climb" up this height (same as player's stepHeight)
+	fixed16_16 stepDownHeight;  // entity will be able to "step down" from this height
+	fixed16_16 height;          // entity height for the purposes of collision detection
 	s32 unused;
 
 	RWall* wall;
 	s32 u24;
 	SecObject* collidedObj;
 
-	fixed16_16 width;
+	fixed16_16 width;           // entity width (half-width, i.e. radius) for the purposes of collision detection
 	u32 flags;
 	JBool responseStep;
 	vec2_fixed responseDir;

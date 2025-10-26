@@ -264,8 +264,8 @@ namespace TFE_DarkForces
 		
 		if (cust->isFlying)
 		{
-			moveMod->collisionFlags = (moveMod->collisionFlags & ~ACTORCOL_ALL) | ACTORCOL_BIT2;	// Remove bits 0, 1 and set bit 2
-			moveMod->physics.yPos = FIXED(200);
+			moveMod->collisionFlags = (moveMod->collisionFlags & ~ACTORCOL_ALL) | ACTORCOL_SLIDE_RESPONSE;	// Remove bits 0, 1 and set bit 2
+			moveMod->physics.stepDownHeight = FIXED(200);
 		}
 		else
 		{

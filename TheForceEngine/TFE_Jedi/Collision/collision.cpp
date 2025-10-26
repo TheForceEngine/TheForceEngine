@@ -656,6 +656,9 @@ namespace TFE_Jedi
 	static vec3_fixed s_hcolSrcPos;
 	static SecObject* s_hcolObj;
 
+	// Gets the dot product of the movement vector and response direction vector, and applies it to the response direction
+	// vector to obtain the resulting movement vector
+	// Causes NPCs to slide against a wall that they collide with
 	void handleCollisionResponseSimple(fixed16_16 dirX, fixed16_16 dirZ, fixed16_16* moveX, fixed16_16* moveZ)
 	{
 		fixed16_16 proj = mul16(*moveX, dirX) + mul16(*moveZ, dirZ);
@@ -680,11 +683,11 @@ namespace TFE_Jedi
 		s_hcolDstPos.z = s_hcolSrcPos.z + colInfo->offsetZ;
 
 		fixed16_16 top = s_hcolSrcPos.y - colInfo->height;
-		fixed16_16 bot = s_hcolSrcPos.y - colInfo->botOffset;
+		fixed16_16 bot = s_hcolSrcPos.y - colInfo->stepUpHeight;
 
 		colInfo->responseStep = JFALSE;
-		fixed16_16 yMax = (colInfo->flags & 1) ? (s_hcolSrcPos.y + COL_INFINITY) : (s_hcolSrcPos.y + colInfo->yPos);
-		colInfo->flags &= ~1;
+		fixed16_16 yMin = (colInfo->flags & COLINFO_INFINITE_DROP) ? (s_hcolSrcPos.y + COL_INFINITY) : (s_hcolSrcPos.y + colInfo->stepDownHeight);
+		colInfo->flags &= ~COLINFO_INFINITE_DROP;
 
 		// Cross walls until the collision path hits something solid.
 		// Build a list of crossed walls in order to send INF events later.
@@ -699,24 +702,27 @@ namespace TFE_Jedi
 			{
 				if ((s_hcolObj->entityFlags & ETFLAG_AI_ACTOR) && (wall->flags3 & WF3_PLAYER_WALK_ONLY))
 				{
-					break;
+					break;	// AI actors cannot cross a wall with the WF3_PLAYER_WALK_ONLY flag
 				}
 
 				fixed16_16 ceilHeight, floorHeight;
 				sector_getObjFloorAndCeilHeight(next, s_hcolSrcPos.y, &floorHeight, &ceilHeight);
 				
-				if (floorHeight < bot || floorHeight > yMax || ceilHeight > top)
+				if (floorHeight < bot          // next sector's floor is too high (factoring in the entity's stepUpHeight)
+					|| floorHeight > yMin      // next sector's floor is too low (factoring in the entity's stepDownHeight) - this prevents actors from walking off cliffs
+					|| ceilHeight > top)       // next sector's ceiling is too low
 				{
 					break;
 				}
 
+				// Successfully crossed the wall - add to the list and move on to the next sector
 				wallCrossList[wallCrossCount++] = wall;
 				wall = collision_pathWallCollision(next);
 				curSector = next;
 			}
 			else
 			{
-				break;
+				break;  // wall is unadjoined or has the WF3_SOLID_WALL flag
 			}
 		}
 
@@ -752,7 +758,7 @@ namespace TFE_Jedi
 			s_colHeightBase = s_hcolObj->worldHeight;
 			s_colBottom = bot;
 			s_colTop = top;
-			s_colY1 = yMax;
+			s_colY1 = yMin;
 
 			s_colWall0 = wall;
 			s_colObj1.wall = wall;
@@ -784,7 +790,7 @@ namespace TFE_Jedi
 
 		if (curSector != s_hcolSector)
 		{
-			sector_addObject(curSector, s_hcolObj);
+			sector_addObject(curSector, s_hcolObj);  // object has crossed into a new sector
 		}
 
 		// Update the object XZ position.

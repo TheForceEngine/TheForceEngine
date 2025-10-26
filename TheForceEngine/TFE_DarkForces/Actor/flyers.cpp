@@ -159,8 +159,8 @@ namespace TFE_DarkForces
 				
 		MovementModule* moveMod = actor_createMovementModule(dispatch);
 		dispatch->moveMod = moveMod;
-		moveMod->collisionFlags = (moveMod->collisionFlags & ~ACTORCOL_ALL) | ACTORCOL_BIT2;
-		moveMod->physics.yPos = FIXED(200);
+		moveMod->collisionFlags = (moveMod->collisionFlags & ~ACTORCOL_ALL) | ACTORCOL_SLIDE_RESPONSE;
+		moveMod->physics.stepDownHeight = FIXED(200);
 		moveMod->physics.width = obj->worldWidth;
 
 		// Setup the animation.
@@ -209,8 +209,8 @@ namespace TFE_DarkForces
 
 		MovementModule* moveMod = actor_createMovementModule(dispatch);
 		dispatch->moveMod = moveMod;
-		moveMod->collisionFlags = (moveMod->collisionFlags & ~ACTORCOL_ALL) | ACTORCOL_BIT2;
-		moveMod->physics.yPos = FIXED(200);
+		moveMod->collisionFlags = (moveMod->collisionFlags & ~ACTORCOL_ALL) | ACTORCOL_SLIDE_RESPONSE;
+		moveMod->physics.stepDownHeight = FIXED(200);
 		moveMod->physics.width = obj->worldWidth;
 
 		// Setup the animation.
@@ -264,8 +264,8 @@ namespace TFE_DarkForces
 		MovementModule* moveMod = actor_createMovementModule(dispatch);
 		dispatch->moveMod = moveMod;
 		moveMod->collisionFlags &= ~ACTORCOL_ALL;
-		moveMod->collisionFlags |= ACTORCOL_BIT2;
-		moveMod->physics.yPos = FIXED(200);
+		moveMod->collisionFlags |= ACTORCOL_SLIDE_RESPONSE;
+		moveMod->physics.stepDownHeight = FIXED(200);
 
 		// should be: 0xa7ec
 		moveMod->physics.width = obj->worldWidth;

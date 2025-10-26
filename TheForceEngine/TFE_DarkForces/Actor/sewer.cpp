@@ -277,8 +277,8 @@ namespace TFE_DarkForces
 		obj->entityFlags &= ~ETFLAG_SMART_OBJ;
 
 		moveMod->collisionFlags = (moveMod->collisionFlags | ACTORCOL_NO_Y_MOVE) & ~ACTORCOL_GRAVITY;	// gravity is removed so they remain on the surface of water (floor height) rather than sinking down (second height)
-		moveMod->physics.yPos = 0;
-		moveMod->physics.botOffset = 0;
+		moveMod->physics.stepDownHeight = 0;
+		moveMod->physics.stepUpHeight = 0;
 		moveMod->physics.width = obj->worldWidth;
 		actor_setupInitAnimation();
 

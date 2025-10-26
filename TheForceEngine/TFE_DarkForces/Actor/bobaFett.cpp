@@ -671,7 +671,7 @@ namespace TFE_DarkForces
 		local(nextCheckForPlayerTick) = 0;
 		local(changeStateTick) = s_curTick + SEARCH_DURATION;
 		local(nextChangePhaseTick) = s_curTick + SEARCH_PHASE_INTERVAL;
-		local(physicsActor)->moveMod.collisionFlags |= ACTORCOL_BIT2;
+		local(physicsActor)->moveMod.collisionFlags |= ACTORCOL_SLIDE_RESPONSE;
 
 		while (local(physicsActor)->state == BOBASTATE_SEARCH)
 		{
@@ -723,7 +723,7 @@ namespace TFE_DarkForces
 			}
 		}  // while (state == BOBASTATE_SEARCH)
 
-		local(physicsActor)->moveMod.collisionFlags |= ACTORCOL_BIT2;
+		local(physicsActor)->moveMod.collisionFlags |= ACTORCOL_SLIDE_RESPONSE;
 		task_end;
 	}
 
@@ -955,11 +955,11 @@ namespace TFE_DarkForces
 		actor_setupSmartObj(&physicsActor->moveMod);
 
 		physicsActor->moveMod.physics.width = FIXED(2);
-		physicsActor->moveMod.physics.botOffset = 0;
+		physicsActor->moveMod.physics.stepUpHeight = 0;
 
 		physicsActor->moveMod.collisionFlags &= ~ACTORCOL_ALL;
-		physicsActor->moveMod.collisionFlags |= (ACTORCOL_GRAVITY | ACTORCOL_BIT2);
-		physicsActor->moveMod.physics.yPos = COL_INFINITY;
+		physicsActor->moveMod.collisionFlags |= (ACTORCOL_GRAVITY | ACTORCOL_SLIDE_RESPONSE);
+		physicsActor->moveMod.physics.stepDownHeight = COL_INFINITY;
 		physicsActor->moveMod.physics.height = obj->worldHeight;
 
 		LogicAnimation* anim = &physicsActor->anim;

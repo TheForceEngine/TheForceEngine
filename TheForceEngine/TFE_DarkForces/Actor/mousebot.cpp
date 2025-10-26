@@ -487,9 +487,9 @@ namespace TFE_DarkForces
 		obj->worldWidth  = width;
 		obj->worldHeight = width >> 1;
 
-		physActor->moveMod.physics.botOffset = 0;
-		physActor->moveMod.physics.yPos = 0;
-		physActor->moveMod.collisionFlags = (physActor->moveMod.collisionFlags | (ACTORCOL_NO_Y_MOVE | ACTORCOL_GRAVITY)) & ~ACTORCOL_BIT2;
+		physActor->moveMod.physics.stepUpHeight = 0;
+		physActor->moveMod.physics.stepDownHeight = 0;
+		physActor->moveMod.collisionFlags = (physActor->moveMod.collisionFlags | (ACTORCOL_NO_Y_MOVE | ACTORCOL_GRAVITY)) & ~ACTORCOL_SLIDE_RESPONSE;
 		physActor->moveMod.physics.height = obj->worldHeight + HALF_16;
 		physActor->moveMod.target.speed = FIXED(22);
 		physActor->moveMod.target.speedRotation = FIXED(3185);

@@ -104,8 +104,8 @@ namespace TFE_DarkForces
 			colInfo.offsetY = 0;
 			colInfo.offsetX = mul16(actorLogic->vel.x, 0x4000);
 			colInfo.offsetZ = mul16(actorLogic->vel.z, 0x4000);
-			colInfo.botOffset = ONE_16;
-			colInfo.yPos = COL_INFINITY;
+			colInfo.stepUpHeight = ONE_16;
+			colInfo.stepDownHeight = COL_INFINITY;
 			colInfo.height = ONE_16;
 			colInfo.unused = 0;
 			colInfo.width = colInfo.obj->worldWidth;

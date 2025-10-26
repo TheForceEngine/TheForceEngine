@@ -314,7 +314,7 @@ namespace TFE_DarkForces
 			local(target)->speed = FIXED(70);
 			local(flying) = JTRUE;
 			local(physicsActor)->moveMod.collisionFlags &= (~(ACTORCOL_NO_Y_MOVE | ACTORCOL_GRAVITY));
-			local(physicsActor)->moveMod.physics.yPos = COL_INFINITY;
+			local(physicsActor)->moveMod.physics.stepDownHeight = COL_INFINITY;
 		}
 		else
 		{
@@ -355,7 +355,7 @@ namespace TFE_DarkForces
 							} while (msg != MSG_RUN_TASK || !(local(anim)->flags & AFLAG_READY));
 
 							local(physicsActor)->moveMod.collisionFlags |= (ACTORCOL_NO_Y_MOVE | ACTORCOL_GRAVITY);
-							local(physicsActor)->moveMod.physics.yPos = COL_INFINITY;
+							local(physicsActor)->moveMod.physics.stepDownHeight = COL_INFINITY;
 							local(target)->speed = FIXED(25);
 							local(target)->flags &= ~TARGET_MOVE_Y;
 							sound_stop(local(trooper)->rocketSndId);
@@ -1051,7 +1051,7 @@ namespace TFE_DarkForces
 		actor_setupSmartObj(&physicsActor->moveMod);
 
 		physicsActor->moveMod.collisionFlags |= ACTORCOL_ALL;
-		physicsActor->moveMod.physics.yPos = COL_INFINITY;
+		physicsActor->moveMod.physics.stepDownHeight = COL_INFINITY;
 
 		ActorTarget* target = &physicsActor->moveMod.target;
 		target->flags &= ~TARGET_ALL;

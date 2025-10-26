@@ -1102,8 +1102,8 @@ namespace TFE_DarkForces
 		obj->flags |= OBJ_FLAG_MOVABLE;
 
 		CollisionInfo* physics = &physicsActor->moveMod.physics;
-		physics->botOffset = 0x60000;
-		physics->yPos = 0x80000;
+		physics->stepUpHeight = 0x60000;   // 6 units
+		physics->stepDownHeight = 0x80000; // 8 units
 		physics->width = obj->worldWidth;
 		physicsActor->moveMod.collisionFlags |= ACTORCOL_ALL;
 		physics->height = obj->worldHeight + HALF_16;

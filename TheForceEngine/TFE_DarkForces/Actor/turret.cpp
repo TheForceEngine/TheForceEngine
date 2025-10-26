@@ -596,8 +596,8 @@ namespace TFE_DarkForces
 		physics->height = obj->worldHeight + HALF_16;
 		physics->wall   = nullptr;
 		physics->u24    = 0;
-		physics->botOffset = 0;
-		physics->yPos = 0;
+		physics->stepUpHeight = 0;
+		physics->stepDownHeight = 0;
 
 		MovementModule* moveMod = &physicsActor->moveMod;
 		moveMod->header.obj = obj;
