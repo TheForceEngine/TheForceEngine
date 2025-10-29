@@ -616,6 +616,7 @@ namespace TFE_DarkForces
 
 		// Getters
 		ScriptObjFunc("Sector getSector()", getSector);
+		ScriptPropertyGetFunc("Sector get_sector()", getSector);
 		ScriptPropertyGetFunc("float3 get_position()", getPosition);
 		ScriptPropertyGetFunc("float get_yaw()", getYaw);
 		ScriptPropertyGetFunc("float get_radius()", getWorldWidth);
