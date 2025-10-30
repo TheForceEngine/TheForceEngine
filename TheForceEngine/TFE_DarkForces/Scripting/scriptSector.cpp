@@ -1,10 +1,13 @@
 #include "scriptSector.h"
 #include "scriptWall.h"
 #include "scriptTexture.h"
+#include "scriptObject.h"
 #include <TFE_ForceScript/ScriptAPI-Shared/scriptMath.h>
+#include <TFE_ForceScript/Angelscript/add_on/scriptarray/scriptarray.h>
 #include <TFE_Jedi/Level/levelData.h>
 #include <TFE_Jedi/Level/rwall.h>
 #include <TFE_Jedi/Level/rsector.h>
+#include <TFE_Jedi/Level/robjData.h>
 #include <TFE_Jedi/InfSystem/message.h>
 #include <angelscript.h>
 
@@ -197,6 +200,25 @@ namespace TFE_DarkForces
 		sendMessageToSector(messageType, evt, 0, sSector);
 	}
 
+	void getSectorObjects(CScriptArray& results, ScriptSector* sSector)
+	{
+		results.Resize(0);
+		if (!isScriptSectorValid(sSector)) { return; }
+		
+		RSector* sector = &s_levelState.sectors[sSector->m_id];
+		SecObject** objList = sector->objectList;
+		for (s32 i = 0, idx = 0; i < sector->objectCount && idx < sector->objectCapacity; idx++)
+		{
+			SecObject* obj = objList[idx];
+			if (obj)
+			{
+				s32 objIndex = obj_getRefIndex(obj);
+				ScriptObject sObj(objIndex);
+				results.InsertLast(&sObj);
+			}
+		}
+	}
+
 	void ScriptSector::registerType()
 	{
 		s32 res = 0;
@@ -213,6 +235,7 @@ namespace TFE_DarkForces
 		ScriptObjFunc("void setFlag(int, uint)", setSectorFlag);
 		ScriptObjFunc("float2 getCenterXZ()", getCenterXZ);
 		ScriptObjFunc("Wall getWall(int)", getWall);
+		ScriptObjFunc("void getObjects(array<Object>&)", getSectorObjects);
 
 		ScriptObjFunc("void sendMessage(int)", sendMessageToSector1);
 		ScriptObjFunc("void sendMessage(int, uint)", sendMessageToSector2);

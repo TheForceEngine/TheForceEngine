@@ -251,8 +251,9 @@ namespace TFE_DarkForces
 		scriptElev.registerType();
 		scriptTex.registerType();
 		scriptWall.registerType();
-		scriptSector.registerType();
 		scriptObject.registerType();
+		scriptSector.registerType();
+		scriptObject.registerFunctions();
 		
 		ScriptClassBegin("Level", "level", api);
 		{
