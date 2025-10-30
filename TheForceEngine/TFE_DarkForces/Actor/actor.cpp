@@ -326,6 +326,8 @@ namespace TFE_DarkForces
 		moveMod->collisionFlags |= ACTORCOL_GRAVITY;
 		// Added to disable auto-aim when dying.
 		logic->logic.obj->flags &= ~OBJ_FLAG_AIM;
+		
+		logic->flags |= ACTOR_DYING;   // added to stop burst fire when actor is dying
 	}
 
 	// Returns JTRUE if the object is on the floor, or JFALSE is not on the floor or moving too fast.
@@ -1069,6 +1071,8 @@ namespace TFE_DarkForces
 					{
 						break;
 					}
+
+					if (logic->flags & ACTOR_DYING) { break; }
 
 					if (attackMod->burstFire.shotCount <= 1)
 					{
