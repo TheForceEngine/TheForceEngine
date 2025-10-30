@@ -394,6 +394,12 @@ namespace TFE_ExternalData
 			return true;
 		}
 
+		if (cJSON_IsBool(data) && strcasecmp(data->string, "slideOnCollision") == 0)
+		{
+			customLogic.slideOnCollision = cJSON_IsTrue(data) ? 1 : 0;
+			return true;
+		}
+
 		// When it comes to offsets these are considered from the perspective of the actor.
 		//
 		// Projectile spawn details guide.

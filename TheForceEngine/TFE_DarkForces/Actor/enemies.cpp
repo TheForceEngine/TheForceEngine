@@ -201,6 +201,7 @@ namespace TFE_DarkForces
 		{
 			dispatch->flags |= ACTOR_TROOP_ALERT;
 		}
+
 		// Damage Module
 		DamageModule* damageMod = actor_createDamageModule(dispatch);
 		damageMod->hp = FIXED(cust->hitPoints);
@@ -272,6 +273,15 @@ namespace TFE_DarkForces
 		else
 		{
 			moveMod->collisionFlags |= ACTORCOL_NO_Y_MOVE;
+		}
+
+		if (cust->slideOnCollision == 0)
+		{
+			moveMod->collisionFlags &= ~ACTORCOL_SLIDE_RESPONSE;
+		}
+		else if (cust->slideOnCollision == 1)
+		{
+			moveMod->collisionFlags |= ACTORCOL_SLIDE_RESPONSE;
 		}
 
 		dispatch->animTable = s_customAnimTable;
