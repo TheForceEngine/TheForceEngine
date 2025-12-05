@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2023 Andreas Jonsson
+   Copyright (c) 2003-2025 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied
    warranty. In no event will the authors be held liable for any
@@ -101,17 +101,19 @@ enum asEObjVarInfoOption
 
 enum asEFuncTrait
 {
-	asTRAIT_CONSTRUCTOR = 1,    // method
-	asTRAIT_DESTRUCTOR  = 2,    // method
-	asTRAIT_CONST       = 4,    // method
-	asTRAIT_PRIVATE     = 8,    // method
-	asTRAIT_PROTECTED   = 16,   // method
-	asTRAIT_FINAL       = 32,   // method
-	asTRAIT_OVERRIDE    = 64,   // method
-	asTRAIT_SHARED      = 128,  // function
-	asTRAIT_EXTERNAL    = 256,  // function
-	asTRAIT_EXPLICIT    = 512,  // method
-	asTRAIT_PROPERTY    = 1024  // method/function
+	asTRAIT_CONSTRUCTOR = 1<<0,  // method
+	asTRAIT_DESTRUCTOR  = 1<<1,  // method
+	asTRAIT_CONST       = 1<<2,  // method
+	asTRAIT_PRIVATE     = 1<<3,  // method
+	asTRAIT_PROTECTED   = 1<<4,  // method
+	asTRAIT_FINAL       = 1<<5,  // method
+	asTRAIT_OVERRIDE    = 1<<6,  // method
+	asTRAIT_SHARED      = 1<<7,  // function
+	asTRAIT_EXTERNAL    = 1<<8,  // function
+	asTRAIT_EXPLICIT    = 1<<9,  // method
+	asTRAIT_PROPERTY    = 1<<10, // method/function
+	asTRAIT_DELETED     = 1<<11, // method
+	asTRAIT_VARIADIC    = 1<<12  // method/function
 };
 
 struct asSFunctionTraits
@@ -134,6 +136,7 @@ struct asSTryCatchInfo
 {
 	asUINT tryPos;
 	asUINT catchPos;
+	asUINT stackSize;
 };
 
 struct asSSystemFunctionInterface;
@@ -159,7 +162,10 @@ public:
 	asEFuncType          GetFuncType() const;
 	const char          *GetModuleName() const;
 	asIScriptModule     *GetModule() const;
+#ifdef AS_DEPRECATED
+	// deprecated since 2025-04-25, 2.38.0
 	const char          *GetScriptSectionName() const;
+#endif
 	const char          *GetConfigGroup() const;
 	asDWORD              GetAccessMask() const;
 	void                *GetAuxiliary() const;
@@ -178,9 +184,15 @@ public:
 	bool                 IsShared() const;
 	bool                 IsExplicit() const;
 	bool                 IsProperty() const;
+	bool                 IsVariadic() const;
 	asUINT               GetParamCount() const;
 	int                  GetParam(asUINT index, int *typeId, asDWORD *flags = 0, const char **name = 0, const char **defaultArg = 0) const;
 	int                  GetReturnTypeId(asDWORD *flags = 0) const;
+
+	// Template functions
+	asUINT       GetSubTypeCount() const;
+	int          GetSubTypeId(asUINT subTypeIndex = 0) const;
+	asITypeInfo* GetSubType(asUINT subTypeIndex = 0) const;
 
 	// Type id for function pointers
 	int                  GetTypeId() const;
@@ -196,9 +208,12 @@ public:
 	int                  GetVar(asUINT index, const char **name, int *typeId = 0) const;
 	const char *         GetVarDecl(asUINT index, bool includeNamespace = false) const;
 	int                  FindNextLineWithCode(int line) const;
+	int                  GetDeclaredAt(const char** scriptSection, int* row, int* col) const;
 
 	// For JIT compilation
-	asDWORD             *GetByteCode(asUINT *length = 0);
+	asDWORD *            GetByteCode(asUINT *length = 0);
+	int                  SetJITFunction(asJITFunction jitFunc);
+	asJITFunction        GetJITFunction() const;
 
 	// User data
 	void                *SetUserData(void *userData, asPWORD type);
@@ -216,6 +231,7 @@ public:
 	void SetProtected(bool set) { traits.SetTrait(asTRAIT_PROTECTED, set); }
 	void SetPrivate(bool set) { traits.SetTrait(asTRAIT_PRIVATE, set); }
 	void SetProperty(bool set) { traits.SetTrait(asTRAIT_PROPERTY, set); }
+	void SetVariadic(bool set) { traits.SetTrait(asTRAIT_VARIADIC, set); }
 	bool IsFactory() const;
 
 	asCScriptFunction(asCScriptEngine *engine, asCModule *mod, asEFuncType funcType);
@@ -238,7 +254,7 @@ public:
 
 	void      DestroyInternal();
 
-	void      AddVariable(const asCString &name, asCDataType &type, int stackOffset, bool onHeap);
+	void      AddVariable(const asCString &name, const asCDataType &type, int stackOffset, bool onHeap);
 
 	int       GetSpaceNeededForArguments();
 	int       GetSpaceNeededForReturnValue();
@@ -281,6 +297,9 @@ public:
 	void EnumReferences(asIScriptEngine *engine);
 	void ReleaseAllHandles(asIScriptEngine *engine);
 
+	// Don't allow the script function to be copied
+	asCScriptFunction(const asCScriptFunction&) = delete;
+
 public:
 	//-----------------------------------
 	// Properties
@@ -297,6 +316,7 @@ public:
 	asCString                    name;
 	asCDataType                  returnType;
 	asCArray<asCDataType>        parameterTypes;
+	asCArray<asCDataType>        templateSubTypes; // Increase ref of template subtypes
 	asCArray<asCString>          parameterNames;
 	asCArray<asETypeModifiers>   inOutFlags;
 	asCArray<asCString *>        defaultArgs;

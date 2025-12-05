@@ -12,7 +12,6 @@
 namespace TFE_Ui
 {
 const char* glsl_version = nullptr;
-
 static s32 s_uiScale = 100;
 static bool s_guiFrameActive;
 

@@ -69,7 +69,6 @@ if(ENABLE_TFE)
 		set(THREADS_PREFER_PTHREAD_FLAG ON)
 		find_package(Threads REQUIRED)
 		find_package(PkgConfig REQUIRED)
-
 		pkg_check_modules(SDL2 REQUIRED sdl2)
 		pkg_check_modules(SDL2_IMAGE REQUIRED SDL2_image)
 

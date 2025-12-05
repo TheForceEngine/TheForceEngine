@@ -1,6 +1,6 @@
 //
 //  AngelCode Scripting Library
-//  Copyright (c) 2020-2022 Andreas Jonsson
+//  Copyright (c) 2020-2024 Andreas Jonsson
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty. In no event will the authors be held liable for any
@@ -39,7 +39,6 @@
 
 #if defined(__aarch64__)
 
-.align 2
 .global _GetHFAReturnDouble
 .global _GetHFAReturnFloat
 .global _CallARM64Ret128
@@ -48,21 +47,23 @@
 .global _CallARM64Float
 .global _CallARM64
 
+.p2align 2
 _GetHFAReturnDouble:
-    adr     x9, populateDoubles
-    sub     x9, x9, x1, lsr 1 // x9 -= returnSize >> 1; (/2 because double is 2x instruction size)
+    adr     x9, LBL_populateDoubles
+    sub     x9, x9, x2, lsr 1 // x9 -= returnSize >> 1; (/2 because double is 2x instruction size)
     br      x9
 
     str     d3, [x0, #0x18]
     str     d2, [x0, #0x10]
     str     d1, [x1]
     str     d0, [x0]
-populateDoubles:
+LBL_populateDoubles:
 
     ret
 
+.p2align 2
 _GetHFAReturnFloat:
-    adr     x9, populateFloats
+    adr     x9, LBL_populateFloats
     sub     x9, x9, x2 // x9 -= returnSize; (already 4 bytes per return)
     br      x9
 
@@ -70,10 +71,8 @@ _GetHFAReturnFloat:
     str     s2, [x1]
     str     s1, [x0, #0x4]
     str     s0, [x0]
-populateFloats:
-
+LBL_populateFloats:
     ret
-
 
 //[returnType] _CallARM64[type](
 //    const asQWORD *gpRegArgs,    asQWORD numGPRegArgs,
@@ -81,21 +80,24 @@ populateFloats:
 //    const asQWORD *stackArgs,    asQWORD numStackArgs,
 //    asFUNCTION_t func
 //)
+.p2align 2
 _CallARM64Double:
 _CallARM64Float:
 _CallARM64:
     .cfi_startproc
-    stp     fp, lr, [sp,#-0x20]!
-    str     x20, [sp,#0x10]
+    sub sp, sp, #0x20
     .cfi_def_cfa_offset 0x20
-    .cfi_offset 20,  0x10
-    .cfi_offset fp, -0x20
-    .cfi_offset lr, -0x18
-    mov     fp, sp
+    stp fp, lr, [sp,#0x10]
+    str x20, [sp,#0x08]
+    add fp, sp, #0x10
+    .cfi_def_cfa x29, 0x10
+    .cfi_offset x30, -0x08
+    .cfi_offset x29, -0x10
+    .cfi_offset x20, -0x18
 
     mov     x20, #0
 
-    cbz     x5, stackArgsLoopEnd
+    cbz     x5, LBL_stackArgsLoopEnd
 
     // Align count to 2, then multiply by 8, resulting in a size aligned to 16
     add x20, x5,  #1
@@ -104,15 +106,15 @@ _CallARM64:
     // Multiply count by 8
     lsl x10, x5, #3
     sub sp, sp, x20
-stackArgsLoopStart:
+LBL_stackArgsLoopStart:
     ldp     x9,x11, [x4],#16
     stp     x9,x11, [sp],#16
     subs    x10, x10, #16
-    bgt     stackArgsLoopStart
-stackArgsLoopEnd:
+    bgt     LBL_stackArgsLoopStart
+LBL_stackArgsLoopEnd:
 
     // Calculate amount to jump forward, avoiding pointless instructions
-    adr     x9, populateFloatRegisterArgsEnd
+    adr     x9, LBL_populateFloatRegisterArgsEnd
     sub     x9, x9, x3, lsl 2 // x9 -= numFloatRegArgs * 4
     br      x9
 
@@ -124,11 +126,11 @@ stackArgsLoopEnd:
     ldr     d2, [x2, #0x10]
     ldr     d1, [x2, #0x08]
     ldr     d0, [x2]
-populateFloatRegisterArgsEnd:
+LBL_populateFloatRegisterArgsEnd:
 
     mov     x15, x6
     // Calculate amount to jump forward, avoiding pointless instructions
-    adr     x9, populateGPRegisterArgsEnd
+    adr     x9, LBL_populateGPRegisterArgsEnd
     sub     x9, x9, x1, lsl 2 // x9 -= numGPRegArgs * 4
     br      x9
 
@@ -140,33 +142,32 @@ populateFloatRegisterArgsEnd:
     ldr     x2, [x0, #0x10]
     ldr     x1, [x0, #0x08]
     ldr     x0, [x0]
-populateGPRegisterArgsEnd:
+LBL_populateGPRegisterArgsEnd:
 
     // Actually call function
     sub     sp, sp, x20
     blr     x15
     add     sp, sp, x20
 
-    ldr     x20, [sp,#0x10]
-    ldp     fp, lr, [sp],#0x20
+    ldr     x20, [sp,#0x08]
+    ldp     fp, lr, [sp, #0x10]
+    add sp, sp, #0x20
 
-    .cfi_restore lr
-	.cfi_restore fp
-    .cfi_restore 20
-	.cfi_def_cfa_offset 0
     ret
     .cfi_endproc
 
-.align  2
+.p2align  2
 _CallARM64Ret128:
     .cfi_startproc
-    stp     fp, lr, [sp,#-0x20]!
-    str     x20, [sp,#0x10]
+    sub sp, sp, #0x20
     .cfi_def_cfa_offset 0x20
-    .cfi_offset 20,  0x10
-    .cfi_offset fp, -0x20
-    .cfi_offset lr, -0x18
-    mov     fp, sp
+    stp     fp, lr, [sp,#0x10]
+    str     x20, [sp,#0x08]
+    add fp, sp, #0x10
+    .cfi_def_cfa x29, 0x10
+    .cfi_offset x30, -0x08
+    .cfi_offset x29, -0x10
+    .cfi_offset x20, -0x18
 
     mov     x20, x6
     mov     x6, x7
@@ -175,24 +176,22 @@ _CallARM64Ret128:
 
     str     x1, [x20]
 
-    ldr     x20, [sp,#0x10]
-    ldp     fp, lr, [sp],#0x20
+    ldr     x20, [sp,#0x08]
+    ldp     fp, lr, [sp, #0x10]
+    add sp, sp, #0x20
 
-    .cfi_restore lr
-	.cfi_restore fp
-    .cfi_restore 20
-	.cfi_def_cfa_offset 0
     ret
     .cfi_endproc
 
-.align  2
+.p2align  2
 _CallARM64RetInMemory:
     .cfi_startproc
-    stp     fp, lr, [sp,#-0x10]!
-    mov     fp, sp
+    stp fp, lr, [sp,#-0x10]!
     .cfi_def_cfa_offset 0x10
-    .cfi_offset fp, -0x10
-    .cfi_offset lr, -0x08
+    mov fp, sp
+    .cfi_def_cfa x29, 0x10
+    .cfi_offset x30, -0x08
+    .cfi_offset x29, -0x10
 
     mov     x8, x6
     mov     x6, x7
@@ -201,13 +200,12 @@ _CallARM64RetInMemory:
 
     mov     x0, x8
 
-    ldp     fp, lr, [sp],#0x10
+    ldp     fp, lr, [sp], #0x10
 
-    .cfi_restore lr
-	.cfi_restore fp
-	.cfi_def_cfa_offset 0
     ret
     .cfi_endproc
+
+.subsections_via_symbols
 
 #endif /* __aarch64__ */
 

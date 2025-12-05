@@ -84,3 +84,4 @@ TheForceEngine/tfelnx
 
 # Ignore dumps
 *.dmp
+.DS_Store

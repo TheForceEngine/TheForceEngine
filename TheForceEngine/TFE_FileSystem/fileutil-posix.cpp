@@ -133,7 +133,6 @@ namespace FileUtil
 	}
 
 #else 	// Linux
-
 	void getExecutionDirectory(char *dir)
 	{
 		char exe[PATH_MAX], *c;
@@ -386,13 +385,11 @@ namespace FileUtil
 			TFE_System::logWrite(LOG_WARNING, "getModifiedTime", "stat(%s) failed with %d\n", path, errno);
 			return (u64)-1;  // revisit
 		}
-
 #ifdef __APPLE__
 		mtim = (u64)st.st_mtimespec.tv_sec * 10000 + (u64)((double)st.st_mtimespec.tv_nsec / 100.0);
 #else
 		mtim = (u64)st.st_mtim.tv_sec * 10000 + (u64)((double)st.st_mtim.tv_nsec / 100.0);
 #endif
-
 		return mtim;
 	}
 

@@ -1084,5 +1084,4 @@ namespace TFE_RenderBackend
 			glBindVertexArray(s_globalVAO);
 		}
 	}
-
 }  // namespace

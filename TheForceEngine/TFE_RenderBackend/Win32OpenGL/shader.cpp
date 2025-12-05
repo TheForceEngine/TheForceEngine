@@ -63,7 +63,6 @@ bool Shader::create(const char* vertexShaderGLSL, const char* fragmentShaderGLSL
 	u32 fragHandle = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragHandle, 3, fragment_shader_with_version, NULL);
 	glCompileShader(fragHandle);
-
 	glGetShaderiv(fragHandle, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
@@ -151,7 +150,6 @@ void Shader::destroy()
 void Shader::bind()
 {
 	TFE_RenderBackend::bindGlobalVAO();	// for macOS GL
-
 	glUseProgram(m_gpuHandle);
 	TFE_RenderState::enableClipPlanes(m_clipPlaneCount);
 }
