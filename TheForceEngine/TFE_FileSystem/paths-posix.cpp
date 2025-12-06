@@ -183,7 +183,11 @@ namespace TFE_Paths
 	{
 		char p[TFE_MAX_PATH];
 		memset(p, 0, TFE_MAX_PATH);
+#ifdef __APPLE__
+		FileUtil::getExecutionDirectory(p);
+#else
 		FileUtil::getCurrentDirectory(p);
+#endif
 		s_paths[PATH_PROGRAM] = p;
 		s_paths[PATH_PROGRAM] += "/";
 		return true;
