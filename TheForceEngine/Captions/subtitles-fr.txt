@@ -82,7 +82,7 @@ m03jan01.voc "Jan : À votre guise, Kyle."
 m04kyl01.voc "Kyle : J'ai trouvé un métal qui m'a l'air intéressant. Je pense qu'on pourra en tirer des renseignements précieux."
 m04jan01.voc "Jan : C'est ce qu'il nous fallait. Sortons d'ici, je me sens nerveuse."
 //M05 (Gromas)
-m05kyl01.voc "Kyle : Jan, ici Kyle, la charge est fixée. on va pouvoir faire le ménage."
+m05kyl01.voc "Kyle : Jan, ici Kyle, la charge est fixée. On va pouvoir faire le ménage."
 m05kyl02.voc "Kyle : Jan, vous feriez bien de me sortir de là. Je viens juste d'en finir avec un Dark Trooper et je ne tiens pas vraiment à savoir s'il y en a d'autres dans le coin."
 m05jan01.voc "Jan : OK Kyle, ne vous inquiétez pas."
 m05kyl03.voc "Kyle : Si cette chose en bas est un aperçu de ce qu'ils nous préparent, on a intérêt à trouver des armes plus efficaces."
