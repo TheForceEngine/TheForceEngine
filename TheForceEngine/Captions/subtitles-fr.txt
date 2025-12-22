@@ -71,7 +71,7 @@ creatur1.voc "[Grondement menaçant, clapotis de l'eau]"
 m01kyl01.voc "Kyle : Un jeu d'enfant. Maintenant, je peux retourner à mon vaisseau."
 m01imp01.voc "Officier : Ligne de tir principale, en position ! Ligne de tir 1, 2, 5 et 9... envoyez !" 4.5
 //M02 (Talay)
-m02kyl01.voc "Kyle : Jan?"
+m02kyl01.voc "Kyle : Jan ?"
 m02jan01.voc "Jan : Allons-y, Kyle."
 m02kyl02.voc "Kyle : On dirait que j'ai trouvé quelque chose qui pourrait nous être utile."
 m02jan02.voc "Jan : Retournez sur les pistes, je vous retrouve là-bas."
@@ -186,10 +186,10 @@ m10kyl02 "Tu as raison, Jabba, reste là. Je vais le transformer en poulet rôti
 pigpush  "[Grognements gamorréens]"
 
 //M16 (unused?)
-m16moc02 "You are an excellent adversary, commander. The warrior's flame burns in your soul. It is a shame that we are not allies."
-m16moc03 "It is unfortunate that you do not appreciate what I am building here, commander. This is all for the soldier's glory, and his ultimate war - something a warrior's soul, like yours, should understand."
-m16moc04 "No glory? Then why do you engage in this war?"
-m16moc05 "You delude your, commander. We all fight for freedom. Too bad you will never see the conclusion of the Arc Hammer and its true goal!"
+m16moc02 "Vous êtes un adversaire redoutable, commandant. La flamme du guerrier brûle en vous. Quel dommage que nous ne soyons pas alliés."
+m16moc03 "Il est regrettable que vous ne compreniez pas ce que je construis ici, commandant. Tout ceci est pour la gloire du soldat et sa guerre ultime – une chose qu'une âme de guerrier, comme la vôtre, devrait comprendre."
+m16moc04 "Pas de gloire ? Alors pourquoi vous engagez-vous dans cette guerre ?"
+m16moc05 "Vous vous bercez d'illusions, commandant. Nous combattons tous pour la liberté. Quel dommage que vous ne voyiez jamais l'aboutissement du vaisseau Arc Hammer et son véritable objectif !"
 
 //After M16 (Arc Hammer)
 m16vdr01 "Voilà un échec fâcheux. Katarn s’en est tiré avec la Force comme alliée." 4.5
