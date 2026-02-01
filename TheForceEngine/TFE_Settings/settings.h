@@ -236,6 +236,10 @@ struct TFE_Settings_Game
 	s32  df_playbackFrameRate = 2;      // Playback Framerate value
 	bool df_showKeyUsed = true; 	    // Show a message when a key is used.
 	PitchLimit df_pitchLimit  = PITCH_VANILLA_PLUS;
+#ifdef ENABLE_OGV_CUTSCENES
+	bool df_enableRemasterCutscenes = true;   // Use remastered OGV cutscenes when available.
+	char df_remasterCutscenesPath[TFE_MAX_PATH] = "";  // Custom path to OGV cutscene files (empty = auto-detect).
+#endif
 };
 
 struct TFE_Settings_System

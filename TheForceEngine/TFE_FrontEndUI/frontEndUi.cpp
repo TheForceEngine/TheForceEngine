@@ -1195,6 +1195,15 @@ namespace TFE_FrontEndUI
 			gameSettings->df_disableFightMusic = disableFightMusic;
 		}
 
+#ifdef ENABLE_OGV_CUTSCENES
+		bool enableRemasterCutscenes = gameSettings->df_enableRemasterCutscenes;
+		if (ImGui::Checkbox("Use Remaster Cutscenes", &enableRemasterCutscenes))
+		{
+			gameSettings->df_enableRemasterCutscenes = enableRemasterCutscenes;
+		}
+		Tooltip("Play remastered video cutscenes instead of the original animations when available.");
+#endif
+
 		bool enableAutoaim = gameSettings->df_enableAutoaim;
 		if (ImGui::Checkbox("Enable Autoaim", &enableAutoaim))
 		{

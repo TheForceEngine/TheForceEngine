@@ -58,6 +58,7 @@ namespace TFE_RenderBackend
 	static bool s_gpuColorConvert = false;
 	static bool s_useRenderTarget = false;
 	static bool s_bloomEnable = false;
+	static bool s_skipDisplayAndClear = false;
 	static DisplayMode s_displayMode;
 	static f32 s_clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	static u32 s_rtWidth, s_rtHeight;
@@ -316,10 +317,24 @@ namespace TFE_RenderBackend
 		memcpy(s_clearColor, color, sizeof(f32) * 4);
 	}
 		
+	void setSkipDisplayAndClear(bool skip)
+	{
+		s_skipDisplayAndClear = skip;
+	}
+
+	bool getSkipDisplayAndClear()
+	{
+		return s_skipDisplayAndClear;
+	}
+
 	void swap(bool blitVirtualDisplay)
 	{
-		// Blit the texture or render target to the screen.
-		if (blitVirtualDisplay) { drawVirtualDisplay(); }
+		// If an external renderer (e.g. OGV player) already drew to the backbuffer, skip.
+		if (s_skipDisplayAndClear)
+		{
+			s_skipDisplayAndClear = false;
+		}
+		else if (blitVirtualDisplay) { drawVirtualDisplay(); }
 		else { glClear(GL_COLOR_BUFFER_BIT); }
 
 		// Handle the UI.

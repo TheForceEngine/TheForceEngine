@@ -579,6 +579,10 @@ namespace TFE_Settings
 		writeKeyValue_Bool(settings, "df_showKeyColors", s_gameSettings.df_showKeyColors);
 		writeKeyValue_Bool(settings, "df_showMapSecrets", s_gameSettings.df_showMapSecrets);
 		writeKeyValue_Bool(settings, "df_showMapObjects", s_gameSettings.df_showMapObjects);
+#ifdef ENABLE_OGV_CUTSCENES
+		writeKeyValue_Bool(settings, "df_enableRemasterCutscenes", s_gameSettings.df_enableRemasterCutscenes);
+		writeKeyValue_String(settings, "df_remasterCutscenesPath", s_gameSettings.df_remasterCutscenesPath);
+#endif
 	}
 
 	void writePerGameSettings(FileStream& settings)
@@ -1255,7 +1259,18 @@ namespace TFE_Settings
 		else if (strcasecmp("df_showMapObjects", key) == 0)
 		{
 			s_gameSettings.df_showMapObjects = parseBool(value);
-		}	
+		}
+#ifdef ENABLE_OGV_CUTSCENES
+		else if (strcasecmp("df_enableRemasterCutscenes", key) == 0)
+		{
+			s_gameSettings.df_enableRemasterCutscenes = parseBool(value);
+		}
+		else if (strcasecmp("df_remasterCutscenesPath", key) == 0)
+		{
+			strncpy(s_gameSettings.df_remasterCutscenesPath, value, TFE_MAX_PATH - 1);
+			s_gameSettings.df_remasterCutscenesPath[TFE_MAX_PATH - 1] = 0;
+		}
+#endif
 	}
 
 	void parseOutlawsSettings(const char* key, const char* value)
