@@ -1231,6 +1231,26 @@ namespace LevelEditor
 		return true;
 	}
 
+	void mergeExistingInfItem()
+	{
+		Editor_InfItem* last = &s_levelInf.item.back();
+		Editor_InfItem* item = s_levelInf.item.data();
+		for (s32 i = 0; i < (s32)s_levelInf.item.size() - 1; i++, item++) // -1: dont match self
+		{
+			if (item->name == last->name && item->wallNum == last->wallNum)
+			{
+				LE_WARNING("Merging INF item - Name: %s - Wall number: %d", last->name.c_str(), last->wallNum);
+				for (size_t j = 0; j < last->classData.size(); j++)
+				{
+					s_levelInf.item[i].classData.push_back(s_levelInf.item.back().classData[j]);
+				}
+
+				s_levelInf.item.pop_back();
+				return;
+			}
+		}
+	}
+
 	bool loadLevelInfFromAsset(const Asset* asset)
 	{
 		char infFile[TFE_MAX_PATH];
@@ -1454,6 +1474,9 @@ namespace LevelEditor
 					}  // while (!seqEnd) - outer (Line Classes).
 				} break;
 			}
+			
+			// Fix up sibling classes split over multiple seq blocks if we can
+			mergeExistingInfItem();
 		}
 
 		return true;
