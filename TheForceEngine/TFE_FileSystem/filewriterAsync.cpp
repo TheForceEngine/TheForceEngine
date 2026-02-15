@@ -6,6 +6,7 @@
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN 1
+#define NOGDI 1
 #include <Windows.h>
 #endif
 
@@ -26,9 +27,9 @@ namespace FileWriterAsync
 	s32 s_freeRequests[MAX_REQUEST_COUNT];
 	s32 s_processRequest[MAX_REQUEST_COUNT];
 
-	std::atomic<s32> s_requestCount = 0;
-	std::atomic<s32> s_freeRequestCount = 0;
-	std::atomic<s32> s_processRequestCount = 0;
+	std::atomic<s32> s_requestCount{0};
+	std::atomic<s32> s_freeRequestCount{0};
+	std::atomic<s32> s_processRequestCount{0};
 
 	void CALLBACK fileWrittenCallback(DWORD dwErrorCode, DWORD dwBytesTransferred, LPOVERLAPPED lpOverlapped)
 	{
