@@ -42,3 +42,46 @@ jobs:
     - name: Build
       shell: bash
       run: cmake --build ./build --config ${{env.BUILD_TYPE}}
+
+  flatpak:
+    name: Build Flatpak
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+
+    steps:
+    - name: Install Flatpak
+      run: |
+        sudo apt-get update -qq && \
+        sudo apt-get install -y flatpak flatpak-builder && \
+        flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo && \
+        flatpak install --user -y org.freedesktop.Sdk//24.08 org.freedesktop.Platform//24.08 org.flatpak.Builder
+
+    - uses: actions/checkout@v4
+      with:
+        repository: flathub/io.github.theforceengine.tfe
+        ref: master
+        submodules: true
+
+    - name: Patch Flatpak manifest to build current commit and repo
+      run: |
+        sed -i "s!luciusDXL/TheForceEngine!${{ github.repository }}!" io.github.theforceengine.tfe.yml && \
+        sed -i "s/tag: v.*/commit: ${{ github.sha }}/" io.github.theforceengine.tfe.yml
+        echo "::group::Patched manifest"
+        cat io.github.theforceengine.tfe.yml
+        echo "::endgroup::"
+
+    - name: Build Flatpak
+      run: |
+        flatpak-builder --install-deps-from=flathub \
+          build --force-clean --install --user io.github.theforceengine.tfe.yml
+
+    - name: Verify build
+      run: |
+        flatpak run --command=flatpak-builder-lint org.flatpak.Builder \
+          --exceptions builddir build
