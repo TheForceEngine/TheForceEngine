@@ -4006,7 +4006,7 @@ namespace TFE_FrontEndUI
 				gameSettings->df_stepSecondAlt = true; 
 				gameSettings->df_enableUnusedItem = true;
 				gameSettings->df_centerHudPosition = true;
-				gameSettings->df_showMapSecrets = true;
+				gameSettings->df_showMapSecrets = false;
 				gameSettings->df_showMapObjects = true;
 				gameSettings->df_pitchLimit = (temp == TEMPLATE_MODERN) ? PITCH_MAXIMUM : PITCH_VANILLA_PLUS;
 
@@ -4070,7 +4070,7 @@ namespace TFE_FrontEndUI
 				gameSettings->df_enableUnusedItem = false;
 				gameSettings->df_centerHudPosition = false;
 				gameSettings->df_showMapSecrets = false;
-				gameSettings->df_showMapObjects = false;
+				gameSettings->df_showMapObjects = true;
 				// Graphics
 				graphicsSettings->rendererIndex = RENDERER_SOFTWARE;
 				graphicsSettings->widescreen = false;
