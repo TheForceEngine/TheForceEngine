@@ -29,6 +29,7 @@ namespace LevelEditor
 		LCmd_Set_Textures,
 		LCmd_Guideline_Snapshot,
 		LCmd_Guideline_Snapshot_Single,
+		LCmd_LevelNote_Snapshot,
 		LCmd_Count
 	};
 
@@ -46,6 +47,7 @@ namespace LevelEditor
 	void cmd_applySetTextures();
 	void cmd_applyGuidelineSnapshot();
 	void cmd_applyGuidelineSingleSnapshot();
+	void cmd_applyLevelNoteSnapshot();
 
 	///////////////////////////////////
 	// API
@@ -61,6 +63,7 @@ namespace LevelEditor
 		history_registerCommand(LCmd_Set_Textures, cmd_applySetTextures);
 		history_registerCommand(LCmd_Guideline_Snapshot, cmd_applyGuidelineSnapshot);
 		history_registerCommand(LCmd_Guideline_Snapshot_Single, cmd_applyGuidelineSingleSnapshot);
+		history_registerCommand(LCmd_LevelNote_Snapshot, cmd_applyLevelNoteSnapshot);
 
 		history_registerName(LName_MoveVertex, "Move Vertice(s)");
 		history_registerName(LName_SetVertex, "Set Vertex Position");
@@ -100,6 +103,10 @@ namespace LevelEditor
 		history_registerName(LName_Guideline_Create, "Create Guidelines");
 		history_registerName(LName_Guideline_Delete, "Delete Guidelines");
 		history_registerName(LName_Guideline_Edit, "Edit Guidelines");
+		history_registerName(LName_LevelNote_Create, "Create Note");
+		history_registerName(LName_LevelNote_Delete, "Delete Note");
+		history_registerName(LName_LevelNote_Move, "Move Note");
+		history_registerName(LName_LevelNote_Change, "Change Note");
 	}
 
 	void levHistory_destroy()
@@ -305,6 +312,34 @@ namespace LevelEditor
 		}
 		CMD_END();
 	}
+
+	void cmd_levelNoteSnapshot(u32 name)
+	{
+		// Merge consecutive attribute changes
+		u16 prevCmd, prevName;
+		history_getPrevCmdAndName(prevCmd, prevName);
+		if (prevName == LName_LevelNote_Change)
+		{
+			history_removeLast();
+		}
+
+		s_workBuffer[0].clear();
+		s_workBuffer[1].clear();
+		level_createLevelNoteSnapshot(&s_workBuffer[0]);
+		if (s_workBuffer[0].empty()) { return; }
+
+		const u32 uncompressedSize = (u32)s_workBuffer[0].size();
+		const u32 compressedSize = compressBuffer();
+		if (!compressedSize) { return; }
+
+		CMD_BEGIN(LCmd_LevelNote_Snapshot, name);
+		{
+			hBuffer_addU32(uncompressedSize);
+			hBuffer_addU32(compressedSize);
+			hBuffer_addArrayU8(compressedSize, s_workBuffer[1].data());
+		}
+		CMD_END();
+	}
 		
 	////////////////////////////////
 	// History Commands
@@ -397,6 +432,19 @@ namespace LevelEditor
 		if (zstd_decompress(s_workBuffer[0].data(), uncompressedSize, compressedData, compressedSize))
 		{
 			level_unpackSingleGuidelineSnapshot(uncompressedSize, s_workBuffer[0].data());
+		}
+	}
+
+	void cmd_applyLevelNoteSnapshot()
+	{
+		const u32 uncompressedSize = hBuffer_getU32();
+		const u32 compressedSize = hBuffer_getU32();
+		const u8* compressedData = hBuffer_getArrayU8(compressedSize);
+		
+		s_workBuffer[0].resize(uncompressedSize);
+		if (zstd_decompress(s_workBuffer[0].data(), uncompressedSize, compressedData, compressedSize))
+		{
+			level_unpackLevelNoteSnapshot(uncompressedSize, s_workBuffer[0].data());
 		}
 	}
 

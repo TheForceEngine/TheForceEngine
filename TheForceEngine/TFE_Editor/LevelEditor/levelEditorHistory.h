@@ -46,6 +46,10 @@ namespace LevelEditor
 		LName_Guideline_Create,
 		LName_Guideline_Delete,
 		LName_Guideline_Edit,
+		LName_LevelNote_Create,
+		LName_LevelNote_Delete,
+		LName_LevelNote_Move,
+		LName_LevelNote_Change,
 		LName_Count
 	};
 
@@ -65,5 +69,6 @@ namespace LevelEditor
 	void cmd_objectListSnapshot(u32 name, s32 sectorId);
 	void cmd_setTextures(u32 name, s32 count, FeatureId* features);
 	void cmd_guidelineSnapshot(u32 name);
+	void cmd_levelNoteSnapshot(u32 name);
 	void cmd_guidelineSingleSnapshot(u32 name, s32 index, bool idChanged);
 }

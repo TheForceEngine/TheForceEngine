@@ -2,6 +2,7 @@
 #include "hotkeys.h"
 #include "levelEditor.h"
 #include "levelEditorData.h"
+#include "levelEditorHistory.h"
 #include "sharedState.h"
 #include <TFE_Editor/editorConfig.h>
 #include <TFE_Editor/LevelEditor/Rendering/viewport.h>
@@ -110,7 +111,11 @@ namespace LevelEditor
 			// Test
 			newNote.note = "Test Note\n  * Item 1\n  * Item 2\n";
 			//
-			addLevelNoteToLevel(&newNote);
+			s32 resultId = addLevelNoteToLevel(&newNote);
+			if (resultId >= 0)
+			{
+				cmd_levelNoteSnapshot(LName_LevelNote_Create);
+			}
 		}
 		else if (s_singleClick && s_hoveredLevelNote >= 0)
 		{
@@ -195,6 +200,7 @@ namespace LevelEditor
 					}
 					Vec3f moveDir = { note->pos.x - prevPos.x, 0.0f, note->pos.z - prevPos.z };
 					snapToGrid(&note->pos);
+					cmd_levelNoteSnapshot(LName_LevelNote_Move);
 
 					if (s_view == EDIT_VIEW_3D)
 					{
