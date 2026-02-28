@@ -200,7 +200,6 @@ namespace LevelEditor
 					}
 					Vec3f moveDir = { note->pos.x - prevPos.x, 0.0f, note->pos.z - prevPos.z };
 					snapToGrid(&note->pos);
-					cmd_levelNoteSnapshot(LName_LevelNote_Move);
 
 					if (s_view == EDIT_VIEW_3D)
 					{
@@ -216,6 +215,17 @@ namespace LevelEditor
 			{
 				s_editMove = false;
 			}
+		}
+		else if (!s_leftMouseDown && s_editMove)
+		{
+			// Only record in history if moved, not clicked
+			if (s_moveBasePos3d.x != s_level.notes[s_curLevelNote].pos.x ||
+				s_moveBasePos3d.y != s_level.notes[s_curLevelNote].pos.y ||
+				s_moveBasePos3d.z != s_level.notes[s_curLevelNote].pos.z)
+			{
+				cmd_levelNoteSnapshot(LName_LevelNote_Move);
+			}
+			s_editMove = false;
 		}
 		else
 		{
