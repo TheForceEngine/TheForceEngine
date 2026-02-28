@@ -69,6 +69,6 @@ namespace LevelEditor
 	void cmd_objectListSnapshot(u32 name, s32 sectorId);
 	void cmd_setTextures(u32 name, s32 count, FeatureId* features);
 	void cmd_guidelineSnapshot(u32 name);
-	void cmd_levelNoteSnapshot(u32 name);
+	void cmd_levelNoteSnapshot(u32 name, bool idChanged);
 	void cmd_guidelineSingleSnapshot(u32 name, s32 index, bool idChanged);
 }

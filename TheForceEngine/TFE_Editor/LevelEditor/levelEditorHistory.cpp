@@ -313,12 +313,12 @@ namespace LevelEditor
 		CMD_END();
 	}
 
-	void cmd_levelNoteSnapshot(u32 name)
+	void cmd_levelNoteSnapshot(u32 name, bool idChanged)
 	{
-		// Merge consecutive attribute changes
+		// Bundle consecutive attribute changes
 		u16 prevCmd, prevName;
 		history_getPrevCmdAndName(prevCmd, prevName);
-		if (prevName == LName_LevelNote_Change)
+		if (prevName == LName_LevelNote_Change && name == prevName && !idChanged)
 		{
 			history_removeLast();
 		}

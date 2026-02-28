@@ -36,6 +36,7 @@ namespace LevelEditor
 
 	s32 s_hoveredLevelNote = -1;
 	s32 s_curLevelNote = -1;
+	s32 s_prevLevelNote = -1; // For bundling consecutive attrib changes as one undo
 
 	void clearLevelNoteSelection()
 	{

@@ -114,7 +114,7 @@ namespace LevelEditor
 			s32 resultId = addLevelNoteToLevel(&newNote);
 			if (resultId >= 0)
 			{
-				cmd_levelNoteSnapshot(LName_LevelNote_Create);
+				cmd_levelNoteSnapshot(LName_LevelNote_Create, false);
 			}
 		}
 		else if (s_singleClick && s_hoveredLevelNote >= 0)
@@ -223,7 +223,7 @@ namespace LevelEditor
 				s_moveBasePos3d.y != s_level.notes[s_curLevelNote].pos.y ||
 				s_moveBasePos3d.z != s_level.notes[s_curLevelNote].pos.z)
 			{
-				cmd_levelNoteSnapshot(LName_LevelNote_Move);
+				cmd_levelNoteSnapshot(LName_LevelNote_Move, false);
 			}
 			s_editMove = false;
 		}
@@ -247,6 +247,7 @@ namespace LevelEditor
 			}
 			if (deleted)
 			{
+				cmd_levelNoteSnapshot(LName_LevelNote_Delete, false);
 				clearLevelNoteSelection();
 			}
 		}
