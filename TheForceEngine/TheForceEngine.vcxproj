@@ -431,6 +431,7 @@ echo ^)";
     <ClInclude Include="TFE_DarkForces\Landru\ltimer.h" />
     <ClInclude Include="TFE_DarkForces\Landru\lview.h" />
     <ClInclude Include="TFE_DarkForces\Landru\textCrawl.h" />
+    <ClInclude Include="TFE_DarkForces\Remaster\dcssParser.h" />
     <ClInclude Include="TFE_DarkForces\Remaster\ogvPlayer.h" />
     <ClInclude Include="TFE_DarkForces\Remaster\remasterCutscenes.h" />
     <ClInclude Include="TFE_DarkForces\Remaster\srtParser.h" />
@@ -852,6 +853,7 @@ echo ^)";
     <ClCompile Include="TFE_DarkForces\Landru\ltimer.cpp" />
     <ClCompile Include="TFE_DarkForces\Landru\lview.cpp" />
     <ClCompile Include="TFE_DarkForces\Landru\textCrawl.cpp" />
+    <ClCompile Include="TFE_DarkForces\Remaster\dcssParser.cpp" />
     <ClCompile Include="TFE_DarkForces\Remaster\ogvPlayer.cpp" />
     <ClCompile Include="TFE_DarkForces\Remaster\remasterCutscenes.cpp" />
     <ClCompile Include="TFE_DarkForces\Remaster\srtParser.cpp" />

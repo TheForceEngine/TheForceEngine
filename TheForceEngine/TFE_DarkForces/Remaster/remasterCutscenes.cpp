@@ -12,34 +12,109 @@
 #include <cstring>
 #include <string>
 
+//============================================================================
+// Remastered cutscene path resolution
+//============================================================================
+//
+// The remaster (NightDive's Kex engine port, codename "khonsu") packages
+// its OGV cutscenes alongside the original DOS game data. Depending on how
+// the user got it, the actual filesystem layout is one of:
+//
+//   Steam install:   <SteamApps>/common/STAR WARS Dark Forces Remaster/
+//                      dark.gob                      (original DF data)
+//                      DarkEX.kpf                    (zip with DCSS scripts)
+//                      movies/<scene>.ogv            (the video files)
+//                      movies/<scene>_<lang>.ogv     (localized variants)
+//   GOG install:     similar, different root
+//   Custom:          user-specified via df_remasterCutscenesPath
+//
+// DCSS scripts live inside DarkEX.kpf at cutscene_scripts/*.dcss. For TFE
+// modding purposes we extract them to a filesystem sibling of movies/, so
+// our on-disk layout looks like:
+//
+//   <root>/
+//      movies/<scene>.ogv
+//      cutscene_scripts/<scene>.dcss
+//      Subtitles/<scene>_<lang>.srt     (optional)
+//
+// This file's job: given a CutsceneState from cutscene.lst, figure out the
+// three concrete file paths for its OGV / DCSS / SRT.
+//
 namespace TFE_DarkForces
 {
+	// ------------------------------------------------------------------
+	// Module state
+	// ------------------------------------------------------------------
+	// All singletons. Cutscenes are driven serially, so we don't need
+	// per-caller state. The three static char buffers below get reused
+	// across every call to getVideoPath / getDcssPath / getSubtitlePath,
+	// so callers must consume the returned pointer before asking again.
 	static bool s_initialized = false;
 	static bool s_available = false;
+
+	// Directory paths (with trailing slash) where we found each kind of
+	// file. Cached at init time so per-cutscene lookups are fast.
 	static std::string s_videoBasePath;
+	static std::string s_scriptBasePath;
 	static std::string s_subtitleBasePath;
+
+	// Return buffers. Static so we can hand a const char* back to the
+	// caller without transferring ownership. A bit old-school, but
+	// matches the rest of TFE's path-handling conventions.
 	static char s_videoPathResult[TFE_MAX_PATH];
+	static char s_scriptPathResult[TFE_MAX_PATH];
 	static char s_subtitlePathResult[TFE_MAX_PATH];
 
-	// "ARCFLY.LFD" -> "arcfly"
-	static std::string archiveToBaseName(const char* archive)
+	// ------------------------------------------------------------------
+	// Name utilities
+	// ------------------------------------------------------------------
+
+	// ASCII lowercase, bounded to maxLen (the size of the source buffer).
+	// We use this for filename normalization since the remaster's files
+	// are all lowercase on disk but cutscene.lst's archive field is
+	// uppercase (e.g. "ARCFLY.LFD").
+	static std::string lower(const char* src, size_t maxLen)
 	{
-		std::string name(archive);
-		for (size_t i = 0; i < name.size(); i++)
+		std::string out;
+		out.reserve(maxLen);
+		for (size_t i = 0; i < maxLen && src[i]; i++)
 		{
-			name[i] = (char)tolower((u8)name[i]);
+			out.push_back((char)tolower((u8)src[i]));
 		}
+		return out;
+	}
+
+	// "ARCFLY.LFD" or "arcfly" -> "arcfly".
+	//
+	// The remaster keys its lookups on the scene *name* (column 3 of
+	// cutscene.lst), not the archive name. For stock data those are
+	// always the same string anyway (ARCFLY.LFD holds the "arcfly"
+	// scene), but they could diverge in a mod. Prefer scene name; fall
+	// back to archive basename so we don't regress on mods that happen
+	// to set scene="".
+	static std::string sceneBaseName(const CutsceneState* scene)
+	{
+		if (!scene) { return {}; }
+		if (scene->scene[0]) { return lower(scene->scene, sizeof(scene->scene)); }
+
+		std::string name = lower(scene->archive, sizeof(scene->archive));
 		size_t dot = name.rfind(".lfd");
-		if (dot != std::string::npos)
-		{
-			name = name.substr(0, dot);
-		}
+		if (dot != std::string::npos) { name = name.substr(0, dot); }
 		return name;
 	}
 
+	// ------------------------------------------------------------------
+	// Video path detection
+	// ------------------------------------------------------------------
+	//
+	// The remaster stores videos in either a "movies/" or "Cutscenes/"
+	// subdirectory depending on which release you have. Try both.
 	static const char* s_subdirNames[] = { "movies/", "Cutscenes/" };
 	static const int s_subdirCount = 2;
 
+	// Given a candidate root, check if either subdirectory exists and
+	// looks like our video layout. Returns true on the first hit and
+	// caches the full path (including trailing slash) in s_videoBasePath.
 	static bool tryBasePath(const char* basePath)
 	{
 		char testPath[TFE_MAX_PATH];
@@ -56,14 +131,30 @@ namespace TFE_DarkForces
 		return false;
 	}
 
+	// Try every plausible location for the remaster data, in a defined
+	// priority order. First hit wins.
+	//
+	// Priority rationale:
+	//   1. User-configured path is always king.
+	//   2. PATH_REMASTER_DOCS is a platform-specific override TFE uses on
+	//      consoles / packaged distributions.
+	//   3. sourcePath lets the user install the remaster to whatever
+	//      directory they want without hardcoding a registry lookup.
+	//   4. Registry lookup catches the common Steam/GOG install locations
+	//      on Windows without requiring config.
+	//   5. Program directory is a last-ditch "they dropped files next to
+	//      the EXE" case.
 	static bool detectVideoPath()
 	{
-		// Custom path from settings.
 #ifdef ENABLE_OGV_CUTSCENES
+		// 1. Explicit user override from settings.ini. If they bothered to
+		//    set this, they mean it - don't silently override with a
+		//    registry lookup.
 		const TFE_Settings_Game* gameSettings = TFE_Settings::getGameSettings();
 		if (gameSettings->df_remasterCutscenesPath[0])
 		{
 			std::string custom = gameSettings->df_remasterCutscenesPath;
+			// Trailing slash is required for our snprintf patterns below.
 			if (custom.back() != '/' && custom.back() != '\\') { custom += '/'; }
 			if (FileUtil::directoryExits(custom.c_str()))
 			{
@@ -71,17 +162,22 @@ namespace TFE_DarkForces
 				TFE_System::logWrite(LOG_MSG, "Remaster", "Using custom cutscene path: %s", custom.c_str());
 				return true;
 			}
+			// Fall through to other discovery; the user might have put
+			// the path in but then moved the files.
 		}
 #endif
 
-		// Remaster docs path.
+		// 2. Platform-configured remaster docs path (currently unused on
+		//    desktop; retained for console builds).
 		if (TFE_Paths::hasPath(PATH_REMASTER_DOCS))
 		{
 			if (tryBasePath(TFE_Paths::getPath(PATH_REMASTER_DOCS)))
 				return true;
 		}
 
-		// Source data path.
+		// 3. Same sourcePath they use for the original Dark Forces. If
+		//    they pointed it at the remaster install, movies/ will be
+		//    right there.
 		const char* sourcePath = TFE_Settings::getGameHeader("Dark Forces")->sourcePath;
 		if (sourcePath && sourcePath[0])
 		{
@@ -89,8 +185,10 @@ namespace TFE_DarkForces
 				return true;
 		}
 
-		// Steam registry lookup (Windows).
 #ifdef _WIN32
+		// 4. Windows registry: check both the standard Steam install and
+		//    the "TM" (trademark) variant that was briefly used. GOG has
+		//    its own registry entries handled elsewhere.
 		{
 			char remasterPath[TFE_MAX_PATH] = {};
 			if (WindowsRegistry::getSteamPathFromRegistry(
@@ -103,7 +201,6 @@ namespace TFE_DarkForces
 				if (tryBasePath(remasterPath))
 					return true;
 			}
-			// TM variant path.
 			if (WindowsRegistry::getSteamPathFromRegistry(
 				TFE_Settings::c_steamRemasterProductId[Game_Dark_Forces],
 				TFE_Settings::c_steamRemasterTMLocalPath[Game_Dark_Forces],
@@ -117,13 +214,69 @@ namespace TFE_DarkForces
 		}
 #endif
 
-		// Program directory.
+		// 5. Last resort: right next to the TFE executable.
 		if (tryBasePath(TFE_Paths::getPath(PATH_PROGRAM)))
 			return true;
 
 		return false;
 	}
 
+	// ------------------------------------------------------------------
+	// Script path detection
+	// ------------------------------------------------------------------
+	//
+	// Once we know where movies/ is, look for cutscene_scripts/ as its
+	// sibling. That's how the remaster's DarkEX.kpf lays things out:
+	//
+	//     <remaster_root>/
+	//       movies/
+	//       cutscene_scripts/      <- we're looking for this
+	//
+	// If a modder drops everything in one directory, we also check for
+	// cutscene_scripts/ as a child of movies/ as a fallback.
+	static void detectScriptPath()
+	{
+		if (s_videoBasePath.empty()) { return; }
+
+		// Walk back one directory. s_videoBasePath ends in "movies/" or
+		// "Cutscenes/"; strip that component to get the parent.
+		std::string root = s_videoBasePath;
+		if (!root.empty() && (root.back() == '/' || root.back() == '\\')) { root.pop_back(); }
+		size_t slash = root.find_last_of("/\\");
+		if (slash != std::string::npos) { root = root.substr(0, slash + 1); }
+		else { root += '/'; }
+
+		// Canonical location: sibling of movies/.
+		char testPath[TFE_MAX_PATH];
+		snprintf(testPath, TFE_MAX_PATH, "%scutscene_scripts/", root.c_str());
+		if (FileUtil::directoryExits(testPath))
+		{
+			s_scriptBasePath = testPath;
+			TFE_System::logWrite(LOG_MSG, "Remaster", "Found cutscene scripts at: %s", testPath);
+			return;
+		}
+
+		// Modder convenience: cutscene_scripts/ inside movies/.
+		snprintf(testPath, TFE_MAX_PATH, "%scutscene_scripts/", s_videoBasePath.c_str());
+		if (FileUtil::directoryExits(testPath))
+		{
+			s_scriptBasePath = testPath;
+			return;
+		}
+
+		// Last resort: look for DCSS files loose alongside the OGVs.
+		// This rarely works but costs nothing to try, and lets a modder
+		// hand-edit a single cutscene without making a new directory.
+		s_scriptBasePath = s_videoBasePath;
+	}
+
+	// ------------------------------------------------------------------
+	// Subtitle path detection
+	// ------------------------------------------------------------------
+	//
+	// The remaster ships SRT files either in a dedicated Subtitles/
+	// subdirectory (rare) or loose alongside the OGVs (typical). Check
+	// dedicated first, fall back to loose.
 	static void detectSubtitlePath()
 	{
 		if (s_videoBasePath.empty()) { return; }
@@ -136,12 +289,18 @@ namespace TFE_DarkForces
 			return;
 		}
 
-		// Fall back to same directory as videos.
 		s_subtitleBasePath = s_videoBasePath;
 	}
 
+	// ------------------------------------------------------------------
+	// Public API
+	// ------------------------------------------------------------------
+
 	void remasterCutscenes_init()
 	{
+		// Idempotent. cutscene_init might be called multiple times (e.g.
+		// if the user reloads the game without restarting TFE), and we
+		// only want to do path detection once.
 		if (s_initialized) { return; }
 		s_initialized = true;
 		s_available = false;
@@ -149,11 +308,15 @@ namespace TFE_DarkForces
 		if (detectVideoPath())
 		{
 			s_available = true;
+			detectScriptPath();
 			detectSubtitlePath();
 			TFE_System::logWrite(LOG_MSG, "Remaster", "Remaster OGV cutscene directory found.");
 		}
 		else
 		{
+			// This is the common case for people playing stock DOS Dark
+			// Forces without the remaster. Not an error - just means the
+			// LFD path stays in charge.
 			TFE_System::logWrite(LOG_MSG, "Remaster", "No remaster cutscene directory found; using original LFD cutscenes.");
 		}
 	}
@@ -163,17 +326,57 @@ namespace TFE_DarkForces
 		return s_available;
 	}
 
+	// ------------------------------------------------------------------
+	// Per-scene lookups
+	// ------------------------------------------------------------------
+	//
+	// Each returns a pointer to one of our static buffers, or nullptr on
+	// miss. These are called per-frame at the start of a cutscene (not
+	// inside the hot loop), so performance isn't critical; readability
+	// wins.
+
 	const char* remasterCutscenes_getVideoPath(const CutsceneState* scene)
 	{
 		if (!s_available || !scene) { return nullptr; }
 
-		std::string baseName = archiveToBaseName(scene->archive);
+		std::string baseName = sceneBaseName(scene);
 		if (baseName.empty()) { return nullptr; }
 
-		snprintf(s_videoPathResult, TFE_MAX_PATH, "%s%s.ogv", s_videoBasePath.c_str(), baseName.c_str());
-		if (FileUtil::exists(s_videoPathResult))
+		// Try the language-specific variant first. The remaster only
+		// localizes videos that have baked-in text (notably logo.ogv
+		// which shows opening credits in English / German / etc.). Most
+		// cutscenes are language-neutral and only the base file exists.
+		const TFE_Settings_A11y* a11y = TFE_Settings::getA11ySettings();
+		const char* lang = a11y->language.c_str();
+		if (lang && lang[0])
 		{
-			return s_videoPathResult;
+			snprintf(s_videoPathResult, TFE_MAX_PATH, "%s%s_%s.ogv",
+				s_videoBasePath.c_str(), baseName.c_str(), lang);
+			if (FileUtil::exists(s_videoPathResult)) { return s_videoPathResult; }
+		}
+
+		// Fall back to the default (no language suffix).
+		snprintf(s_videoPathResult, TFE_MAX_PATH, "%s%s.ogv", s_videoBasePath.c_str(), baseName.c_str());
+		if (FileUtil::exists(s_videoPathResult)) { return s_videoPathResult; }
+
+		// No OGV for this scene. The caller will fall back to the LFD
+		// FILM path.
+		return nullptr;
+	}
+
+	const char* remasterCutscenes_getDcssPath(const CutsceneState* scene)
+	{
+		if (!s_available || !scene || s_scriptBasePath.empty()) { return nullptr; }
+
+		std::string baseName = sceneBaseName(scene);
+		if (baseName.empty()) { return nullptr; }
+
+		// DCSS files aren't localized - they're pure timing data. One
+		// file per scene, used regardless of language.
+		snprintf(s_scriptPathResult, TFE_MAX_PATH, "%s%s.dcss", s_scriptBasePath.c_str(), baseName.c_str());
+		if (FileUtil::exists(s_scriptPathResult))
+		{
+			return s_scriptPathResult;
 		}
 		return nullptr;
 	}
@@ -182,34 +385,48 @@ namespace TFE_DarkForces
 	{
 		if (!s_available || !scene || s_subtitleBasePath.empty()) { return nullptr; }
 
-		std::string baseName = archiveToBaseName(scene->archive);
+		std::string baseName = sceneBaseName(scene);
 		if (baseName.empty()) { return nullptr; }
 
-		// Try language-specific subtitle first.
 		const TFE_Settings_A11y* a11y = TFE_Settings::getA11ySettings();
-		snprintf(s_subtitlePathResult, TFE_MAX_PATH, "%s%s.%s.srt",
-			s_subtitleBasePath.c_str(), baseName.c_str(), a11y->language.c_str());
-		if (FileUtil::exists(s_subtitlePathResult))
+		const char* lang = a11y->language.c_str();
+
+		// Lookup order for subtitles (most specific -> most generic):
+		//   1. <scene>_<lang>.srt  (remaster convention, underscore)
+		//   2. <scene>.<lang>.srt  (legacy TFE users who named files
+		//                           differently before we matched the
+		//                           remaster's convention)
+		//   3. <scene>.srt         (default, usually English)
+		if (lang && lang[0])
 		{
-			return s_subtitlePathResult;
+			snprintf(s_subtitlePathResult, TFE_MAX_PATH, "%s%s_%s.srt",
+				s_subtitleBasePath.c_str(), baseName.c_str(), lang);
+			if (FileUtil::exists(s_subtitlePathResult)) { return s_subtitlePathResult; }
+
+			snprintf(s_subtitlePathResult, TFE_MAX_PATH, "%s%s.%s.srt",
+				s_subtitleBasePath.c_str(), baseName.c_str(), lang);
+			if (FileUtil::exists(s_subtitlePathResult)) { return s_subtitlePathResult; }
 		}
 
-		// Fall back to default (no language suffix).
 		snprintf(s_subtitlePathResult, TFE_MAX_PATH, "%s%s.srt",
 			s_subtitleBasePath.c_str(), baseName.c_str());
-		if (FileUtil::exists(s_subtitlePathResult))
-		{
-			return s_subtitlePathResult;
-		}
+		if (FileUtil::exists(s_subtitlePathResult)) { return s_subtitlePathResult; }
 
 		return nullptr;
 	}
 
+	// Called from the settings UI or test harness to point at a
+	// specific movies/ directory. Bypasses the priority-chain discovery
+	// in detectVideoPath() entirely.
 	void remasterCutscenes_setCustomPath(const char* path)
 	{
 		if (!path || !path[0])
 		{
+			// Empty path = "turn off the remaster path entirely and go
+			// back to LFD." Reset all cached state.
 			s_videoBasePath.clear();
+			s_scriptBasePath.clear();
+			s_subtitleBasePath.clear();
 			s_available = false;
 			return;
 		}
@@ -223,6 +440,8 @@ namespace TFE_DarkForces
 		s_available = FileUtil::directoryExits(s_videoBasePath.c_str());
 		if (s_available)
 		{
+			// Re-detect scripts and subtitles relative to the new base.
+			detectScriptPath();
 			detectSubtitlePath();
 		}
 	}
