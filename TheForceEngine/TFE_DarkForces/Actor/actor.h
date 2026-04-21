@@ -92,6 +92,9 @@ enum ActorDispatchFlags
 	ACTOR_PLAYER_VISIBLE	= FLAG_BIT(3),
 	ACTOR_OFFIC_ALERT		= FLAG_BIT(4),	// use officer alert sounds
 	ACTOR_TROOP_ALERT		= FLAG_BIT(5),	// use stormtrooper alert sounds
+
+	// Added for TFE
+	ACTOR_DYING             = FLAG_BIT(6),
 };
 
 // Forward Declarations.

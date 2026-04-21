@@ -608,6 +608,16 @@ namespace TFE_DarkForces
 		ScriptEnumStr(PROJ_HOMING_MISSILE);
 		ScriptEnumStr(PROJ_PROBE_PROJ);
 		ScriptEnum("PROJ_BOBAFETT_BALL", PROJ_BOBAFET_BALL);
+	}
+
+	// Function registration has been separated from Type registration
+	// The ScriptObject type needs to be registered before registering ScriptSector functions
+	// ScriptObject functions need to be registered after registering ScriptSector
+	void ScriptObject::registerFunctions()
+	{
+		s32 res = 0;
+		asIScriptEngine* engine = (asIScriptEngine*)TFE_ForceScript::getEngine();
+		s_typeName = "Object";
 
 		// Checks
 		ScriptObjFunc("bool isValid()", isScriptObjectValid);
@@ -616,6 +626,7 @@ namespace TFE_DarkForces
 
 		// Getters
 		ScriptObjFunc("Sector getSector()", getSector);
+		ScriptPropertyGetFunc("Sector get_sector()", getSector);
 		ScriptPropertyGetFunc("float3 get_position()", getPosition);
 		ScriptPropertyGetFunc("float get_yaw()", getYaw);
 		ScriptPropertyGetFunc("float get_radius()", getWorldWidth);

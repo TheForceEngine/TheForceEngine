@@ -13,7 +13,7 @@
 
 namespace TFE_DarkForces
 {
-	enum
+	enum ActorAnimation
 	{
 		ANIM_MOVE = 0,
 		ANIM_ATTACK1 = 1,

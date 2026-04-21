@@ -92,7 +92,7 @@ namespace TFE_FrontEndUI
 	void createModDirIfNeeded(char * directory)
 	{
 		TFE_Paths::fixupPathAsDirectory(directory);
-		if (!FileUtil::directoryExits(directory))
+		if (!FileUtil::directoryExists(directory))
 		{
 			FileUtil::makeDirectory(directory);
 		}
@@ -136,17 +136,17 @@ namespace TFE_FrontEndUI
 
 		s32 modPathCount = 0;
 		char modPaths[3][TFE_MAX_PATH];
-		if (FileUtil::directoryExits(sourceDataModDir))
+		if (FileUtil::directoryExists(sourceDataModDir))
 		{
 			strcpy(modPaths[modPathCount], sourceDataModDir);
 			modPathCount++;
 		}
-		if (FileUtil::directoryExits(programDataModDir))
+		if (FileUtil::directoryExists(programDataModDir))
 		{
 			strcpy(modPaths[modPathCount], programDataModDir);
 			modPathCount++;
 		}
-		if (FileUtil::directoryExits(programDirModDir))
+		if (FileUtil::directoryExists(programDirModDir))
 		{
 			strcpy(modPaths[modPathCount], programDirModDir);
 			modPathCount++;

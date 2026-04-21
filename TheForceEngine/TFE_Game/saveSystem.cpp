@@ -332,7 +332,7 @@ namespace TFE_SaveSystem
 	{
 		char relativeBasePath[TFE_MAX_PATH];
 		TFE_Paths::appendPath(PATH_USER_DOCUMENTS, "Saves/", relativeBasePath);
-		if (!FileUtil::directoryExits(s_gameSavePath))
+		if (!FileUtil::directoryExists(s_gameSavePath))
 		{
 			FileUtil::makeDirectory(relativeBasePath);
 		}
@@ -341,7 +341,7 @@ namespace TFE_SaveSystem
 		sprintf(relativePath, "Saves/%s/", TFE_Settings::c_gameName[id]);
 
 		TFE_Paths::appendPath(PATH_USER_DOCUMENTS, relativePath, s_gameSavePath);
-		if (!FileUtil::directoryExits(s_gameSavePath))
+		if (!FileUtil::directoryExists(s_gameSavePath))
 		{
 			FileUtil::makeDirectory(s_gameSavePath);
 		}

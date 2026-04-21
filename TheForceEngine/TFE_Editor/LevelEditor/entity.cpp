@@ -650,7 +650,7 @@ namespace LevelEditor
 		else
 		{
 			// Save the custom templates to the editor export path, if it exists.
-			if (FileUtil::directoryExits(s_editorConfig.exportPath))
+			if (FileUtil::directoryExists(s_editorConfig.exportPath))
 			{
 				char path[TFE_MAX_PATH];
 				strcpy(path, s_editorConfig.exportPath);

@@ -835,7 +835,15 @@ namespace TFE_DarkForces
 			char secretStr[32];
 			LRect rect;
 
-			sprintf(secretStr, "%2d%%", secretPercentage);
+			bool showCount = TFE_Settings::getGameSettings()->df_showSecretCount;
+			if (showCount)
+			{
+				sprintf(secretStr, "%d/%d", s_secretsFound, s_levelState.secretCount);
+			}
+			else
+			{
+				sprintf(secretStr, "%2d%%", secretPercentage);
+			}
 			lactor_setState(s_pdaArt, 31, 0);
 			lactorAnim_getFrame(s_pdaArt, &rect);
 

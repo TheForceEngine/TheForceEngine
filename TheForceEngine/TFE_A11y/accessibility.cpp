@@ -166,7 +166,7 @@ namespace TFE_A11Y  // a11y is industry slang for accessibility
 		char docsFontsDir[TFE_MAX_PATH];
 		const char* docsDir = TFE_Paths::getPath(PATH_USER_DOCUMENTS);
 		sprintf(docsFontsDir, "%sFonts/", docsDir);
-		if (!FileUtil::directoryExits(docsFontsDir))
+		if (!FileUtil::directoryExists(docsFontsDir))
 		{
 			FileUtil::makeDirectory(docsFontsDir);
 		}
@@ -278,7 +278,7 @@ namespace TFE_A11Y  // a11y is industry slang for accessibility
 		char docsCaptionsDir[TFE_MAX_PATH];
 		const char* docsDir = TFE_Paths::getPath(PATH_USER_DOCUMENTS);
 		sprintf(docsCaptionsDir, "%sCaptions/", docsDir);
-		if (!FileUtil::directoryExits(docsCaptionsDir))
+		if (!FileUtil::directoryExists(docsCaptionsDir))
 		{
 			FileUtil::makeDirectory(docsCaptionsDir);
 		}

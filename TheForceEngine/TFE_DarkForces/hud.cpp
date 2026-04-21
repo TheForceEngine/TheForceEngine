@@ -14,6 +14,7 @@
 #include <TFE_Jedi/Renderer/jediRenderer.h>
 #include <TFE_Jedi/Renderer/screenDraw.h>
 #include <TFE_Jedi/Renderer/RClassic_GPU/screenDrawGPU.h>
+#include <TFE_Jedi/Level/levelData.h>
 #include <TFE_Jedi/Level/rfont.h>
 #include <TFE_Jedi/Level/rtexture.h>
 #include <TFE_Jedi/Level/roffscreenBuffer.h>
@@ -549,7 +550,22 @@ namespace TFE_DarkForces
 			s32 xOffset = floor16(div16(intToFixed16(vfb_getWidescreenOffset()), vfb_getXScale()));
 
 			u8 dataStr[64];
-			sprintf((char*)dataStr, "X:%04d Y:%.1f Z:%04d H:%.1f S:%d%%", floor16(x), -fixed16ToFloat(s_playerEye->posWS.y), floor16(z), fixed16ToFloat(s_playerEye->worldHeight), s_secretsPercent);
+			char secretStr[8];
+
+			bool showCount = TFE_Settings::getGameSettings()->df_showSecretCount;			
+			if (showCount)
+			{
+				sprintf(secretStr, "%d/%d ", s_secretsFound, TFE_Jedi::s_levelState.secretCount);
+
+				// Offset text for large # of secrets.
+				if (TFE_Jedi::s_levelState.secretCount > 10) xOffset -= 12;
+			}
+			else
+			{
+				sprintf(secretStr, "%2d%%", s_secretsPercent);
+			}
+
+			sprintf((char*)dataStr, "X:%04d Y:%.1f Z:%04d H:%.1f S:%s", floor16(x), -fixed16ToFloat(s_playerEye->posWS.y), floor16(z), fixed16ToFloat(s_playerEye->worldHeight), secretStr);
 			displayHudMessage(s_hudFont, (DrawRect*)vfb_getScreenRect(VFB_RECT_UI), 164 + xOffset, 10, dataStr, framebuffer);
 		}
 	}
@@ -1284,10 +1300,14 @@ namespace TFE_DarkForces
 			fixed16_16 xScale = vfb_getXScale();
 			fixed16_16 yScale = vfb_getYScale();
 
+			bool centerText = TFE_Settings::getGameSettings()->df_centerHudPosition;
+
+			// Center X Offset otherwise use the font centered scaling
+			fixed16_16 xf = mul16(intToFixed16(x), centerText ? xScale / 2 : xScale);
+
 			xScale /= fntScale;
 			yScale /= fntScale;
 
-			fixed16_16 xf = mul16(intToFixed16(x), xScale);
 			fixed16_16 yf = mul16(intToFixed16(y), yScale);
 			fixed16_16 x0 = xf;
 						

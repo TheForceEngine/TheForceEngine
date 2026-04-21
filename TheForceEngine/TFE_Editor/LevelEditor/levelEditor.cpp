@@ -3149,13 +3149,13 @@ namespace LevelEditor
 
 		char autosaveDir[TFE_MAX_PATH];
 		sprintf(autosaveDir, "%s/Autosaves/", project->path);
-		if (!FileUtil::directoryExits(autosaveDir))
+		if (!FileUtil::directoryExists(autosaveDir))
 		{
 			FileUtil::makeDirectory(autosaveDir);
 		}
 		strcat(autosaveDir, s_level.slot.c_str());
 		strcat(autosaveDir, "/");
-		if (!FileUtil::directoryExits(autosaveDir))
+		if (!FileUtil::directoryExists(autosaveDir))
 		{
 			FileUtil::makeDirectory(autosaveDir);
 		}

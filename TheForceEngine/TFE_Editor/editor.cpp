@@ -1131,7 +1131,7 @@ namespace TFE_Editor
 	{
 		sprintf(tmpDir, "%s/Temp", s_editorConfig.editorPath);
 		FileUtil::fixupPath(tmpDir);
-		if (!FileUtil::directoryExits(tmpDir))
+		if (!FileUtil::directoryExists(tmpDir))
 		{
 			FileUtil::makeDirectory(tmpDir);
 		}

@@ -221,7 +221,7 @@ namespace FileUtil
 		DeleteFile(srcFile);
 	}
 
-	bool directoryExits(const char* path, char* outPath)
+	bool directoryExists(const char* path, char* outPath)
 	{
 		DWORD attr = GetFileAttributesA(path);
 		if (GetFileAttributesA(path) == INVALID_FILE_ATTRIBUTES) { return false; }
@@ -230,7 +230,7 @@ namespace FileUtil
 
 	bool exists( const char *path )
 	{
-		return !(GetFileAttributesA(path)==INVALID_FILE_ATTRIBUTES && GetLastError()==ERROR_FILE_NOT_FOUND);
+		return !(GetFileAttributesA(path) == INVALID_FILE_ATTRIBUTES && GetLastError() != ERROR_SUCCESS);
 	}
 
 	u64 getModifiedTime( const char* path )

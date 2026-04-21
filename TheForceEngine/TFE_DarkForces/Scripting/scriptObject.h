@@ -11,6 +11,7 @@ namespace TFE_DarkForces
 		ScriptObject() : m_id(-1) {};
 		ScriptObject(s32 id) : m_id(id) {};
 		void registerType();
+		void registerFunctions();
 
 	public:
 		s32 m_id;

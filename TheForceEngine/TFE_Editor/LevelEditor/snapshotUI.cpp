@@ -52,13 +52,13 @@ namespace LevelEditor
 		if (!project->active) { return; }
 
 		sprintf(s_snapshotDir, "%s/Snapshots/", project->path);
-		if (!FileUtil::directoryExits(s_snapshotDir))
+		if (!FileUtil::directoryExists(s_snapshotDir))
 		{
 			FileUtil::makeDirectory(s_snapshotDir);
 		}
 		strcat(s_snapshotDir, s_level.slot.c_str());
 		strcat(s_snapshotDir, "/");
-		if (!FileUtil::directoryExits(s_snapshotDir))
+		if (!FileUtil::directoryExists(s_snapshotDir))
 		{
 			FileUtil::makeDirectory(s_snapshotDir);
 		}

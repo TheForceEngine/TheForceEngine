@@ -215,7 +215,9 @@ struct TFE_Settings_Game
 	bool df_smoothVUEs = false;			// Smooths VUE animations (e.g. the Moldy Crow entering and exiting levels)
 	bool df_disableFightMusic  = false;	// Set to true to disable fight music and music transitions during gameplay.
 	bool df_enableAutoaim      = true;  // Set to true to enable autoaim, false to disable.
-	bool df_showSecretFoundMsg = true;  // Show a message when the player finds a secret.
+	bool df_showSecretFoundMsg = false; // Show a message when the player finds a secret.
+	bool df_showSecretCount = true; 	// Show secret counts instead of percentage.
+	bool df_centerHudPosition = false;  // Center LADATA position instead of top-right (Default).
 	bool df_autorun = false;			// Run by default instead of walk.
 	bool df_crouchToggle = false;		// Use toggle instead of hold for crouch.
 	bool df_ignoreInfLimit = true;		// Ignore the vanilla INF limit.
@@ -229,7 +231,7 @@ struct TFE_Settings_Game
 	bool df_showReplayCounter = false;  // Show the replay counter on the HUD.
 	bool df_demologging = false;        // Log the record/playback logging
 	bool df_autoEndMission = false;     // Automatically skip to the next mission
-    bool df_showKeyColors = false;      // Shows the door key color on the minimap
+  bool df_showKeyColors = false;      // Shows the door key color on the minimap
 	bool df_showMapSecrets = true;	    // Show secrets on the automap.
 	bool df_showMapObjects = true;      // Show objects on the automap.
 	s32  df_recordFrameRate = 4;        // Recording Framerate value

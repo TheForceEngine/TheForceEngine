@@ -96,12 +96,12 @@ namespace TFE_Input
 		TFE_Paths::fixupPathAsDirectory(s_replayDir);
 
 		// Check TFE/Replays first 
-		if (!FileUtil::directoryExits(s_replayDir))
+		if (!FileUtil::directoryExists(s_replayDir))
 		{
 			sprintf(s_replayDir, "%sReplays/", TFE_Paths::getPath(PATH_USER_DOCUMENTS));
 			TFE_Paths::fixupPathAsDirectory(s_replayDir);
 			// Otherwise check <USER>/TheForceEngine/Replays
-			if (!FileUtil::directoryExits(s_replayDir))
+			if (!FileUtil::directoryExists(s_replayDir))
 			{
 				FileUtil::makeDirectory(s_replayDir);
 			}

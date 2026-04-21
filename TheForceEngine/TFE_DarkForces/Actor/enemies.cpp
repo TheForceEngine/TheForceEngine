@@ -234,6 +234,13 @@ namespace TFE_DarkForces
 		attackMod->fireOffset.x = floatToFixed16(cust->fireOffset.x);
 		attackMod->fireOffset.y = cust->fireOffset.y < -999 ? attackMod->fireOffset.y : floatToFixed16(cust->fireOffset.y);		// if -1000 use the default value 
 		attackMod->fireOffset.z = floatToFixed16(cust->fireOffset.z);
+		
+		attackMod->hasBurstFire = cust->hasBurstFire ? JTRUE : JFALSE;
+		attackMod->burstFire.burstNumber = cust->burstNumber;
+		attackMod->burstFire.shotCount = cust->burstNumber;
+		attackMod->burstFire.variation = cust->burstVariation;
+		attackMod->burstFire.interval = cust->burstInterval;
+		
 		s_actorState.attackMod = attackMod;
 		actor_addModule(dispatch, (ActorModule*)attackMod);
 

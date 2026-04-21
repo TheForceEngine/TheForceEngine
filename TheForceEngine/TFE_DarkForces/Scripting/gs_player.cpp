@@ -1,9 +1,11 @@
 #include "gs_player.h"
+#include "scriptSector.h"
 #include "assert.h"
 #include <TFE_DarkForces/mission.h>
 #include <TFE_DarkForces/pickup.h>
 #include <TFE_DarkForces/weapon.h>
 #include <TFE_Jedi/Collision/collision.h>
+#include <TFE_Jedi/Level/levelData.h>
 #include <TFE_FrontEndUI/frontEndUi.h>
 #include <TFE_System/system.h>
 #include <angelscript.h>
@@ -47,6 +49,13 @@ namespace TFE_DarkForces
 		s_gasSectorTask = nullptr;
 		s_playerDying = JTRUE;
 		s_reviveTick = s_curTick + 436;
+	}
+
+	ScriptSector getPlayerSector()
+	{
+		RSector* sec = s_playerObject->sector;
+		ScriptSector sector(sec->index);
+		return sector;
 	}
 
 	vec3_float getPlayerPosition()
@@ -652,6 +661,7 @@ namespace TFE_DarkForces
 			ScriptObjFunc("void setCamera()", setCamera);
 
 			// Position and velocity
+			ScriptPropertyGetFunc("Sector get_sector()", getPlayerSector);
 			ScriptPropertyGetFunc("float3 get_position()", getPlayerPosition);
 			ScriptPropertySetFunc("void set_position(float3)", setPlayerPosition);
 			ScriptPropertyGetFunc("float get_yaw()", getPlayerYaw);

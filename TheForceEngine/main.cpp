@@ -560,7 +560,7 @@ int main(int argc, char* argv[])
 	// Create a screenshot directory
 	char screenshotDir[TFE_MAX_PATH];
 	TFE_Paths::appendPath(TFE_PathType::PATH_USER_DOCUMENTS, "Screenshots/", screenshotDir);
-	if (!FileUtil::directoryExits(screenshotDir))
+	if (!FileUtil::directoryExists(screenshotDir))
 	{
 		FileUtil::makeDirectory(screenshotDir);
 	}
@@ -568,7 +568,7 @@ int main(int argc, char* argv[])
 	// Create a mods temporary directory.
 	char tempPath[TFE_MAX_PATH];
 	sprintf(tempPath, "%sTemp/", TFE_Paths::getPath(PATH_PROGRAM_DATA));
-	if (!FileUtil::directoryExits(tempPath))
+	if (!FileUtil::directoryExists(tempPath))
 	{
 		FileUtil::makeDirectory(tempPath);
 	}

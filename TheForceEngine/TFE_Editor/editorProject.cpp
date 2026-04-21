@@ -190,12 +190,12 @@ namespace TFE_Editor
 		}
 
 		// Validate that the path exists.
-		if (!FileUtil::directoryExits(s_curProject.path))
+		if (!FileUtil::directoryExists(s_curProject.path))
 		{
 			// Replace it with the current path.
 			FileUtil::getFilePath(filepath, s_curProject.path);
 
-			if (!FileUtil::directoryExits(s_curProject.path))
+			if (!FileUtil::directoryExists(s_curProject.path))
 			{
 				TFE_System::logWrite(LOG_ERROR, "Editor Project", "Editor Project Path '%s' does not exist.", s_curProject.path);
 				removeFromRecents(s_curProject.path);
@@ -387,14 +387,14 @@ namespace TFE_Editor
 					sprintf(s_curProject.path, "%s/%s", s_curProject.path, s_curProject.name);
 					FileUtil::fixupPath(s_curProject.path);
 
-					if (!FileUtil::directoryExits(s_curProject.path))
+					if (!FileUtil::directoryExists(s_curProject.path))
 					{
 						FileUtil::makeDirectory(s_curProject.path);
 					}
 				}
 				else if (newProject)
 				{
-					if (!FileUtil::directoryExits(s_curProject.path))
+					if (!FileUtil::directoryExists(s_curProject.path))
 					{
 						// TODO: Show message box.
 						TFE_System::logWrite(LOG_ERROR, "Editor Project", "Editor Project Path '%s' does not exist, creation failed.", s_curProject.path);
