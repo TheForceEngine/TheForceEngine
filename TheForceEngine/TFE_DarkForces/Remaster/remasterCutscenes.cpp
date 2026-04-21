@@ -121,7 +121,7 @@ namespace TFE_DarkForces
 		for (int i = 0; i < s_subdirCount; i++)
 		{
 			snprintf(testPath, TFE_MAX_PATH, "%s%s", basePath, s_subdirNames[i]);
-			if (FileUtil::directoryExits(testPath))
+			if (FileUtil::directoryExists(testPath))
 			{
 				s_videoBasePath = testPath;
 				TFE_System::logWrite(LOG_MSG, "Remaster", "Found remaster cutscenes at: %s", testPath);
@@ -156,7 +156,7 @@ namespace TFE_DarkForces
 			std::string custom = gameSettings->df_remasterCutscenesPath;
 			// Trailing slash is required for our snprintf patterns below.
 			if (custom.back() != '/' && custom.back() != '\\') { custom += '/'; }
-			if (FileUtil::directoryExits(custom.c_str()))
+			if (FileUtil::directoryExists(custom.c_str()))
 			{
 				s_videoBasePath = custom;
 				TFE_System::logWrite(LOG_MSG, "Remaster", "Using custom cutscene path: %s", custom.c_str());
@@ -249,7 +249,7 @@ namespace TFE_DarkForces
 		// Canonical location: sibling of movies/.
 		char testPath[TFE_MAX_PATH];
 		snprintf(testPath, TFE_MAX_PATH, "%scutscene_scripts/", root.c_str());
-		if (FileUtil::directoryExits(testPath))
+		if (FileUtil::directoryExists(testPath))
 		{
 			s_scriptBasePath = testPath;
 			TFE_System::logWrite(LOG_MSG, "Remaster", "Found cutscene scripts at: %s", testPath);
@@ -258,7 +258,7 @@ namespace TFE_DarkForces
 
 		// Modder convenience: cutscene_scripts/ inside movies/.
 		snprintf(testPath, TFE_MAX_PATH, "%scutscene_scripts/", s_videoBasePath.c_str());
-		if (FileUtil::directoryExits(testPath))
+		if (FileUtil::directoryExists(testPath))
 		{
 			s_scriptBasePath = testPath;
 			return;
@@ -283,7 +283,7 @@ namespace TFE_DarkForces
 
 		char testPath[TFE_MAX_PATH];
 		snprintf(testPath, TFE_MAX_PATH, "%sSubtitles/", s_videoBasePath.c_str());
-		if (FileUtil::directoryExits(testPath))
+		if (FileUtil::directoryExists(testPath))
 		{
 			s_subtitleBasePath = testPath;
 			return;
@@ -437,7 +437,7 @@ namespace TFE_DarkForces
 			s_videoBasePath += '/';
 		}
 
-		s_available = FileUtil::directoryExits(s_videoBasePath.c_str());
+		s_available = FileUtil::directoryExists(s_videoBasePath.c_str());
 		if (s_available)
 		{
 			// Re-detect scripts and subtitles relative to the new base.
