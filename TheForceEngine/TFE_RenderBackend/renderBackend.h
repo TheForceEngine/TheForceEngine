@@ -136,6 +136,7 @@ namespace TFE_RenderBackend
 	u32 getVirtualDisplayHeight();
 	u32 getVirtualDisplayOffset2D();
 	u32 getVirtualDisplayOffset3D();
+	u32 getVirtualDisplaySupersampleFactor();
 
 	// core gpu functionality for UI and editor.
 	// Render target.

@@ -81,6 +81,7 @@ struct TFE_Settings_Graphics
 	s32   fov = 90;
 	s32   rendererIndex = 0;
 	s32   colorMode = COLORMODE_8BIT;
+	s32   supersampling = 1;
 
 	// 8-bit options.
 	bool ditheredBilinear = false;
