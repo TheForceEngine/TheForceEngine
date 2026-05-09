@@ -189,6 +189,20 @@ namespace TFE_FrontEndUI
 		"True Color",           // COLORMODE_TRUE_COLOR
 	};
 
+	static const char* c_supersampling[] =
+	{
+		"Off",
+		"2x",
+		"4x",
+	};
+
+	static const s32 c_supersamplingFactor[] =
+	{
+		1,
+		2,
+		4,
+	};
+
 	typedef void(*MenuItemSelected)();
 
 	static s32 s_resIndex = 0;
@@ -3162,6 +3176,23 @@ namespace TFE_FrontEndUI
 			ImGui::InputInt("##FOVText", &graphics->fov, 1, 20, ImGuiInputTextFlags_CharsDecimal);
 			graphics->fov = clamp(graphics->fov, 5, 175);
 
+			s32 supersamplingIndex = 0;
+			if (graphics->supersampling == 2)
+			{
+				supersamplingIndex = 1;
+			}
+			else if (graphics->supersampling == 4)
+			{
+				supersamplingIndex = 2;
+			}
+
+			ImGui::LabelText("##ConfigLabel", "Supersampling"); ImGui::SameLine(comboOffset);
+			ImGui::SetNextItemWidth(196 * s_uiScale);
+			if (ImGui::Combo("##Supersampling", &supersamplingIndex, c_supersampling, IM_ARRAYSIZE(c_supersampling)))
+			{
+				graphics->supersampling = c_supersamplingFactor[supersamplingIndex];
+			}
+
 			// Sky rendering mode.
 			s32 skyMode = graphics->skyMode;
 			ImGui::LabelText("##ConfigLabel", "Sky Render Mode"); ImGui::SameLine(comboOffset);
@@ -4035,6 +4066,7 @@ namespace TFE_FrontEndUI
 				graphicsSettings->widescreen = true;
 				graphicsSettings->gameResolution.x = displayInfo.width;
 				graphicsSettings->gameResolution.z = displayInfo.height;
+				graphicsSettings->supersampling = 1;
 				// Color mode and texture filtering are the main differences between modes.
 				graphicsSettings->colorMode = (temp == TEMPLATE_MODERN) ? COLORMODE_TRUE_COLOR : COLORMODE_8BIT_INTERP;
 				// Texture filtering.
@@ -4101,6 +4133,7 @@ namespace TFE_FrontEndUI
 				graphicsSettings->widescreen = false;
 				graphicsSettings->gameResolution.x = 320;
 				graphicsSettings->gameResolution.z = 200;
+				graphicsSettings->supersampling = 1;
 				graphicsSettings->colorMode = COLORMODE_8BIT;
 				// Reticle.
 				graphicsSettings->reticleEnable = false;
