@@ -4,6 +4,7 @@
 #include "player.h"
 #include "sound.h"
 #include <cstring>
+#include <map>
 #include <TFE_Asset/modelAsset_jedi.h>
 #include <TFE_Asset/spriteAsset_Jedi.h>
 #include <TFE_Jedi/Collision/collision.h>
@@ -15,6 +16,7 @@
 #include <TFE_Jedi/Memory/allocator.h>
 #include <TFE_Jedi/Serialization/serialization.h>
 #include <TFE_ExternalData/weaponExternal.h>
+#include <TFE_ExternalData/customProjectile.h>
 
 using namespace TFE_Jedi;
 
@@ -51,29 +53,16 @@ namespace TFE_DarkForces
 	static SoundSourceId s_projectileReflectSnd[PROJ_COUNT];
 	static SoundSourceId s_projectileFlightSnd[PROJ_COUNT];
 
-	static JediModel* s_boltModel;
-	static JediModel* s_greenBoltModel;
-	static Wax*       s_plasmaProj;
-	static WaxFrame*  s_repeaterProj;
-	static Wax*       s_mortarProj;
-	static Wax*       s_missileProj;
-	static Wax*       s_cannonProj;
-	static Wax*       s_probeProj;
-	static Wax*       s_homingMissileProj;
-	static Wax*       s_bobafetBall;
-	static WaxFrame*  s_landmineWpnFrame;
-	static WaxFrame*  s_landmineFrame;
-	static WaxFrame*  s_thermalDetProj;
+	// Assets for custom projectiles
+	static std::map<u32, JediModel*> s_customProjectileModels;
+	static std::map<u32, WaxFrame*> s_customProjectileFrames;
+	static std::map<u32, Wax*> s_customProjectileWaxes;
 
-	static SoundSourceId s_stdProjCameraSnd       = NULL_SOUND;
-	static SoundSourceId s_stdProjReflectSnd      = NULL_SOUND;
-	static SoundSourceId s_thermalDetReflectSnd   = NULL_SOUND;
-	static SoundSourceId s_plasmaCameraSnd        = NULL_SOUND;
-	static SoundSourceId s_plasmaReflectSnd       = NULL_SOUND;
-	static SoundSourceId s_missileLoopingSnd      = NULL_SOUND;
+	static std::vector<SoundSourceId> s_customProjectileCameraSnd;
+	static std::vector<SoundSourceId> s_customProjectileReflectSnd;
+	static std::vector<SoundSourceId> s_customProjectileFlightSnd;
+
 	static SoundSourceId s_landMineTriggerSnd     = NULL_SOUND;
-	static SoundSourceId s_bobaBallCameraSnd      = NULL_SOUND;
-	static SoundSourceId s_homingMissileFlightSnd = NULL_SOUND;
 
 	static RSector*   s_projPath[PROJ_PATH_MAX_SECTORS];
 	static RSector*   s_projSector;
@@ -181,6 +170,45 @@ namespace TFE_DarkForces
 		// s_homingMissileFlightSnd = sound_load("tracker.voc",  SOUND_PRIORITY_LOW3);
 		// s_bobaBallCameraSnd      = sound_load("fireball.voc", SOUND_PRIORITY_LOW3);
 		s_landMineTriggerSnd     = sound_load("beep-10.voc",  SOUND_PRIORITY_HIGH3);		// still used!
+
+		// Custom projectile assets
+		s_customProjectileModels.clear();
+		s_customProjectileFrames.clear();
+		s_customProjectileWaxes.clear();
+		s_customProjectileCameraSnd.clear();
+		s_customProjectileReflectSnd.clear();
+		s_customProjectileFlightSnd.clear();
+
+		std::vector<TFE_ExternalData::ExternalProjectile>* customProjectiles = TFE_ExternalData::getCustomProjectiles();
+		for (u32 p = 0; p < customProjectiles->size(); p++)
+		{
+			TFE_ExternalData::ExternalProjectile proj = customProjectiles->at(p);
+			
+			// Frame
+			if (strcasecmp(proj.assetType, "frame") == 0)
+			{
+				WaxFrame* frame = TFE_Sprite_Jedi::getFrame(proj.asset, POOL_GAME);
+				s_customProjectileFrames.insert({ p, frame });
+			}
+
+			// Wax
+			if (strcasecmp(proj.assetType, "sprite") == 0)
+			{
+				Wax* wax = TFE_Sprite_Jedi::getWax(proj.asset, POOL_GAME);
+				s_customProjectileWaxes.insert({p, wax});
+			}
+
+			// 3D model
+			if (strcasecmp(proj.assetType, "3d") == 0)
+			{
+				JediModel* model = TFE_Model_Jedi::get(proj.asset, POOL_GAME);
+				s_customProjectileModels.insert({ p, model });
+			}
+
+			s_customProjectileCameraSnd.push_back(sound_load(proj.cameraPassSound, SOUND_PRIORITY_LOW3));
+			s_customProjectileReflectSnd.push_back(sound_load(proj.reflectSound, SOUND_PRIORITY_LOW1));
+			s_customProjectileFlightSnd.push_back(sound_load(proj.flightSound, SOUND_PRIORITY_LOW3));
+		}
 	}
 
 	void projectile_clearState()
@@ -197,21 +225,21 @@ namespace TFE_DarkForces
 		s_projectileTask = createSubTask("projectiles", projectileTaskFunc);
 	}
 
-	// TFE: Set the Projectile object from external data. These were hardcoded in vanilla DF.
-	void setProjectileObject(SecObject*& projObj, ProjectileType type, TFE_ExternalData::ExternalProjectile* externalProjectiles)
+	// TFE: Set the Projectile object assets from external data. These were hardcoded in vanilla DF.
+	void setProjectileObjAssets(SecObject*& projObj, ProjectileType type, TFE_ExternalData::ExternalProjectile* externalProjectile)
 	{
-		if (strcasecmp(externalProjectiles[type].assetType, "spirit") == 0)
+		if (strcasecmp(externalProjectile->assetType, "spirit") == 0)
 		{
 			spirit_setData(projObj);
 		}
-		else if (strcasecmp(externalProjectiles[type].assetType, "frame") == 0)
+		else if (strcasecmp(externalProjectile->assetType, "frame") == 0)
 		{
 			if (s_projectileFrames[type])
 			{
 				frame_setData(projObj, s_projectileFrames[type]);
 			}
 		}
-		else if (strcasecmp(externalProjectiles[type].assetType, "sprite") == 0)
+		else if (strcasecmp(externalProjectile->assetType, "sprite") == 0)
 		{
 			if (s_projectileWaxes[type])
 			{
@@ -219,7 +247,7 @@ namespace TFE_DarkForces
 				obj_setSpriteAnim(projObj);		// Setup the looping wax animation.
 			}
 		}
-		else if (strcasecmp(externalProjectiles[type].assetType, "3d") == 0)
+		else if (strcasecmp(externalProjectile->assetType, "3d") == 0)
 		{
 			if (s_projectileModels[type])
 			{
@@ -230,58 +258,112 @@ namespace TFE_DarkForces
 		{
 			spirit_setData(projObj);	// default to spirit
 		}
+	}
+	
+	// Set custom projectile object assets
+	void setCustomProjectileObjAssets(SecObject*& projObj, u32 index, TFE_ExternalData::ExternalProjectile* customProjectile)
+	{
+		if (strcasecmp(customProjectile->assetType, "spirit") == 0)
+		{
+			spirit_setData(projObj);
+		}
+		else if (strcasecmp(customProjectile->assetType, "frame") == 0)
+		{
+			WaxFrame* frame = s_customProjectileFrames.at(index);
+			if (frame)
+			{
+				frame_setData(projObj, frame);
+			}
+		}
+		else if (strcasecmp(customProjectile->assetType, "sprite") == 0)
+		{
+			Wax* wax = s_customProjectileWaxes.at(index);
+			if (wax)
+			{
+				sprite_setData(projObj, wax);
+				obj_setSpriteAnim(projObj);		// Setup the looping wax animation.
+			}
+		}
+		else if (strcasecmp(customProjectile->assetType, "3d") == 0)
+		{
+			JediModel* model = s_customProjectileModels.at(index);
+			if (model)
+			{
+				obj3d_setData(projObj, model);
+			}
+		}
+		else
+		{
+			spirit_setData(projObj);	// default to spirit
+		}
+	}
 
-		if (externalProjectiles[type].fullBright)
+	// TFE: Set Projectile object data from external data
+	void setProjectileObjData(SecObject*& projObj, TFE_ExternalData::ExternalProjectile* externalProjectile)
+	{
+		if (externalProjectile->fullBright)
 		{
 			projObj->flags |= OBJ_FLAG_FULLBRIGHT;
 		}
 
-		if (externalProjectiles[type].autoAim)
+		if (externalProjectile->autoAim)
 		{
 			projObj->flags |= OBJ_FLAG_AIM;		// this is only meaningful for homing missiles, which can be shot down
 		}
 
-		if (externalProjectiles[type].movable)
+		if (externalProjectile->movable)
 		{
 			projObj->flags |= OBJ_FLAG_MOVABLE;		// thermal detonators & mines will be moved by elevators
 		}
 
-		if (externalProjectiles[type].zeroWidth)
+		if (externalProjectile->zeroWidth)
 		{
 			projObj->worldWidth = 0;
 		}
 	}
-	
+
 	// TFE: Set the Projectile logic from external data. These were hardcoded in vanilla DF.
-	void setProjectileLogic(ProjectileLogic*& projLogic, ProjectileType type, TFE_ExternalData::ExternalProjectile* externalProjectiles)
+	void setProjectileLogic(ProjectileLogic*& projLogic, ProjectileType type, TFE_ExternalData::ExternalProjectile* externalProjectile)
 	{
 		projLogic->type = type;
-		projLogic->updateFunc = getUpdateFunc(externalProjectiles[type].updateFunc);
-		projLogic->dmg = FIXED(externalProjectiles[type].damage);
-		projLogic->falloffAmt = externalProjectiles[type].falloffAmount;
-		projLogic->nextFalloffTick = s_curTick + externalProjectiles[type].nextFalloffTick;
-		projLogic->dmgFalloffDelta = externalProjectiles[type].damageFalloffDelta;
-		projLogic->minDmg = FIXED(externalProjectiles[type].minDamage);
+		projLogic->updateFunc = getUpdateFunc(externalProjectile->updateFunc);
+		projLogic->dmg = FIXED(externalProjectile->damage);
+		projLogic->falloffAmt = externalProjectile->falloffAmount;
+		projLogic->nextFalloffTick = s_curTick + externalProjectile->nextFalloffTick;
+		projLogic->dmgFalloffDelta = externalProjectile->damageFalloffDelta;
+		projLogic->minDmg = FIXED(externalProjectile->minDamage);
 
-		projLogic->projForce = externalProjectiles[type].force;
-		projLogic->speed = FIXED(externalProjectiles[type].speed);
-		projLogic->horzBounciness = externalProjectiles[type].horzBounciness;
-		projLogic->vertBounciness = externalProjectiles[type].vertBounciness;
-		projLogic->bounceCnt = externalProjectiles[type].bounceCount;
-		projLogic->reflVariation = externalProjectiles[type].reflectVariation;
-		projLogic->reflectEffectId = (HitEffectID)externalProjectiles[type].reflectEffectId;
-		projLogic->hitEffectId = (HitEffectID)externalProjectiles[type].hitEffectId;;
-		projLogic->duration = s_curTick + externalProjectiles[type].duration;
-		projLogic->homingAngleSpd = externalProjectiles[type].homingAngularSpeed;	// Starting homing rate
+		projLogic->projForce = externalProjectile->force;
+		projLogic->speed = FIXED(externalProjectile->speed);
+		projLogic->horzBounciness = externalProjectile->horzBounciness;
+		projLogic->vertBounciness = externalProjectile->vertBounciness;
+		projLogic->bounceCnt = externalProjectile->bounceCount;
+		projLogic->reflVariation = externalProjectile->reflectVariation;
+		projLogic->reflectEffectId = (HitEffectID)externalProjectile->reflectEffectId;
+		projLogic->hitEffectId = (HitEffectID)externalProjectile->hitEffectId;;
+		projLogic->duration = s_curTick + externalProjectile->duration;
+		projLogic->homingAngleSpd = externalProjectile->homingAngularSpeed;	// Starting homing rate
 
-		projLogic->cameraPassSnd = s_projectileCameraSnd[type];
-		projLogic->reflectSnd = s_projectileReflectSnd[type];
-		projLogic->flightSndSource = s_projectileFlightSnd[type];
-
-		if (externalProjectiles[type].explodeOnTimeout)
+		if (externalProjectile->explodeOnTimeout)
 		{
 			projLogic->flags |= PROJFLAG_EXPLODE;
 		}
+	}
+
+	// TFE: Set projectile sounds
+	void setProjectileSounds(ProjectileLogic*& projLogic, ProjectileType type)
+	{
+		projLogic->cameraPassSnd = s_projectileCameraSnd[type];
+		projLogic->reflectSnd = s_projectileReflectSnd[type];
+		projLogic->flightSndSource = s_projectileFlightSnd[type];
+	}
+
+	// Set custom projectile sounds
+	void setCustomProjectileSounds(ProjectileLogic*& projLogic, u32 index)
+	{
+		projLogic->cameraPassSnd = s_customProjectileCameraSnd.at(index);
+		projLogic->reflectSnd = s_customProjectileReflectSnd.at(index);
+		projLogic->flightSndSource = s_customProjectileFlightSnd.at(index);
 	}
 
 	// TFE
@@ -340,92 +422,126 @@ namespace TFE_DarkForces
 		{
 			case PROJ_PUNCH:
 			{
-				setProjectileObject(projObj, PROJ_PUNCH, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_PUNCH, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_PUNCH, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_PUNCH, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_PUNCH);
 			} break;
 			case PROJ_PISTOL_BOLT:
 			{
-				setProjectileObject(projObj, PROJ_PISTOL_BOLT, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_PISTOL_BOLT, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_PISTOL_BOLT, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_PISTOL_BOLT, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_PISTOL_BOLT);
 			} break;
 			case PROJ_RIFLE_BOLT:
 			{
-				setProjectileObject(projObj, PROJ_RIFLE_BOLT, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_RIFLE_BOLT, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_RIFLE_BOLT, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_RIFLE_BOLT, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_RIFLE_BOLT);
 			} break;
 			case PROJ_THERMAL_DET:
 			{
-				setProjectileObject(projObj, PROJ_THERMAL_DET, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_THERMAL_DET, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_THERMAL_DET, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_THERMAL_DET, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_THERMAL_DET);
 			} break;
 			case PROJ_REPEATER:
 			{
-				setProjectileObject(projObj, PROJ_REPEATER, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_REPEATER, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_REPEATER, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_REPEATER, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_REPEATER);
 
 				// dmgFalloffDelta was 19660 in the code; this probably should have been 0.3 seconds, or 43 ticks
 			} break;
 			case PROJ_PLASMA:
 			{
-				setProjectileObject(projObj, PROJ_PLASMA, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_PLASMA, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_PLASMA, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_PLASMA, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_PLASMA);
 			} break;
 			case PROJ_MORTAR:
 			{
-				setProjectileObject(projObj, PROJ_MORTAR, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_MORTAR, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_MORTAR, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_MORTAR, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_MORTAR);
 			} break;
 			case PROJ_LAND_MINE:
 			{
-				setProjectileObject(projObj, PROJ_LAND_MINE, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_LAND_MINE, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
 				projObj->entityFlags |= ETFLAG_LANDMINE_WPN;
-				setProjectileLogic(projLogic, PROJ_LAND_MINE, externalProjectiles);
+				setProjectileLogic(projLogic, PROJ_LAND_MINE, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_LAND_MINE);
 			} break;
 			case PROJ_LAND_MINE_PROX:
 			{
-				setProjectileObject(projObj, PROJ_LAND_MINE_PROX, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_LAND_MINE_PROX, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
 				projObj->entityFlags |= ETFLAG_LANDMINE_WPN;
-				setProjectileLogic(projLogic, PROJ_LAND_MINE_PROX, externalProjectiles);
+				setProjectileLogic(projLogic, PROJ_LAND_MINE_PROX, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_LAND_MINE_PROX);
 			} break;
 			case PROJ_LAND_MINE_PLACED:
 			{
-				setProjectileObject(projObj, PROJ_LAND_MINE_PLACED, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_LAND_MINE_PLACED, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_LAND_MINE_PLACED, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_LAND_MINE_PLACED, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_LAND_MINE_PLACED);
 			} break;
 			case PROJ_CONCUSSION:
 			{
-				setProjectileObject(projObj, PROJ_CONCUSSION, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_CONCUSSION, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_CONCUSSION, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_CONCUSSION, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_CONCUSSION);
 			} break;
 			case PROJ_CANNON:
 			{
-				setProjectileObject(projObj, PROJ_CANNON, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_CANNON, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_CANNON, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_CANNON, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_CANNON);
 			} break;
 			case PROJ_MISSILE:
 			{
-				setProjectileObject(projObj, PROJ_MISSILE, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_MISSILE, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_MISSILE, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_MISSILE, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_MISSILE);
 			} break;
 			case PROJ_TURRET_BOLT:
 			{
-				setProjectileObject(projObj, PROJ_TURRET_BOLT, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_TURRET_BOLT, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_TURRET_BOLT, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_TURRET_BOLT, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_TURRET_BOLT);
 			} break;
 			case PROJ_REMOTE_BOLT:
 			{
-				setProjectileObject(projObj, PROJ_REMOTE_BOLT, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_REMOTE_BOLT, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_REMOTE_BOLT, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_REMOTE_BOLT, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_REMOTE_BOLT);
 			} break;
 			case PROJ_EXP_BARREL:
 			{
-				setProjectileObject(projObj, PROJ_EXP_BARREL, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_EXP_BARREL, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_EXP_BARREL, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_EXP_BARREL, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_EXP_BARREL);
 			} break;
 			case PROJ_HOMING_MISSILE:
 			{
-				setProjectileObject(projObj, PROJ_HOMING_MISSILE, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_HOMING_MISSILE, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_HOMING_MISSILE, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_HOMING_MISSILE, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_HOMING_MISSILE);
 
 				// projLogic->speed = FIXED(58) / 2;
 				// speed will be set to 29 externally; the value is correct according to the code, but they are slower in DOS.
@@ -433,15 +549,36 @@ namespace TFE_DarkForces
 			} break;
 			case PROJ_PROBE_PROJ:
 			{
-				setProjectileObject(projObj, PROJ_PROBE_PROJ, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_PROBE_PROJ, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_PROBE_PROJ, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_PROBE_PROJ, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_PROBE_PROJ);
 			} break;
 			case PROJ_BOBAFET_BALL:
 			{
-				setProjectileObject(projObj, PROJ_BOBAFET_BALL, externalProjectiles);
-				setProjectileLogic(projLogic, PROJ_BOBAFET_BALL, externalProjectiles);
+				setProjectileObjAssets(projObj, PROJ_BOBAFET_BALL, &externalProjectiles[type]);
+				setProjectileObjData(projObj, &externalProjectiles[type]);
+				setProjectileLogic(projLogic, PROJ_BOBAFET_BALL, &externalProjectiles[type]);
+				setProjectileSounds(projLogic, PROJ_BOBAFET_BALL);
 			} break;
 		}
+
+		// Custom projectiles - these are numbered starting at 100
+		if (type >= TFE_ExternalData::CUSTOM_PROJ_STARTNUM)
+		{
+			u32 index = type - TFE_ExternalData::CUSTOM_PROJ_STARTNUM;
+			std::vector<TFE_ExternalData::ExternalProjectile>* customProjs = TFE_ExternalData::getCustomProjectiles();
+
+			if (index < customProjs->size())
+			{
+				TFE_ExternalData::ExternalProjectile* customProj = &customProjs->at(index);
+				setCustomProjectileObjAssets(projObj, index, customProj);
+				setProjectileObjData(projObj, customProj);
+				setProjectileLogic(projLogic, type, customProj);
+				setCustomProjectileSounds(projLogic, index);
+			}
+		}
+
 		projLogic->col_speed = projLogic->speed;
 
 		projObj->posWS.x = x;
