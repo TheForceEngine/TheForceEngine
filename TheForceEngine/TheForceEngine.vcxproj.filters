@@ -1510,6 +1510,9 @@
     <ClInclude Include="TFE_Asset\srtParser.h">
       <Filter>Source\TFE_Asset</Filter>
     </ClInclude>
+    <ClInclude Include="TFE_ExternalData\customProjectile.h">
+      <Filter>Source\TFE_ExternalData</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -2648,6 +2651,9 @@
     </ClCompile>
     <ClCompile Include="TFE_Asset\srtParser.cpp">
       <Filter>Source\TFE_Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="TFE_ExternalData\customProjectile.cpp">
+      <Filter>Source\TFE_ExternalData</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,5 @@
 #include <cstring>
 #include <vector>
-#include <TFE_System/cJSON.h>
 #include <TFE_System/system.h>
 #include <TFE_FileSystem/filestream.h>
 #include <TFE_DarkForces/projectile.h>
@@ -23,7 +22,6 @@ namespace TFE_ExternalData
 	// Forward Declarations
 	//////////////////////////////
 	int getProjectileIndex(char* type);
-	bool tryAssignProjectileProperty(cJSON* data, ExternalProjectile& projectile);
 	int getEffectIndex(char* type);
 	bool tryAssignEffectProperty(cJSON* data, ExternalEffect& effect);
 	int getWeaponIndex(char* name);

@@ -32,6 +32,7 @@
 #include <TFE_ExternalData/dfLogics.h>
 #include <TFE_ExternalData/weaponExternal.h>
 #include <TFE_ExternalData/pickupExternal.h>
+#include <TFE_ExternalData/customProjectile.h>
 // Game
 #include <TFE_DarkForces/mission.h>
 #include <TFE_DarkForces/gameMusic.h>
@@ -526,6 +527,7 @@ namespace TFE_FrontEndUI
 		TFE_ExternalData::clearExternalProjectiles();					// clear projectiles
 		TFE_ExternalData::clearExternalEffects();						// clear effects
 		TFE_ExternalData::clearExternalPickups();						// clear pickups
+		TFE_ExternalData::clearCustomProjectiles();						// clear custom projectiles
 
 		// Restore the default messages if you are exiting a mod. 
 		if (TFE_System::modMessagesLoaded())

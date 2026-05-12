@@ -38,6 +38,7 @@ namespace TFE_ExternalData
 		bool litWithMeleeAttack = false;
 		bool litWithRangedAttack = true;
 		s32 projectile = 2;
+		const char* customProjectileName = "";
 		u32 rangedAttackDelay = 291;
 		u32 meleeAttackDelay = 0;
 		u32 losDelay = 43695;

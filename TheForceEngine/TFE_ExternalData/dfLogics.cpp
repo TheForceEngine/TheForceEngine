@@ -7,6 +7,7 @@
 #include <TFE_DarkForces/time.h>
 #include "dfLogics.h"
 #include "logicTables.h"
+#include "customProjectile.h"
 
 namespace TFE_ExternalData
 {
@@ -50,6 +51,20 @@ namespace TFE_ExternalData
 			parseLogicData(data, fileName, s_externalLogics.actorLogics);
 			free(data);
 		}
+
+		// All custom projectiles have now been loaded; go through the logics and assign them
+		for (u32 i = 0; i < s_externalLogics.actorLogics.size(); i++)
+		{
+			CustomActorLogic* logic = &s_externalLogics.actorLogics[i];
+			if (logic->customProjectileName && logic->customProjectileName[0])
+			{
+				s32 index = getCustomProjectileIndex(logic->customProjectileName);
+				if (index >= 0)
+				{
+					logic->projectile = index + CUSTOM_PROJ_STARTNUM;	// start custom projectile numbering at 100
+				}
+			}
+		}
 	}
 
 	void parseLogicData(char* data, const char* filename, std::vector<CustomActorLogic>& actorLogics)
@@ -58,37 +73,48 @@ namespace TFE_ExternalData
 		if (root)
 		{
 			cJSON* section = root->child;
-			if (section && cJSON_IsArray(section) && strcasecmp(section->string, "logics") == 0)
+			while (section)
 			{
-				cJSON* logic = section->child;
-				while (logic)
+				if (cJSON_IsArray(section) && strcasecmp(section->string, "logics") == 0)
 				{
-					cJSON* logicName = logic->child;
-
-					// get the logic name
-					if (logicName && cJSON_IsString(logicName) && strcasecmp(logicName->string, "logicname") == 0)
+					cJSON* logic = section->child;
+					while (logic)
 					{
-						CustomActorLogic customLogic;
-						customLogic.logicName = logicName->valuestring;
+						cJSON* logicName = logic->child;
 
-						cJSON* logicData = logicName->next;
-						if (logicData && cJSON_IsObject(logicData))
+						// get the logic name
+						if (logicName && cJSON_IsString(logicName) && strcasecmp(logicName->string, "logicname") == 0)
 						{
-							cJSON* dataItem = logicData->child;
+							CustomActorLogic customLogic;
+							customLogic.logicName = logicName->valuestring;
 
-							// iterate through the data and assign properties
-							while (dataItem)
+							cJSON* logicData = logicName->next;
+							if (logicData && cJSON_IsObject(logicData))
 							{
-								tryAssignProperty(dataItem, customLogic);
-								dataItem = dataItem->next;
+								cJSON* dataItem = logicData->child;
+
+								// iterate through the data and assign properties
+								while (dataItem)
+								{
+									tryAssignProperty(dataItem, customLogic);
+									dataItem = dataItem->next;
+								}
 							}
+
+							actorLogics.push_back(customLogic);
 						}
 
-						actorLogics.push_back(customLogic);
+						logic = logic->next;
 					}
-
-					logic = logic->next;
 				}
+
+				// Custom projectiles
+				if (section && cJSON_IsArray(section) && strcasecmp(section->string, "projectiles") == 0)
+				{
+					parseCustomProjectiles(section->child);
+				}
+
+				section = section->next;
 			}
 		}
 		else
@@ -250,6 +276,7 @@ namespace TFE_ExternalData
 		// Projectile as string
 		if (cJSON_IsString(data) && strcasecmp(data->string, "projectile") == 0)
 		{
+			// First check the main list
 			for (int i = 0; i <= 18; i++)
 			{
 				if (strcasecmp(data->valuestring, df_projectileTable[i]) == 0)
@@ -258,6 +285,9 @@ namespace TFE_ExternalData
 					return true;
 				}
 			}
+
+			// Save the projectile name to check against custom projectiles
+			customLogic.customProjectileName = data->valuestring;
 
 			return false;
 		}

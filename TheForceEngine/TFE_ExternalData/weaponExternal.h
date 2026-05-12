@@ -1,5 +1,6 @@
 #pragma once
 #include <TFE_System/types.h>
+#include <TFE_System/cJSON.h>
 #include <TFE_DarkForces/player.h>
 
 ///////////////////////////////////////////
@@ -108,6 +109,7 @@ namespace TFE_ExternalData
 	void loadExternalProjectiles();
 	void parseExternalProjectiles(char* data, bool fromMod);
 	bool validateExternalProjectiles();
+	bool tryAssignProjectileProperty(cJSON* data, ExternalProjectile& projectile);
 	void loadExternalEffects();
 	void parseExternalEffects(char* data, bool fromMod);
 	bool validateExternalEffects();
