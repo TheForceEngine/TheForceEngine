@@ -47,6 +47,8 @@ namespace TFE_ExternalData
 		const char* cameraPassSound = "";
 		s32 reflectEffectId = -1;
 		s32 hitEffectId = -1;
+		const char* reflectEffectName = "";
+		const char* hitEffectName = "";
 		bool explodeOnTimeout = false;
 	};
 
@@ -116,4 +118,5 @@ namespace TFE_ExternalData
 	void loadExternalWeapons();
 	void parseExternalWeapons(char* data, bool fromMod);
 	bool validateExternalWeapons();
+	bool tryAssignEffectProperty(cJSON* data, ExternalEffect& effect);
 }

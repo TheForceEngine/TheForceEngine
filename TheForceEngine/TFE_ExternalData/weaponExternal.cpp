@@ -23,7 +23,6 @@ namespace TFE_ExternalData
 	//////////////////////////////
 	int getProjectileIndex(char* type);
 	int getEffectIndex(char* type);
-	bool tryAssignEffectProperty(cJSON* data, ExternalEffect& effect);
 	int getWeaponIndex(char* name);
 	bool tryAssignGasmaskProperty(cJSON* data);
 	bool tryAssignWeaponProperty(cJSON* data, ExternalWeapon& weapon);
@@ -617,6 +616,9 @@ namespace TFE_ExternalData
 				}
 			}
 
+			// Save the effect name to check against custom effects
+			projectile.reflectEffectName = data->valuestring;
+
 			return false;
 		}
 
@@ -630,6 +632,9 @@ namespace TFE_ExternalData
 					return true;
 				}
 			}
+
+			// Save the effect name to check against custom effects
+			projectile.hitEffectName = data->valuestring;
 
 			return false;
 		}

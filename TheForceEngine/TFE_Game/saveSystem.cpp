@@ -8,6 +8,7 @@
 #include <TFE_ExternalData/weaponExternal.h>
 #include <TFE_ExternalData/pickupExternal.h>
 #include <TFE_ExternalData/customProjectile.h>
+#include <TFE_ExternalData/customEffect.h>
 #include <TFE_Settings/gameSourceData.h>
 #include <TFE_System/system.h>
 #include <cassert>
@@ -259,6 +260,7 @@ namespace TFE_SaveSystem
 			TFE_ExternalData::clearExternalEffects();
 			TFE_ExternalData::clearExternalPickups();
 			TFE_ExternalData::clearCustomProjectiles();
+			TFE_ExternalData::clearCustomEffects();
 
 			ret = s_game->serializeGameState(&stream, filename, false);
 			stream.close();

@@ -30,6 +30,7 @@ namespace TFE_ExternalData
 		u32 hitPoints = 4;
 		s32 dropItem = -1;
 		s32 dieEffect = -1;
+		const char* dieEffectName = "";
 		bool stopOnDamage = true;
 
 		// Attack
