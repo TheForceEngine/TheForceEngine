@@ -11,6 +11,7 @@
 #include <TFE_Jedi/Memory/allocator.h>
 #include <TFE_Jedi/Task/task.h>
 #include <TFE_ExternalData/weaponExternal.h>
+#include <TFE_ExternalData/customEffect.h>
 
 using namespace TFE_Jedi;
 
@@ -37,6 +38,8 @@ namespace TFE_DarkForces
 	static EffectData s_effectData[HEFFECT_COUNT];
 	static Allocator* s_hitEffects;
 
+	std::vector<EffectData> s_customEffectData;	// TFE - custom effects
+
 	Task* s_hitEffectTask = nullptr;
 	vec3_fixed s_explodePos;
 	EffectData* s_curEffectData = nullptr;
@@ -58,38 +61,48 @@ namespace TFE_DarkForces
 		// TFE: Effect data is now defined externally. These were hardcoded in vanilla DF.
 		TFE_ExternalData::ExternalEffect* externalEffects = TFE_ExternalData::getExternalEffects();
 
-		s_effectData[HEFFECT_SMALL_EXP] = setEffectData(HEFFECT_SMALL_EXP, externalEffects);
-		s_effectData[HEFFECT_THERMDET_EXP] = setEffectData(HEFFECT_THERMDET_EXP, externalEffects);
-		s_effectData[HEFFECT_PLASMA_EXP] = setEffectData(HEFFECT_PLASMA_EXP, externalEffects);
-		s_effectData[HEFFECT_MORTAR_EXP] = setEffectData(HEFFECT_MORTAR_EXP, externalEffects);
-		s_effectData[HEFFECT_CONCUSSION] = setEffectData(HEFFECT_CONCUSSION, externalEffects);
-		s_effectData[HEFFECT_CONCUSSION2] = setEffectData(HEFFECT_CONCUSSION2, externalEffects);
-		s_effectData[HEFFECT_MISSILE_EXP] = setEffectData(HEFFECT_MISSILE_EXP, externalEffects);
-		s_effectData[HEFFECT_MISSILE_WEAK] = setEffectData(HEFFECT_MISSILE_WEAK, externalEffects);
-		s_effectData[HEFFECT_PUNCH] = setEffectData(HEFFECT_PUNCH, externalEffects);
-		s_effectData[HEFFECT_CANNON_EXP] = setEffectData(HEFFECT_CANNON_EXP, externalEffects);
-		s_effectData[HEFFECT_REPEATER_EXP] = setEffectData(HEFFECT_REPEATER_EXP, externalEffects);
-		s_effectData[HEFFECT_LARGE_EXP] = setEffectData(HEFFECT_LARGE_EXP, externalEffects);
-		s_effectData[HEFFECT_EXP_BARREL] = setEffectData(HEFFECT_EXP_BARREL, externalEffects);
-		s_effectData[HEFFECT_EXP_INVIS] = setEffectData(HEFFECT_EXP_INVIS, externalEffects);
-		s_effectData[HEFFECT_SPLASH] = setEffectData(HEFFECT_SPLASH, externalEffects);
-		s_effectData[HEFFECT_EXP_35] = setEffectData(HEFFECT_EXP_35, externalEffects);
-		s_effectData[HEFFECT_EXP_NO_DMG] = setEffectData(HEFFECT_EXP_NO_DMG, externalEffects);
-		s_effectData[HEFFECT_EXP_25] = setEffectData(HEFFECT_EXP_25, externalEffects);
+		s_effectData[HEFFECT_SMALL_EXP] = setEffectData(HEFFECT_SMALL_EXP, &externalEffects[HEFFECT_SMALL_EXP]);
+		s_effectData[HEFFECT_THERMDET_EXP] = setEffectData(HEFFECT_THERMDET_EXP, &externalEffects[HEFFECT_THERMDET_EXP]);
+		s_effectData[HEFFECT_PLASMA_EXP] = setEffectData(HEFFECT_PLASMA_EXP, &externalEffects[HEFFECT_PLASMA_EXP]);
+		s_effectData[HEFFECT_MORTAR_EXP] = setEffectData(HEFFECT_MORTAR_EXP, &externalEffects[HEFFECT_MORTAR_EXP]);
+		s_effectData[HEFFECT_CONCUSSION] = setEffectData(HEFFECT_CONCUSSION, &externalEffects[HEFFECT_CONCUSSION]);
+		s_effectData[HEFFECT_CONCUSSION2] = setEffectData(HEFFECT_CONCUSSION2, &externalEffects[HEFFECT_CONCUSSION2]);
+		s_effectData[HEFFECT_MISSILE_EXP] = setEffectData(HEFFECT_MISSILE_EXP, &externalEffects[HEFFECT_MISSILE_EXP]);
+		s_effectData[HEFFECT_MISSILE_WEAK] = setEffectData(HEFFECT_MISSILE_WEAK, &externalEffects[HEFFECT_MISSILE_WEAK]);
+		s_effectData[HEFFECT_PUNCH] = setEffectData(HEFFECT_PUNCH, &externalEffects[HEFFECT_PUNCH]);
+		s_effectData[HEFFECT_CANNON_EXP] = setEffectData(HEFFECT_CANNON_EXP, &externalEffects[HEFFECT_CANNON_EXP]);
+		s_effectData[HEFFECT_REPEATER_EXP] = setEffectData(HEFFECT_REPEATER_EXP, &externalEffects[HEFFECT_REPEATER_EXP]);
+		s_effectData[HEFFECT_LARGE_EXP] = setEffectData(HEFFECT_LARGE_EXP, &externalEffects[HEFFECT_LARGE_EXP]);
+		s_effectData[HEFFECT_EXP_BARREL] = setEffectData(HEFFECT_EXP_BARREL, &externalEffects[HEFFECT_EXP_BARREL]);
+		s_effectData[HEFFECT_EXP_INVIS] = setEffectData(HEFFECT_EXP_INVIS, &externalEffects[HEFFECT_EXP_INVIS]);
+		s_effectData[HEFFECT_SPLASH] = setEffectData(HEFFECT_SPLASH, &externalEffects[HEFFECT_SPLASH]);
+		s_effectData[HEFFECT_EXP_35] = setEffectData(HEFFECT_EXP_35, &externalEffects[HEFFECT_EXP_35]);
+		s_effectData[HEFFECT_EXP_NO_DMG] = setEffectData(HEFFECT_EXP_NO_DMG, &externalEffects[HEFFECT_EXP_NO_DMG]);
+		s_effectData[HEFFECT_EXP_25] = setEffectData(HEFFECT_EXP_25, &externalEffects[HEFFECT_EXP_25]);
+
+		// Custom effects
+		s_customEffectData.clear();
+		std::vector<TFE_ExternalData::ExternalEffect>* customEffects = TFE_ExternalData::getCustomEffects();
+		for (u32 e = 0; e < customEffects->size(); e++)
+		{
+			TFE_ExternalData::ExternalEffect* custEffect = &customEffects->at(e);
+			EffectData data = setEffectData((HitEffectID)(e + TFE_ExternalData::CUSTOM_EFFECT_STARTNUM), custEffect);
+			s_customEffectData.push_back(data);
+		}
 	}
 	
 	// TFE: Set up effect from external data.
-	EffectData setEffectData(HitEffectID type, TFE_ExternalData::ExternalEffect* extEffects)
+	EffectData setEffectData(HitEffectID type, TFE_ExternalData::ExternalEffect* extEffect)
 	{
 		return
 		{
-			type,															// type
-			TFE_Sprite_Jedi::getWax(extEffects[type].wax, POOL_GAME),		// spriteData
-			FIXED(extEffects[type].force),									// force
-			FIXED(extEffects[type].damage),									// damage
-			FIXED(extEffects[type].explosiveRange),							// explosiveRange
-			FIXED(extEffects[type].wakeupRange),							// wakeupRange
-			sound_load(extEffects[type].soundEffect, SoundPriority(extEffects[type].soundPriority)),	// soundEffect & priority
+			type,														// type
+			TFE_Sprite_Jedi::getWax(extEffect->wax, POOL_GAME),			// spriteData
+			FIXED(extEffect->force),									// force
+			FIXED(extEffect->damage),									// damage
+			FIXED(extEffect->explosiveRange),							// explosiveRange
+			FIXED(extEffect->wakeupRange),							// wakeupRange
+			sound_load(extEffect->soundEffect, SoundPriority(extEffect->soundPriority)),	// soundEffect & priority
 		};
 	}
 
@@ -168,10 +181,24 @@ namespace TFE_DarkForces
 					fixed16_16 y = effect->y;
 					fixed16_16 z = effect->z;
 
-					EffectData* data = &s_effectData[effect->type];
+					// TFE - custom effects are numbered starting from 100
+					EffectData* data = nullptr;
+					if (effect->type < TFE_ExternalData::CUSTOM_EFFECT_STARTNUM)
+					{
+						data = &s_effectData[effect->type];
+					}
+					else
+					{
+						u32 index = effect->type - TFE_ExternalData::CUSTOM_EFFECT_STARTNUM;
+						if (index < s_customEffectData.size())
+						{
+							data = &s_customEffectData.at(index);
+						}
+					}
+					
 					s_curEffectData = data;
 
-					if (data->spriteData)
+					if (data && data->spriteData)
 					{
 						JBool createEffectObj = JTRUE;
 						if (effect->type == HEFFECT_PLASMA_EXP || effect->type == HEFFECT_CANNON_EXP)
@@ -218,13 +245,13 @@ namespace TFE_DarkForces
 							// obj_addToRefList(obj, ObjRefType_Effect);	// scripting
 						}
 					}
-					if (s_curEffectData->soundEffect)
+					if (s_curEffectData && s_curEffectData->soundEffect)
 					{
 						vec3_fixed soundPos = { x,y,z };
 						sound_playCued(s_curEffectData->soundEffect, soundPos);
 					}
 
-					if (s_curEffectData->explosiveRange)
+					if (s_curEffectData && s_curEffectData->explosiveRange)
 					{
 						s_explodePos.x = x;
 						s_explodePos.y = y;
@@ -238,7 +265,7 @@ namespace TFE_DarkForces
 							inf_handleExplosion(sector, x, z, range >> 3);
 						}
 					}
-					if (s_curEffectData->wakeupRange)
+					if (s_curEffectData && s_curEffectData->wakeupRange)
 					{
 						// Wakes up all objects with a valid collision path to (x,y,z) that are within s_curEffectData->wakeupRange units.
 						vec3_fixed hitPos = { x, y, z };
