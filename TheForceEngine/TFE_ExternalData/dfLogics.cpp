@@ -6,6 +6,7 @@
 #include <TFE_FileSystem/paths.h>
 #include <TFE_DarkForces/time.h>
 #include <TFE_DarkForces/projectile.h>
+#include <TFE_DarkForces/weapon.h>
 #include "dfLogics.h"
 #include "logicTables.h"
 #include "customProjectile.h"
@@ -74,6 +75,29 @@ namespace TFE_ExternalData
 				if (index >= 0)
 				{
 					logic->dieEffect = index + CUSTOM_EFFECT_STARTNUM;	// start custom effect numbering at 100
+				}
+			}
+		}
+
+		ExternalWeapon* weapons = getExternalWeapons();
+		for (u32 w = 0; w < TFE_DarkForces::WPN_COUNT; w++)
+		{
+			ExternalWeapon* weap = &weapons[w];
+			if (weap->primaryProjectileName && weap->primaryProjectileName[0])
+			{
+				s32 index = getCustomProjectileIndex(weap->primaryProjectileName);
+				if (index >= 0)
+				{
+					weap->primaryProjectile = index + CUSTOM_PROJ_STARTNUM;	// start custom projectile numbering at 100
+				}
+			}
+
+			if (weap->secondaryProjectileName && weap->secondaryProjectileName[0])
+			{
+				s32 index = getCustomProjectileIndex(weap->secondaryProjectileName);
+				if (index >= 0)
+				{
+					weap->secondaryProjectile = index + CUSTOM_PROJ_STARTNUM;	// start custom projectile numbering at 100
 				}
 			}
 		}
