@@ -202,6 +202,8 @@ namespace TFE_DarkForces
 		s_playerWeaponList[id].variation = extWeapons[id].variation;
 		s_playerWeaponList[id].primaryFireConsumption = extWeapons[id].primaryFireConsumption;
 		s_playerWeaponList[id].secondaryFireConsumption = extWeapons[id].secondaryFireConsumption;
+		s_playerWeaponList[id].primaryProjectile = (ProjectileType)extWeapons[id].primaryProjectile;
+		s_playerWeaponList[id].secondaryProjectile = (ProjectileType)extWeapons[id].secondaryProjectile;
 
 		setupAnimationFrames(id, extWeapons[id].numAnimFrames, extWeapons[id].animFrames, extWeapons[id].numSecondaryAnimFrames, extWeapons[id].animFramesSecondary);
 	}

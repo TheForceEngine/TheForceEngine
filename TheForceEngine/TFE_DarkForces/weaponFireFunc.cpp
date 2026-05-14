@@ -317,7 +317,7 @@ namespace TFE_DarkForces
 		angle14_32 yawOffset = -910;
 		for (s32 i = 0; i < 3; i++, xOffset += 0x1c000, yawOffset += 910)
 		{
-			ProjectileLogic* proj = (ProjectileLogic*)createProjectile(ProjectileType::PROJ_PUNCH, s_playerObject->sector, s_playerObject->posWS.x, s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset, s_playerObject->posWS.z, s_playerObject);
+			ProjectileLogic* proj = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset, s_playerObject->posWS.z, s_playerObject);
 			if (s_oneHitKillEnabled) {	applyOneHitKillCheat(proj); }
 
 			s_weaponFirePitch = s_playerObject->pitch + 0x638;
@@ -450,7 +450,7 @@ namespace TFE_DarkForces
 
 				ProjectileLogic* projLogic;
 				fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-				projLogic = (ProjectileLogic*)createProjectile(PROJ_PISTOL_BOLT, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+				projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 				projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 				projLogic->prevColObj = s_playerObject;
 				if (s_oneHitKillEnabled) { applyOneHitKillCheat(projLogic); }
@@ -641,7 +641,7 @@ namespace TFE_DarkForces
 
 				ProjectileLogic* projLogic;
 				fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-				projLogic = (ProjectileLogic*)createProjectile(PROJ_RIFLE_BOLT, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+				projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 				projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 				projLogic->prevColObj = s_playerObject;
 				if (s_oneHitKillEnabled) { applyOneHitKillCheat(projLogic); }
@@ -798,7 +798,7 @@ namespace TFE_DarkForces
 			}
 
 			fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-			ProjectileLogic* proj = (ProjectileLogic*)createProjectile(PROJ_THERMAL_DET, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+			ProjectileLogic* proj = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 			proj->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 			proj->prevColObj = s_playerObject;
 
@@ -987,7 +987,7 @@ namespace TFE_DarkForces
 					ProjectileLogic* proj[3];
 					for (s32 i = 0; i < 3; i++)
 					{
-						proj[i] = (ProjectileLogic*)createProjectile(PROJ_REPEATER, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+						proj[i] = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->secondaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 						proj[i]->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 						proj_setTransform(proj[i], s_weaponFirePitch + c_repeaterPitchOffset[i], s_weaponFireYaw + c_repeaterYawOffset[i]);
 						proj[i]->prevColObj = s_playerObject;
@@ -1154,7 +1154,7 @@ namespace TFE_DarkForces
 					}
 
 					fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(PROJ_REPEATER, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 					projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 					projLogic->prevColObj = s_playerObject;
 					if (s_oneHitKillEnabled) { applyOneHitKillCheat(projLogic); }
@@ -1326,7 +1326,7 @@ namespace TFE_DarkForces
 					ProjectileLogic* proj[4];
 					for (s32 i = 0; i < 4; i++)
 					{
-						proj[i] = (ProjectileLogic*)createProjectile(PROJ_PLASMA, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+						proj[i] = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->secondaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 						proj[i]->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 						proj_setTransform(proj[i], s_weaponFirePitch, s_weaponFireYaw + s_fusionYawOffset[i]);
 						proj[i]->prevColObj = s_playerObject;
@@ -1477,7 +1477,7 @@ namespace TFE_DarkForces
 					}
 
 					fixed16_16 yPlayerPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(PROJ_PLASMA, s_playerObject->sector, s_playerObject->posWS.x, yPlayerPos, s_playerObject->posWS.z, s_playerObject);
+					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPlayerPos, s_playerObject->posWS.z, s_playerObject);
 					projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 					projLogic->prevColObj = s_playerObject;
 					if (s_oneHitKillEnabled) { applyOneHitKillCheat(projLogic); }
@@ -1670,7 +1670,7 @@ namespace TFE_DarkForces
 
 				ProjectileLogic* projLogic;
 				fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-				projLogic = (ProjectileLogic*)createProjectile(PROJ_MORTAR, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+				projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 				projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 				projLogic->prevColObj = s_playerObject;
 				proj_setTransform(projLogic, s_weaponFirePitch, s_weaponFireYaw);
@@ -1803,7 +1803,7 @@ namespace TFE_DarkForces
 			fixed16_16 floorHeight, ceilHeight;
 			sector_getObjFloorAndCeilHeight(s_playerObject->sector, s_playerObject->posWS.y, &floorHeight, &ceilHeight);
 
-			ProjectileType type = (s_secondaryFire) ? PROJ_LAND_MINE_PROX : PROJ_LAND_MINE;
+			ProjectileType type = (s_secondaryFire) ? s_curPlayerWeapon->secondaryProjectile : s_curPlayerWeapon->primaryProjectile;
 			ProjectileLogic* mine = (ProjectileLogic*)createProjectile(type, s_playerObject->sector, s_playerObject->posWS.x, floorHeight, s_playerObject->posWS.z, s_playerObject);
 			mine->vel = { 0, 0, 0 };
 
@@ -1934,7 +1934,7 @@ namespace TFE_DarkForces
 
 				ProjectileLogic* projLogic;
 				fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-				projLogic = (ProjectileLogic*)createProjectile(PROJ_CONCUSSION, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+				projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 				projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 				projLogic->prevColObj = s_playerObject;
 
@@ -2111,7 +2111,7 @@ namespace TFE_DarkForces
 					}
 
 					fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(PROJ_MISSILE, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->secondaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 					projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 					projLogic->prevColObj = s_playerObject;
 					if (targetFound)
@@ -2246,7 +2246,7 @@ namespace TFE_DarkForces
 					}
 
 					fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(PROJ_CANNON, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 					projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 					projLogic->prevColObj = s_playerObject;
 					if (s_oneHitKillEnabled) { applyOneHitKillCheat(projLogic); }

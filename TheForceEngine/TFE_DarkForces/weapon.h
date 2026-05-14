@@ -7,6 +7,7 @@
 #include <TFE_Jedi/Math/core_math.h>
 #include <TFE_Jedi/Task/task.h>
 #include "sound.h"
+#include "projectile.h"
 
 namespace TFE_Jedi
 {
@@ -44,6 +45,8 @@ namespace TFE_DarkForces
 		// TFE
 		s32 primaryFireConsumption;
 		s32 secondaryFireConsumption;
+		ProjectileType primaryProjectile;
+		ProjectileType secondaryProjectile;
 	};
 
 	struct WeaponAnimState

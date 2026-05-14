@@ -900,6 +900,42 @@ namespace TFE_ExternalData
 			return true;
 		}
 
+		if (cJSON_IsString(data) && strcasecmp(data->string, "primaryProjectile") == 0)
+		{
+			// First check the main list
+			for (int i = 0; i < TFE_DarkForces::PROJ_COUNT; i++)
+			{
+				if (strcasecmp(data->valuestring, df_projectileTable[i]) == 0)
+				{
+					weapon.primaryProjectile = i;
+					return true;
+				}
+			}
+
+			// Save the projectile name to check against custom projectiles
+			weapon.primaryProjectileName = data->valuestring;
+
+			return false;
+		}
+
+		if (cJSON_IsString(data) && strcasecmp(data->string, "secondaryProjectile") == 0)
+		{
+			// First check the main list
+			for (int i = 0; i < TFE_DarkForces::PROJ_COUNT; i++)
+			{
+				if (strcasecmp(data->valuestring, df_projectileTable[i]) == 0)
+				{
+					weapon.secondaryProjectile = i;
+					return true;
+				}
+			}
+
+			// Save the projectile name to check against custom projectiles
+			weapon.secondaryProjectileName = data->valuestring;
+
+			return false;
+		}
+
 		if (cJSON_IsArray(data) && strcasecmp(data->string, "animFrames") == 0)
 		{
 			cJSON* element;

@@ -15,6 +15,7 @@
                 "ammo": "",
                 "wakeupRange": 0,
                 "variation": 0,
+                "primaryProjectile": "PUNCH",
                 "animFrames": [
                     {
                         "texture": 1,
@@ -54,6 +55,7 @@
                 "wakeupRange": 45,
                 "variation": 22,
                 "primaryFireConsumption": 1,
+                "primaryProjectile": "PISTOL_BOLT",
                 "animFrames": [
                     {
                         "texture": 1,
@@ -87,6 +89,7 @@
                 "wakeupRange": 50,
                 "variation": 86,
                 "primaryFireConsumption": 2,
+                "primaryProjectile": "RIFLE_BOLT",
                 "animFrames": [
                     {
                         "texture": 1,
@@ -114,6 +117,7 @@
                 "wakeupRange": 0,
                 "variation": 2949165,
                 "primaryFireConsumption": 1,
+                "primaryProjectile": "THERMAL_DET",
                 "animFrames": [
                     {
                         "texture": 1,
@@ -160,6 +164,8 @@
                 "variation": 2949165,
                 "primaryFireConsumption": 1,
                 "secondaryFireConsumption": 3,
+                "primaryProjectile": "REPEATER",
+                "secondaryProjectile": "REPEATER",
                 "animFrames": [
                     {
                         "texture": 1,
@@ -208,6 +214,8 @@
                 "variation": 45,
                 "primaryFireConsumption": 1,
                 "secondaryFireConsumption": 8,
+                "primaryProjectile": "PLASMA",
+                "secondaryProjectile": "PLASMA",
                 "animFrames": [
                     {
                         "texture": 0,
@@ -267,6 +275,7 @@
                 "wakeupRange": 60,
                 "variation": 45,
                 "primaryFireConsumption": 1,
+                "primaryProjectile": "MORTAR",
                 "animFrames": [
                     {
                         "texture": 1,
@@ -305,7 +314,9 @@
                 "ammo": "ammoMine",
                 "wakeupRange": 0,
                 "variation": 0,
-                "primaryFireConsumption": 1
+                "primaryFireConsumption": 1,
+                "primaryProjectile": "LAND_MINE",
+                "secondaryProjectile": "LAND_MINE_PROX"
             }
         },
         {
@@ -319,6 +330,7 @@
                 "wakeupRange": 70,
                 "variation": 0,
                 "primaryFireConsumption": 4,
+                "primaryProjectile": "CONCUSSION",
                 "animFrames":[
                     {
                         "texture": 1,
@@ -354,6 +366,8 @@
                 "variation": 2949165,
                 "primaryFireConsumption": 1,
                 "secondaryFireConsumption": 1,
+                "primaryProjectile": "CANNON",
+                "secondaryProjectile": "MISSILE",
                 "animFrames": [
                     {
                         "texture": 1,

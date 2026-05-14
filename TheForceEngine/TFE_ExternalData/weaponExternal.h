@@ -88,6 +88,11 @@ namespace TFE_ExternalData
 		s32 primaryFireConsumption = 1;
 		s32 secondaryFireConsumption = 1;
 
+		u32 primaryProjectile = 0;
+		u32 secondaryProjectile = 0;
+		const char* primaryProjectileName = "";
+		const char* secondaryProjectileName = "";
+
 		s32 numAnimFrames = 1;
 		WeaponAnimFrame animFrames[WEAPON_NUM_ANIMFRAMES];
 		s32 numSecondaryAnimFrames = 1;
