@@ -17,8 +17,8 @@
                 "variation": 0,
                 "primaryProjectile": "PUNCH",
                 "pitchOffsets": [35],
-                "yawOffsets": [-20],
-                "xOffsets": [-1.75],
+                "yawOffsets": [20],
+                "xOffsets": [1.75],
                 "yOffsets": [-1.5],
                 "zOffsets": [6.0],
                 "animFrames": [
