@@ -206,6 +206,7 @@ namespace TFE_DarkForces
 		s_playerWeaponList[id].secondaryProjectile = (ProjectileType)extWeapons[id].secondaryProjectile;
 
 		setupAnimationFrames(id, extWeapons[id].numAnimFrames, extWeapons[id].animFrames, extWeapons[id].numSecondaryAnimFrames, extWeapons[id].animFramesSecondary);
+		setupWeaponOffsets(id, &extWeapons[id]);
 	}
 	
 	void weapon_startup()

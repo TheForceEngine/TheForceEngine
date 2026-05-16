@@ -13,6 +13,7 @@ namespace TFE_ExternalData
 	{
 		WEAPON_NUM_TEXTURES = 16,
 		WEAPON_NUM_ANIMFRAMES = 16,
+		WEAPON_MAX_PROJECTILES = 4,
 	};
 
 	struct ExternalProjectile
@@ -92,6 +93,17 @@ namespace TFE_ExternalData
 		u32 secondaryProjectile = 0;
 		const char* primaryProjectileName = "";
 		const char* secondaryProjectileName = "";
+
+		f32 pitchOffsets[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 yawOffsets[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 xOffsets[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 yOffsets[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 zOffsets[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 pitchOffsetsSecondary[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 yawOffsetsSecondary[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 xOffsetsSecondary[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 yOffsetsSecondary[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 zOffsetsSecondary[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
 
 		s32 numAnimFrames = 1;
 		WeaponAnimFrame animFrames[WEAPON_NUM_ANIMFRAMES];

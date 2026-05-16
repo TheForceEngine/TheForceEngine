@@ -936,6 +936,176 @@ namespace TFE_ExternalData
 			return false;
 		}
 
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "pitchOffsets") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.pitchOffsets[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "yawOffsets") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.yawOffsets[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "xOffsets") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.xOffsets[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "yOffsets") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.yOffsets[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "zOffsets") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.zOffsets[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "pitchOffsetsSecondary") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.pitchOffsetsSecondary[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "yawOffsetsSecondary") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.yawOffsetsSecondary[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "xOffsetsSecondary") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.xOffsetsSecondary[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "yOffsetsSecondary") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.yOffsetsSecondary[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "zOffsetsSecondary") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.zOffsetsSecondary[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
 		if (cJSON_IsArray(data) && strcasecmp(data->string, "animFrames") == 0)
 		{
 			cJSON* element;

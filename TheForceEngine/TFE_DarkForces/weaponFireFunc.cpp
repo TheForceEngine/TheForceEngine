@@ -16,6 +16,7 @@ namespace TFE_DarkForces
 	{
 		MAX_AUTOAIM_DIST = COL_INFINITY,
 		WPN_NUM_ANIMFRAMES = 16,
+		WPN_MAX_PROJECTILES = 4,
 	};
 
 	static SoundEffectId s_punchSwingSndId = 0;
@@ -92,6 +93,29 @@ namespace TFE_DarkForces
 	static WeaponAnimFrame s_concussionAnim[WPN_NUM_ANIMFRAMES];
 	static WeaponAnimFrame s_cannonPrimaryAnim[WPN_NUM_ANIMFRAMES];
 	static WeaponAnimFrame s_cannonSecondaryAnim[WPN_NUM_ANIMFRAMES];
+
+	// TFE
+	struct WeaponProjOffsets
+	{
+		angle14_32 pitchOffset[WPN_MAX_PROJECTILES];
+		angle14_32 yawOffset[WPN_MAX_PROJECTILES];
+		angle14_32 xOffset[WPN_MAX_PROJECTILES];
+		angle14_32 yOffset[WPN_MAX_PROJECTILES];
+		angle14_32 zOffset[WPN_MAX_PROJECTILES];
+	};
+
+	static WeaponProjOffsets s_punchOffsets;
+	static WeaponProjOffsets s_pistolOffsets;
+	static WeaponProjOffsets s_rifleOffsets;
+	static WeaponProjOffsets s_thermalDetOffsets;
+	static WeaponProjOffsets s_repeaterOffsets;
+	static WeaponProjOffsets s_repeaterSecOffsets;
+	static WeaponProjOffsets s_fusionOffsets;
+	static WeaponProjOffsets s_fusionSecOffsets;
+	static WeaponProjOffsets s_mortarOffsets;
+	static WeaponProjOffsets s_concussionOffsets;
+	static WeaponProjOffsets s_cannonOffsets;
+	static WeaponProjOffsets s_cannonSecOffsets;
 
 	static const angle14_32 c_repeaterYawOffset[3] = { 0, 136, -136 };
 	static const angle14_32 c_repeaterPitchOffset[3] = { 136, -136, -136 };
@@ -210,6 +234,56 @@ namespace TFE_DarkForces
 				secondaryFrames[i].delaySupercharge = extSecFrames[i].durationSupercharge;
 				secondaryFrames[i].delayNormal = extSecFrames[i].durationNormal;
 			}
+		}
+	}
+
+	// TFE: Set up weapon offsets from external data (these were hardcoded in vanilla DF)
+	void setWeaponProjOffsets(WeaponProjOffsets* projOffsets, f32* pitchOffsets, f32* yawOffsets, f32* xOffsets, f32* yOffsets, f32* zOffsets)
+	{
+		for (u32 i = 0; i < WPN_MAX_PROJECTILES; i++)
+		{
+			projOffsets->pitchOffset[i] = floatToAngle(pitchOffsets[i]);
+			projOffsets->yawOffset[i] = floatToAngle(yawOffsets[i]);
+			projOffsets->xOffset[i] = floatToFixed16(xOffsets[i]);
+			projOffsets->yOffset[i] = floatToFixed16(yOffsets[i]);
+			projOffsets->zOffset[i] = floatToFixed16(zOffsets[i]);
+		}
+	}
+	
+	void setupWeaponOffsets(WeaponID weaponId, TFE_ExternalData::ExternalWeapon* extWeapon)
+	{
+		switch (weaponId)
+		{
+			case WPN_FIST:
+				setWeaponProjOffsets(&s_punchOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				break;
+			case WPN_PISTOL:
+				setWeaponProjOffsets(&s_pistolOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				break;
+			case WPN_RIFLE:
+				setWeaponProjOffsets(&s_rifleOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				break;
+			case WPN_THERMAL_DET:
+				setWeaponProjOffsets(&s_thermalDetOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				break;
+			case WPN_REPEATER:
+				setWeaponProjOffsets(&s_repeaterOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				setWeaponProjOffsets(&s_repeaterSecOffsets, extWeapon->pitchOffsetsSecondary, extWeapon->yawOffsetsSecondary, extWeapon->xOffsetsSecondary, extWeapon->yOffsetsSecondary, extWeapon->zOffsetsSecondary);
+				break;
+			case WPN_FUSION:
+				setWeaponProjOffsets(&s_fusionOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				setWeaponProjOffsets(&s_fusionSecOffsets, extWeapon->pitchOffsetsSecondary, extWeapon->yawOffsetsSecondary, extWeapon->xOffsetsSecondary, extWeapon->yOffsetsSecondary, extWeapon->zOffsetsSecondary);
+				break;
+			case WPN_MORTAR:
+				setWeaponProjOffsets(&s_mortarOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				break;
+			case WPN_CONCUSSION:
+				setWeaponProjOffsets(&s_concussionOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				break;
+			case WPN_CANNON:
+				setWeaponProjOffsets(&s_cannonOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				setWeaponProjOffsets(&s_cannonSecOffsets, extWeapon->pitchOffsetsSecondary, extWeapon->yawOffsetsSecondary, extWeapon->xOffsetsSecondary, extWeapon->yOffsetsSecondary, extWeapon->zOffsetsSecondary);
+				break;
 		}
 	}
 
