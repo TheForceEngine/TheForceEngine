@@ -1121,7 +1121,7 @@ namespace TFE_DarkForces
 				projObj->yaw = obj->yaw;
 				
 				// Vanilla DF did not handle arcing projectiles with STATE_ATTACK1; this has been added
-				if (attackMod->projType == PROJ_THERMAL_DET || attackMod->projType == PROJ_MORTAR)
+				if (proj->updateFunc == arcingProjectileUpdateFunc)
 				{
 					// TDs are lobbed at an angle that depends on distance from target
 					proj->bounceCnt = 0;
@@ -1227,7 +1227,9 @@ namespace TFE_DarkForces
 
 				SecObject* projObj = proj->logic.obj;
 				projObj->yaw = obj->yaw;
-				if (attackMod->projType == PROJ_THERMAL_DET || attackMod->projType == PROJ_MORTAR)
+				
+				// The original test here was projType == PROJ_THERMAL_DET. In TFE we want to generalise it to all arcing projectiles.
+				if (proj->updateFunc == arcingProjectileUpdateFunc)
 				{
 					proj->bounceCnt = 0;
 					proj->duration = 0xffffffff;
