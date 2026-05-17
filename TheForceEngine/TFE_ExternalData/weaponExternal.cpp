@@ -645,6 +645,12 @@ namespace TFE_ExternalData
 			return true;
 		}
 
+		if (cJSON_IsBool(data) && strcasecmp(data->string, "doNotScale") == 0)
+		{
+			projectile.doNotScale = cJSON_IsTrue(data);
+			return true;
+		}
+
 		return false;
 	}
 

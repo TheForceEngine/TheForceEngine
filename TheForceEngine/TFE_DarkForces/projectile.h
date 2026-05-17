@@ -63,6 +63,9 @@ namespace TFE_DarkForces
 	{
 		PROJFLAG_CAMERA_PASS_SOUND = FLAG_BIT(0),
 		PROJFLAG_EXPLODE           = FLAG_BIT(1),		// Explodes when reaches end of life.
+		
+		// TFE
+		PROJFLAG_DONOT_SCALE       = FLAG_BIT(2),       // Disable framerate based scaling on 3DOs
 	};
 
 	struct ProjectileLogic;

@@ -51,6 +51,8 @@ namespace TFE_ExternalData
 		const char* reflectEffectName = "";
 		const char* hitEffectName = "";
 		bool explodeOnTimeout = false;
+
+		bool doNotScale = false;
 	};
 
 	struct ExternalEffect

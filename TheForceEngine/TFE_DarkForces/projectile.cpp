@@ -348,6 +348,11 @@ namespace TFE_DarkForces
 		{
 			projLogic->flags |= PROJFLAG_EXPLODE;
 		}
+
+		if (externalProjectile->doNotScale)
+		{
+			projLogic->flags |= PROJFLAG_DONOT_SCALE;
+		}
 	}
 
 	// TFE: Set projectile sounds
@@ -903,14 +908,16 @@ namespace TFE_DarkForces
 		return hitType;
 	}
 
-
-	void proj_computeTransform3D(SecObject* obj, fixed16_16 sinPitch, fixed16_16 cosPitch, fixed16_16 sinYaw, fixed16_16 cosYaw, fixed16_16 dt)
+	void proj_computeTransform3D(SecObject* obj, fixed16_16 sinPitch, fixed16_16 cosPitch, fixed16_16 sinYaw, fixed16_16 cosYaw, fixed16_16 dt, u32 projectileFlags)
 	{
 		// Projectile size is scaled by the delta-time.
 		// But this breaks down if the delta-time is too small.
 		// Given the original game had an average frame time of 2 ticks, then the minimum
 		// ~ 2 * ONE_SECOND / 145 = 2 * 65536 / 145 = 903. I use 900 because it is a nice round number.
 		if (dt < 900) { dt = 900; }
+
+		// Added to TFE - disable the scaling
+		if (projectileFlags & PROJFLAG_DONOT_SCALE) { dt = ONE_16; }
 
 		fixed16_16* transform = obj->transform;
 		transform[0] = cosYaw;
@@ -941,7 +948,7 @@ namespace TFE_DarkForces
 		SecObject* obj = projLogic->logic.obj;
 		if (obj->type == OBJ_TYPE_3D)
 		{
-			proj_computeTransform3D(obj, sinPitch, cosPitch, sinYaw, cosYaw, s_deltaTime);
+			proj_computeTransform3D(obj, sinPitch, cosPitch, sinYaw, cosYaw, s_deltaTime, projLogic->flags);
 		}
 	}
 
