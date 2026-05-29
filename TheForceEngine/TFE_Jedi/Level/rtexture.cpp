@@ -178,7 +178,6 @@ namespace TFE_Jedi
 
 		for (s32 i = 0; i < count; i++, list++)
 		{
-			// Assume names are less than 256 characters.
 			u8 length = 0;
 			if (serialization_getMode() == SMODE_WRITE)
 			{
@@ -191,12 +190,24 @@ namespace TFE_Jedi
 			}
 			SERIALIZE_BUF(SaveVersionInit, &list->name[0], length);
 
-			// If reading, we need to load the texture now.
+			// Serialize the runtime flags so they survive save/load
+			u8 flags = 0;
+			if (serialization_getMode() == SMODE_WRITE && list->texture)
+			{
+				flags = list->texture->flags;
+			}
+			SERIALIZE(SaveVersionInit, flags, 0);
+
 			if (serialization_getMode() == SMODE_READ)
 			{
 				const char* name = list->name.c_str();
 				list->texture = bitmap_load(name, 1, POOL_LEVEL, false);
 				s_textureTable[POOL_LEVEL][name] = i;
+				// Restore the runtime flags that bitmap_load() masked away
+				if (list->texture)
+				{
+					list->texture->flags = flags;
+				}
 			}
 		}
 	}
