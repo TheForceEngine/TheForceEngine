@@ -12,6 +12,7 @@
 #include <TFE_Jedi/Serialization/serialization.h>
 #include <TFE_System/math.h>
 #include <TFE_Settings/settings.h>
+#include <TFE_Jedi/Level/levelData.h>
 #include <unordered_map>
 
 using namespace TFE_DarkForces;
@@ -189,7 +190,16 @@ namespace TFE_Jedi
 			{
 				list->name.resize(length);
 			}
-			SERIALIZE_BUF(SaveVersionInit, &list->name[0], length);
+			SERIALIZE_BUF(SaveVersionInit, &list->name[0], length);			
+
+			// Serialize the runtime flags so they survive save/load 
+			u8 flags = 0;
+			if (serialization_getMode() == SMODE_WRITE && list->texture)
+			{
+				flags = list->texture->flags;
+			}
+
+			SERIALIZE(LevelState_TextureFlags, flags, 0);			
 
 			// If reading, we need to load the texture now.
 			if (serialization_getMode() == SMODE_READ)
@@ -197,6 +207,12 @@ namespace TFE_Jedi
 				const char* name = list->name.c_str();
 				list->texture = bitmap_load(name, 1, POOL_LEVEL, false);
 				s_textureTable[POOL_LEVEL][name] = i;
+
+				// Restore the runtime flags that bitmap_load() masked away
+				if (list->texture && LevelState_TextureFlags >= serialization_getVersion())
+				{
+					list->texture->flags = flags;
+				}
 			}
 		}
 	}
