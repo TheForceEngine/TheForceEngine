@@ -47,6 +47,9 @@ enum SoundType
 
 typedef void(*SoundFinishedCallback)(void* userData, s32 arg);
 typedef void(*AudioThreadCallback)(f32* buffer, u32 bufferSize, f32 systemVolume);
+// Direct callback writes stereo interleaved f32 at the full output rate (44100 Hz).
+// frameCount = number of stereo frames to fill.
+typedef void(*AudioDirectCallback)(f32* buffer, u32 frameCount, f32 systemVolume);
 
 namespace TFE_Audio
 {
@@ -76,6 +79,7 @@ namespace TFE_Audio
 	void bufferedAudioClear();
 
 	void setAudioThreadCallback(AudioThreadCallback callback = nullptr);
+	void setDirectCallback(AudioDirectCallback callback = nullptr);
 	const OutputDeviceInfo* getOutputDeviceList(s32& count, s32& curOutput);
 
 	// One shot, play and forget. Only do this if the client needs no control until stopAllSounds() is called.

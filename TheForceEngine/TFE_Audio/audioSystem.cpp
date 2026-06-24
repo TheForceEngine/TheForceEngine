@@ -74,6 +74,7 @@ namespace TFE_Audio
 
 	static AudioUpsampleFilter s_upsampleFilter = AUF_DEFAULT;
 	static AudioThreadCallback s_audioThreadCallback = nullptr;
+	static AudioDirectCallback s_directCallback = nullptr;
 
 	static void audioCallback(void*, unsigned char*, int);
 	void setSoundVolumeConsole(const ConsoleArgList& args);
@@ -224,6 +225,15 @@ namespace TFE_Audio
 
 		SDL_LockMutex(s_mutex);
 		s_audioThreadCallback = callback;
+		SDL_UnlockMutex(s_mutex);
+	}
+
+	void setDirectCallback(AudioDirectCallback callback)
+	{
+		if (s_nullDevice) { return; }
+
+		SDL_LockMutex(s_mutex);
+		s_directCallback = callback;
 		SDL_UnlockMutex(s_mutex);
 	}
 
@@ -467,9 +477,9 @@ namespace TFE_Audio
 
 		// First clear samples
 		memset(buffer, 0, bufferSize);
-			   
+
 		SDL_LockMutex(s_mutex);
-		// Then call the audio thread callback
+		// Call the audio thread callback (iMuse/game audio).
 		if (s_audioThreadCallback && !s_paused)
 		{
 			static f32 callbackBuffer[(AUDIO_CALLBACK_BUFFER_SIZE + 2)*AUDIO_CHANNEL_COUNT];	// 256 stereo + oversampling.
@@ -487,6 +497,11 @@ namespace TFE_Audio
 					upsample4x_linear(buffer, callbackBuffer, AUDIO_CALLBACK_BUFFER_SIZE*AUDIO_CHANNEL_COUNT);
 				}
 			}
+		}
+		// Direct callback adds at the full output rate (e.g. OGV video audio), mixing on top.
+		if (s_directCallback && !s_paused)
+		{
+			s_directCallback(buffer, frames, s_soundFxVolume * c_soundHeadroom);
 		}
 
 		// Then loop through the sources.

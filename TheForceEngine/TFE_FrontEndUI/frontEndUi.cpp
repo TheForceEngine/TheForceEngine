@@ -65,7 +65,7 @@ namespace TFE_FrontEndUI
 		FEUI_MODS,
 		FEUI_COUNT
 	};
-	
+
 	enum ConfigTab
 	{
 		CONFIG_ABOUT = 0,
@@ -375,7 +375,7 @@ namespace TFE_FrontEndUI
 		{
 			TFE_System::logWrite(LOG_ERROR, "SystemUI", "Cannot load title screen button images.");
 		}
-				
+
 		// Setup menu item callbacks
 		s_menuItemselected[0] = menuItem_Start;
 		s_menuItemselected[1] = menuItem_Load;
@@ -572,7 +572,7 @@ namespace TFE_FrontEndUI
 		ImGui::End();
 		ImGui::PopFont();
 	}
-		
+
 	void setCurrentGame(IGame* game)
 	{
 		s_game = game;
@@ -699,7 +699,7 @@ namespace TFE_FrontEndUI
 				s_inputConfig = inputMapping_get();
 				TFE_Settings_Game* gameSettings = TFE_Settings::getGameSettings();
 				TFE_Settings_Graphics* graphicsSettings = TFE_Settings::getGraphicsSettings();
-								
+
 				ImGui::SetCursorPosX(1280.0f * s_uiScale * 0.5f - 128.0f*s_uiScale);
 				if (ImGui::Button("Modern"))
 				{
@@ -737,7 +737,7 @@ namespace TFE_FrontEndUI
 				ImVec2 textSize = ImVec2(f32(textWidth), f32(textHeight));
 				for (s32 i = 0; i < s_menuItemCount; i++)
 				{
-				#if ENABLE_EDITOR == 0
+#if ENABLE_EDITOR == 0
 					// Disable the editor for now when not running on Windows.
 					if (s_menuItemselected[i] == menuItem_Editor)
 					{
@@ -745,11 +745,11 @@ namespace TFE_FrontEndUI
 							ImVec2(0, 0), ImVec2(1, 1), ImVec2(0, 0), ImVec2(1, 1), ImVec4(0, 0, 0, 0), ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
 					}
 					else
-				#endif
-					if (ImGui::ImageAnimButton(s_buttonNormal[i].image, s_buttonSelected[i].image, textSize))
-					{
-						s_menuItemselected[i]();
-					}
+#endif
+						if (ImGui::ImageAnimButton(s_buttonNormal[i].image, s_buttonSelected[i].image, textSize))
+						{
+							s_menuItemselected[i]();
+						}
 				}
 
 				ImGui::End();
@@ -1088,14 +1088,14 @@ namespace TFE_FrontEndUI
 
 		if (s_aboutDisplayStr) { TFE_Markdown::draw(s_aboutDisplayStr); }
 	}
-	
+
 	void configGame()
 	{
 		TFE_GameHeader* darkForces = TFE_Settings::getGameHeader("Dark Forces");
 		TFE_GameHeader* outlaws = TFE_Settings::getGameHeader("Outlaws");
 
 		s32 browseWinOpen = -1;
-		
+
 		//////////////////////////////////////////////////////
 		// Source Game Data
 		//////////////////////////////////////////////////////
@@ -1284,7 +1284,7 @@ namespace TFE_FrontEndUI
 		ImGui::PushFont(s_versionFont);
 		ImGui::LabelText("##ConfigLabel", "Engine Settings");
 		ImGui::PopFont();
-		
+
 		bool ignoreInfLimit = gameSettings->df_ignoreInfLimit;
 		if (ImGui::Checkbox("Remove INF Item Limit (requires restart)", &ignoreInfLimit))
 		{
@@ -1313,7 +1313,7 @@ namespace TFE_FrontEndUI
 		if (ImGui::Checkbox("Enhanced AI logics (requires restart)", &jsonAiLogics))
 		{
 			gameSettings->df_jsonAiLogics = jsonAiLogics;
-		}		
+		}
 
 		if (s_drawNoGameDataMsg)
 		{
@@ -1390,7 +1390,7 @@ namespace TFE_FrontEndUI
 			ImGui::EndPopup();
 		}
 
-		
+
 		if (ImGui::Button("Reset Game Settings"))
 		{
 			TFE_Settings::resetGameSettings();
@@ -1404,8 +1404,8 @@ namespace TFE_FrontEndUI
 		ImGui::PopFont();
 		const TFE_Game* game = TFE_Settings::getGame();
 		if (game->id == Game_Dark_Forces && s_menuRetState == APP_STATE_GAME)
-		{ 
-			configDarkForcesCheats(); 
+		{
+			configDarkForcesCheats();
 		}
 		else
 		{
@@ -1451,7 +1451,7 @@ namespace TFE_FrontEndUI
 		{
 			TFE_DarkForces::cheat_fly();
 		}
-			
+
 		bool fullBright = TFE_Jedi::s_fullBright;
 		if (ImGui::Checkbox("Full-Bright (LABRIGHT)", &fullBright))
 		{
@@ -1482,11 +1482,11 @@ namespace TFE_FrontEndUI
 		if (ImGui::Button("Reveal full map (LACDS)"))
 		{
 			TFE_DarkForces::cheat_revealMap();
-		}	
+		}
 		if (ImGui::Button("Grant supercharge (LARANDY)"))
 		{
 			TFE_DarkForces::cheat_supercharge();
-		}	
+		}
 		if (ImGui::Button("Grant all weapons/max health (LAPOSTAL)"))
 		{
 			TFE_DarkForces::cheat_postal();
@@ -1529,10 +1529,11 @@ namespace TFE_FrontEndUI
 		if (enhanceGOBExists())
 		{
 			TFE_Settings_Enhancements* enhancements = TFE_Settings::getEnhancementsSettings();
-			bool useHdAssets = enhancements->enableHdTextures && enhancements->enableHdSprites && enhancements->enableHdHud;
+			bool useHdAssets = enhancements->enableHdTextures && enhancements->enableHdSprites && enhancements->enableHdHud && enhancements->enableHdCutscenes;
 			enhancements->enableHdTextures = !useHdAssets;
 			enhancements->enableHdSprites = !useHdAssets;
 			enhancements->enableHdHud = !useHdAssets;
+			enhancements->enableHdCutscenes = !useHdAssets;
 
 			renderBackground(true);
 			return useHdAssets;
@@ -1571,9 +1572,9 @@ namespace TFE_FrontEndUI
 
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.25f, 1.0f));
 		ImGui::TextWrapped("Note: HD Assets are only used if 'True Color' is enabled\n"
-						   "in the Graphics panel. To enable True Color select \n"
-						   "'GPU / OpenGL' as the Renderer, and 'True Color' as the\n"
-						   "Color Mode.");
+			"in the Graphics panel. To enable True Color select \n"
+			"'GPU / OpenGL' as the Renderer, and 'True Color' as the\n"
+			"Color Mode.");
 		ImGui::PopStyleColor();
 		ImGui::Spacing();
 
@@ -1587,10 +1588,11 @@ namespace TFE_FrontEndUI
 			enhancements->enableHdTextures = false;
 			enhancements->enableHdSprites = false;
 			enhancements->enableHdHud = false;
+			enhancements->enableHdCutscenes = false;
 		}
 
 		ImGui::Spacing();
-		bool useHdAssets = enhancements->enableHdTextures && enhancements->enableHdSprites && enhancements->enableHdHud;
+		bool useHdAssets = enhancements->enableHdTextures && enhancements->enableHdSprites && enhancements->enableHdHud && enhancements->enableHdCutscenes;
 		if (ImGui::Checkbox("Use HD Assets", &useHdAssets))
 		{
 			toggleEnhancements();
@@ -1614,6 +1616,13 @@ namespace TFE_FrontEndUI
 		if (ImGui::Checkbox("Use HD HUD", &useHdHUD))
 		{
 			enhancements->enableHdHud = useHdHUD;
+			forceTextureUpdate = true;
+		}
+
+		bool useHdCutscenes = enhancements->enableHdCutscenes;
+		if (ImGui::Checkbox("Use HD Cutscenes", &useHdCutscenes))
+		{
+			enhancements->enableHdCutscenes = useHdCutscenes;
 			forceTextureUpdate = true;
 		}
 
@@ -1729,7 +1738,7 @@ namespace TFE_FrontEndUI
 		s_saveLoadSetupRequired = false;
 		s_popupSetFocus = false;
 	}
-		
+
 	void saveLoadDialog(bool save)
 	{
 		if (s_saveLoadSetupRequired)
@@ -1959,7 +1968,7 @@ namespace TFE_FrontEndUI
 		saveLoadDialog(false);
 	}
 
-	
+
 
 	///////////////////////////////////////////////////////////////////////////////
 	// Replay  UI
@@ -2085,7 +2094,7 @@ namespace TFE_FrontEndUI
 			size.y *= s_uiScale;
 
 			ImGui::Image(TFE_RenderBackend::getGpuPtr(s_replayImageView), size,
-				ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, 1), ImVec4(0.5f, 0.5f, 0.5f, 1.0f));			
+				ImVec2(0, 0), ImVec2(1, 1), ImVec4(1, 1, 1, 1), ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
 
 			// Replay Info
 			size.y = 200 * s_uiScale;
@@ -2155,12 +2164,12 @@ namespace TFE_FrontEndUI
 			}
 
 			size.x = 420 * s_uiScale;
-			#ifdef _WIN32
+#ifdef _WIN32
 			size.y = 85 * s_uiScale;
-			#else
+#else
 			size.y = 100 * s_uiScale;
-			#endif		
-			
+#endif		
+
 			ImGui::BeginChild("##InfoWithBorderRecord", size, true);
 			{
 				ImGui::TextWrapped("When this checkbox is pressed simply start any mission and the game will record the mission for replay.");
@@ -2215,11 +2224,11 @@ namespace TFE_FrontEndUI
 			ImGui::PopStyleColor();
 			ImGui::PopFont();
 
-			#ifdef _WIN32
+#ifdef _WIN32
 			size.y = 100 * s_uiScale;
-			#else
+#else
 			size.y = 120 * s_uiScale;
-			#endif		
+#endif		
 
 			ImGui::BeginChild("##InfoWithBorderPlayBack", size, true);
 			{
@@ -2236,9 +2245,9 @@ namespace TFE_FrontEndUI
 			}
 			ImGui::EndChild();
 
-			#ifdef _WIN32
+#ifdef _WIN32
 			ImGui::Spacing();
-			if (ImGui::Button("Open Replay Folder")) 
+			if (ImGui::Button("Open Replay Folder"))
 			{
 				if (!TFE_System::osShellExecute(s_replayDir, NULL, NULL, false))
 				{
@@ -2246,7 +2255,7 @@ namespace TFE_FrontEndUI
 				}
 			}
 			ImGui::SameLine(0.0f);
-            #endif		
+#endif		
 
 			if (ImGui::Button("Refresh Demo Folder"))
 			{
@@ -2285,7 +2294,7 @@ namespace TFE_FrontEndUI
 				bool selected = i == s_selectedReplay;
 				const char* replayName;
 				replayName = header[i - listOffset].fileName;
-				
+
 				// Color things differently depending if the mod exists or if the version is valid.
 				if (!TFE_SaveSystem::versionValid(s_replayDirContents[s32(i) - listOffset].saveVersion))
 				{
@@ -2374,7 +2383,7 @@ namespace TFE_FrontEndUI
 						loadReplayWrapper(replayFilePath, s_modReplayName, s_replayLevelId);
 					}
 				}
-				else 
+				else
 				{
 					ImGui::Text("Mod %s not found", s_modReplayName);
 				}
@@ -2416,7 +2425,7 @@ namespace TFE_FrontEndUI
 	}
 
 	// INPUT HANDLING
-		
+
 	void getBindingString(InputBinding* binding, char* inputName)
 	{
 		if (binding->type == ITYPE_KEYBOARD)
@@ -2542,7 +2551,7 @@ namespace TFE_FrontEndUI
 				if (ImGui::Checkbox("Enable", &controllerEnable))
 				{
 					if (controllerEnable) { s_inputConfig->controllerFlags |=  CFLAG_ENABLE; }
-					                 else { s_inputConfig->controllerFlags &= ~CFLAG_ENABLE; }
+					else { s_inputConfig->controllerFlags &= ~CFLAG_ENABLE; }
 				}
 
 				ImGui::PushFont(s_dialogFont);
@@ -2609,17 +2618,17 @@ namespace TFE_FrontEndUI
 				if (invertLeftHorz) { s_inputConfig->controllerFlags |=  CFLAG_INVERT_LEFT_HORZ; }
 				else                { s_inputConfig->controllerFlags &= ~CFLAG_INVERT_LEFT_HORZ; }
 				if (invertLeftVert) { s_inputConfig->controllerFlags |=  CFLAG_INVERT_LEFT_VERT; }
-				               else { s_inputConfig->controllerFlags &= ~CFLAG_INVERT_LEFT_VERT; }
-				
+							  else { s_inputConfig->controllerFlags &= ~CFLAG_INVERT_LEFT_VERT; }
+
 				bool invertRightHorz = (s_inputConfig->controllerFlags & CFLAG_INVERT_RIGHT_HORZ) != 0;
 				bool invertRightVert = (s_inputConfig->controllerFlags & CFLAG_INVERT_RIGHT_VERT) != 0;
 				ImGui::LabelText("##ConfigLabel", "Right Stick Invert: "); ImGui::SameLine(175*s_uiScale);
 				ImGui::Checkbox("Horizontal##Right", &invertRightHorz); ImGui::SameLine();
 				ImGui::Checkbox("Vertical##Right", &invertRightVert);
 				if (invertRightHorz) { s_inputConfig->controllerFlags |=  CFLAG_INVERT_RIGHT_HORZ; }
-				                else { s_inputConfig->controllerFlags &= ~CFLAG_INVERT_RIGHT_HORZ; }
+				else { s_inputConfig->controllerFlags &= ~CFLAG_INVERT_RIGHT_HORZ; }
 				if (invertRightVert) { s_inputConfig->controllerFlags |=  CFLAG_INVERT_RIGHT_VERT; }
-				                else { s_inputConfig->controllerFlags &= ~CFLAG_INVERT_RIGHT_VERT; }
+				else { s_inputConfig->controllerFlags &= ~CFLAG_INVERT_RIGHT_VERT; }
 
 				yNext += 480.0f*s_uiScale;
 			}
@@ -2634,7 +2643,7 @@ namespace TFE_FrontEndUI
 			ImGui::PopStyleVar();
 		}
 		ImGui::EndChild();
-				
+
 		ImGui::SetNextWindowPos(ImVec2(165.0f*s_uiScale, yNext - scroll));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.0f, 0.0f });
 		if (ImGui::BeginChild("##Mouse Options", ImVec2(390.0f*s_uiScale, (s_mouseWinOpen ? 250.0f : 29.0f)*s_uiScale), true, window_flags))
@@ -2682,9 +2691,9 @@ namespace TFE_FrontEndUI
 				ImGui::Checkbox("Horizontal##Mouse", &invertHorz); ImGui::SameLine();
 				ImGui::Checkbox("Vertical##Mouse", &invertVert);
 				if (invertHorz) { s_inputConfig->mouseFlags |=  MFLAG_INVERT_HORZ; }
-				           else { s_inputConfig->mouseFlags &= ~MFLAG_INVERT_HORZ; }
+				else { s_inputConfig->mouseFlags &= ~MFLAG_INVERT_HORZ; }
 				if (invertVert) { s_inputConfig->mouseFlags |=  MFLAG_INVERT_VERT; }
-				           else { s_inputConfig->mouseFlags &= ~MFLAG_INVERT_VERT; }
+				else { s_inputConfig->mouseFlags &= ~MFLAG_INVERT_VERT; }
 
 				yNext += 250.0f*s_uiScale;
 			}
@@ -2753,13 +2762,13 @@ namespace TFE_FrontEndUI
 				inputMapping("Pause",             IADF_PAUSE);
 				inputMapping("Automap",           IADF_AUTOMAP);
 				inputMapping("Screenshot",        IADF_SCREENSHOT);
-				inputMapping("GIF Recording",     IADF_GIF_RECORD);				
+				inputMapping("GIF Recording",     IADF_GIF_RECORD);
 				Tooltip("Display a countdown and then start recording a GIF. Press again to stop recording.");
 				inputMapping("Instant GIF Record",IADF_GIF_RECORD_NO_COUNTDOWN);
 				Tooltip("Start recording immediately without the countdown. Press again to stop recording.");
 				inputMapping("Playback Speedup",  IADF_DEMO_SPEEDUP);
 				inputMapping("Playback Slowdown", IADF_DEMO_SLOWDOWN);
-				
+
 				ImGui::Separator();
 
 				ImGui::PushFont(s_dialogFont);
@@ -2808,7 +2817,7 @@ namespace TFE_FrontEndUI
 				inputMapping("Mortar Gun",        IADF_WEAPON_8);
 				inputMapping("Concussion Rifle",  IADF_WEAPON_9);
 				inputMapping("Assault Cannon",    IADF_WEAPON_10);
-								
+
 				if (ImGui::BeginPopupModal("##ChangeBinding", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 				{
 					s_bindingPopupOpen = true;
@@ -2972,7 +2981,7 @@ namespace TFE_FrontEndUI
 		ImGui::PopStyleVar();
 		ImGui::SetCursorPosY(yNext + (s_inputMappingOpen ? inputMappingHeight : 29.0f*s_uiScale));
 	}
-		
+
 	void configGraphics()
 	{
 		TFE_Settings_Graphics* graphics = TFE_Settings::getGraphicsSettings();
@@ -3259,7 +3268,7 @@ namespace TFE_FrontEndUI
 			graphics->saturation = 1.0f;
 			graphics->gamma = 1.0f;
 		}
-				
+
 		ImGui::Separator();
 
 		//////////////////////////////////////////////////////
@@ -3312,7 +3321,7 @@ namespace TFE_FrontEndUI
 		}
 
 		const ColorCorrection colorCorrection = { graphics->brightness, graphics->contrast, graphics->saturation, graphics->gamma };
-		TFE_RenderBackend::setColorCorrection(graphics->colorCorrection, &colorCorrection, bloomChanged);		
+		TFE_RenderBackend::setColorCorrection(graphics->colorCorrection, &colorCorrection, bloomChanged);
 	}
 
 	void configHud()
@@ -3339,12 +3348,12 @@ namespace TFE_FrontEndUI
 		ImGui::SliderInt("Offset Lt", &hud->pixelOffset[0], -512, 512); ImGui::SameLine(0.0f, 3.0f*s_uiScale);
 		ImGui::SetNextItemWidth(128 * s_uiScale);
 		ImGui::InputInt("##HudOffsetX0Text", &hud->pixelOffset[0], 1, 10);
-		
+
 		ImGui::SetNextItemWidth(196 * s_uiScale);
 		ImGui::SliderInt("Offset Rt", &hud->pixelOffset[1], -512, 512); ImGui::SameLine(0.0f, 3.0f*s_uiScale);
 		ImGui::SetNextItemWidth(128 * s_uiScale);
 		ImGui::InputInt("##HudOffsetX1Text", &hud->pixelOffset[1], 1, 10);
-		
+
 		ImGui::SetNextItemWidth(196*s_uiScale);
 		ImGui::SliderInt("Offset Y", &hud->pixelOffset[2], -512, 512); ImGui::SameLine(0.0f, 10.0f*s_uiScale);
 		ImGui::SetNextItemWidth(128 * s_uiScale);
@@ -3542,7 +3551,7 @@ namespace TFE_FrontEndUI
 		}
 		Tooltip("Appears in upper-left corner of screen. If disabled, a generic 'recording saved' message will be shown instead.");
 
-	#ifdef _WIN32
+#ifdef _WIN32
 		ImGui::Separator();
 		if (ImGui::Button("Open Log Folder"))
 		{
@@ -3562,13 +3571,13 @@ namespace TFE_FrontEndUI
 				TFE_System::logWrite(LOG_ERROR, "Settings", "Failed to open directory: '%s'", screenshotDir);
 			}
 		}
-	#endif
+#endif
 		const char * resetMsg = "             Reset All Settings";
 
 		if (ImGui::Button("Reset All Settings"))
 		{
 			ImGui::OpenPopup(resetMsg);
-		}	
+		}
 
 
 		if (ImGui::BeginPopupModal(resetMsg, NULL, ImGuiWindowFlags_AlwaysAutoResize))
@@ -3589,8 +3598,8 @@ namespace TFE_FrontEndUI
 			}
 
 			ImGui::EndPopup();
-			
-		}		
+
+		}
 	}
 
 	void DrawFontSizeCombo(float labelWidth, float valueWidth, const char* label, const char* comboTag, s32* currentValue)
@@ -3601,7 +3610,7 @@ namespace TFE_FrontEndUI
 		ImGui::SetNextItemWidth(valueWidth);
 		ImGui::Combo(comboTag, currentValue, c_fontSize, IM_ARRAYSIZE(c_fontSize));
 	}
-	
+
 	void DrawRGBFields(float labelWidth, float valueWidth, const char* label, RGBA* color)
 	{
 		ImGui::SetNextItemWidth(labelWidth);
@@ -3639,7 +3648,7 @@ namespace TFE_FrontEndUI
 		ImGui::SetNextItemWidth(valueWidth);
 		ImGui::SliderFloat3(tag, value, min, max);
 	}
-	
+
 	void DrawLabelledIntSlider(float labelWidth, float valueWidth, const char* label, const char* tag, int* value, int min, int max)
 	{
 		ImGui::SetNextItemWidth(labelWidth);
@@ -3648,7 +3657,7 @@ namespace TFE_FrontEndUI
 		ImGui::SetNextItemWidth(valueWidth);
 		ImGui::SliderInt(tag, value, min, max);
 	}
-	
+
 	string DrawFileListCombo(const char* tag, string currentFileName, string currentFilePath, TFE_A11Y::FilePathList filePathList)
 	{
 		// We only display the file name in the dropdown, but internally track the full path.
@@ -3663,14 +3672,14 @@ namespace TFE_FrontEndUI
 				string path = paths->at(n);
 				bool is_selected = (currentFilePath == path);
 				if (ImGui::Selectable(name.c_str(), is_selected)) { currentFilePath = path; }
-				if (is_selected) 
-				{ 
+				if (is_selected)
+				{
 					ImGui::SetItemDefaultFocus();
 				}
 			}
 			ImGui::EndCombo();
 		}
-		return currentFilePath;	
+		return currentFilePath;
 	}
 
 	void pickCurrentResolution()
@@ -3721,7 +3730,7 @@ namespace TFE_FrontEndUI
 		ImGui::PopFont();
 
 		// Check status, and init the caption system if necessary.
-		if (TFE_A11Y::getCaptionSystemStatus() == TFE_A11Y::CC_NOT_LOADED) 
+		if (TFE_A11Y::getCaptionSystemStatus() == TFE_A11Y::CC_NOT_LOADED)
 		{
 			TFE_A11Y::refreshFiles();
 		}
@@ -3740,7 +3749,7 @@ namespace TFE_FrontEndUI
 			TFE_A11Y::clearActiveCaptions();
 			TFE_A11Y::loadCaptions(currentCaptionFilePath);
 		}
-		
+
 		// Font file dropdown.
 		ImGui::LabelText("##ConfigLabel", "Font:");
 		TFE_A11Y::FilePath currentFont = TFE_A11Y::getCurrentFontFile();
@@ -3767,7 +3776,7 @@ namespace TFE_FrontEndUI
 		ImGui::Checkbox("Subtitles (voice)##Cutscenes", &a11ySettings->showCutsceneSubtitles);
 		ImGui::SameLine(0, 22);
 		ImGui::Checkbox("Captions (SFX)##Cutscenes", &a11ySettings->showCutsceneCaptions);
-		
+
 		DrawFontSizeCombo(labelW, valueW, "Font Size##Cutscenes", "##CFS", (s32*)&a11ySettings->cutsceneFontSize);
 		DrawRGBFields(labelW, valueW, "Font Color##Cutscenes", &a11ySettings->cutsceneFontColor);
 		DrawLabelledFloatSlider(labelW, valueW * 0.5f - 2, "Background Opacity", "##CBO", &a11ySettings->cutsceneTextBackgroundAlpha, 0.0f, 1.0f);
@@ -3917,7 +3926,7 @@ namespace TFE_FrontEndUI
 	{
 		s_subUI = FEUI_CONFIG;
 		s_configTab = CONFIG_GAME;
-		
+
 		pickCurrentResolution();
 	}
 
@@ -4033,88 +4042,97 @@ namespace TFE_FrontEndUI
 		s_inputConfig = inputMapping_get();
 		TFE_Settings_Game* gameSettings = TFE_Settings::getGameSettings();
 		TFE_Settings_Graphics* graphicsSettings = TFE_Settings::getGraphicsSettings();
+		TFE_Settings_Enhancements* enhancements = TFE_Settings::getEnhancementsSettings();
 
 		switch (temp)
 		{
-			case TEMPLATE_MODERN:
-			case TEMPLATE_RETRO:
+		case TEMPLATE_MODERN:
+		case TEMPLATE_RETRO:
+		{
+			// Controls
+			s_inputConfig->mouseMode = MMODE_LOOK;
+			// Game
+			gameSettings->df_showSecretFoundMsg = true;
+			gameSettings->df_bobaFettFacePlayer = true;
+			gameSettings->df_smoothVUEs = true;
+			gameSettings->df_pitchLimit = (temp == TEMPLATE_MODERN) ? PITCH_MAXIMUM : PITCH_VANILLA_PLUS;
+			gameSettings->df_solidWallFlagFix = true;
+			gameSettings->df_enableUnusedItem = true;
+			gameSettings->df_jsonAiLogics = true;
+			gameSettings->df_enableUnusedItem = true;
+			// Graphics
+			graphicsSettings->rendererIndex = RENDERER_HARDWARE;
+			graphicsSettings->skyMode = SKYMODE_CYLINDER;
+			graphicsSettings->widescreen = true;
+			graphicsSettings->gameResolution.x = displayInfo.width;
+			graphicsSettings->gameResolution.z = displayInfo.height;
+			// Color mode and texture filtering are the main differences between modes.
+			graphicsSettings->colorMode = (temp == TEMPLATE_MODERN) ? COLORMODE_TRUE_COLOR : COLORMODE_8BIT_INTERP;
+			// Texture filtering.
+			if (temp == TEMPLATE_MODERN)
 			{
-				// Controls
-				s_inputConfig->mouseMode = MMODE_LOOK;
-				// Game
-				gameSettings->df_showSecretFoundMsg = true;
-				gameSettings->df_bobaFettFacePlayer = true;
-				gameSettings->df_smoothVUEs = true;
-				gameSettings->df_pitchLimit = (temp == TEMPLATE_MODERN) ? PITCH_MAXIMUM : PITCH_VANILLA_PLUS;
-				gameSettings->df_solidWallFlagFix = true;
-				gameSettings->df_enableUnusedItem = true;
-				gameSettings->df_jsonAiLogics = true;
-				gameSettings->df_enableUnusedItem = true;
-				// Graphics
-				graphicsSettings->rendererIndex = RENDERER_HARDWARE;
-				graphicsSettings->skyMode = SKYMODE_CYLINDER;
-				graphicsSettings->widescreen = true;
-				graphicsSettings->gameResolution.x = displayInfo.width;
-				graphicsSettings->gameResolution.z = displayInfo.height;
-				// Color mode and texture filtering are the main differences between modes.
-				graphicsSettings->colorMode = (temp == TEMPLATE_MODERN) ? COLORMODE_TRUE_COLOR : COLORMODE_8BIT_INTERP;
-				// Texture filtering.
-				if (temp == TEMPLATE_MODERN)
-				{
-					graphicsSettings->anisotropyQuality = 1.0f;
-					graphicsSettings->bilinearSharpness = 1.0f;
-					graphicsSettings->useBilinear   = true;
-					graphicsSettings->useMipmapping = true;
-				}
-				// Post-FX
-				if (temp == TEMPLATE_MODERN)
-				{
-					graphicsSettings->bloomEnabled = true;
-					graphicsSettings->bloomStrength = 0.4f;
-					graphicsSettings->bloomSpread = 0.6f;
-				}
-				else
-				{
-					graphicsSettings->bloomEnabled = false;
-				}
-				// Reticle.
-				graphicsSettings->reticleEnable = true;
-				graphicsSettings->reticleIndex = 4;
-				graphicsSettings->reticleRed = 0.25f;
-				graphicsSettings->reticleGreen = 1.0f;
-				graphicsSettings->reticleBlue = 0.25f;
-				graphicsSettings->reticleOpacity = 1.0f;
-				graphicsSettings->reticleScale = 0.5f;
-
-				reticle_setShape(graphicsSettings->reticleIndex);
-				reticle_setScale(graphicsSettings->reticleScale);
-				reticle_setColor(&graphicsSettings->reticleRed);
-			} break;
-			case TEMPLATE_VANILLA:
-			{
-				// Controls
-				s_inputConfig->mouseMode = MMODE_TURN;
-				// Game
-				gameSettings->df_showSecretFoundMsg = false;
-				gameSettings->df_bobaFettFacePlayer = false;
-				gameSettings->df_smoothVUEs = false;
-				gameSettings->df_solidWallFlagFix = false;
-				gameSettings->df_enableUnusedItem = false;
-				gameSettings->df_jsonAiLogics = false;
-				// Graphics
-				graphicsSettings->rendererIndex = RENDERER_SOFTWARE;
-				graphicsSettings->widescreen = false;
-				graphicsSettings->gameResolution.x = 320;
-				graphicsSettings->gameResolution.z = 200;
-				graphicsSettings->colorMode = COLORMODE_8BIT;
-				// Reticle.
-				graphicsSettings->reticleEnable = false;
-			} break;
-			default:
-			{
-				TFE_System::logWrite(LOG_ERROR, "Settings", "Invalid settings template: %d", s32(temp));
-				return;
+				graphicsSettings->anisotropyQuality = 1.0f;
+				graphicsSettings->bilinearSharpness = 1.0f;
+				graphicsSettings->useBilinear = true;
+				graphicsSettings->useMipmapping = true;
 			}
+			// Post-FX
+			if (temp == TEMPLATE_MODERN)
+			{
+				graphicsSettings->bloomEnabled = true;
+				graphicsSettings->bloomStrength = 0.4f;
+				graphicsSettings->bloomSpread = 0.6f;
+			}
+			else
+			{
+				graphicsSettings->bloomEnabled = false;
+			}
+			// Reticle.
+			graphicsSettings->reticleEnable = true;
+			graphicsSettings->reticleIndex = 4;
+			graphicsSettings->reticleRed = 0.25f;
+			graphicsSettings->reticleGreen = 1.0f;
+			graphicsSettings->reticleBlue = 0.25f;
+			graphicsSettings->reticleOpacity = 1.0f;
+			graphicsSettings->reticleScale = 0.5f;
+
+			reticle_setShape(graphicsSettings->reticleIndex);
+			reticle_setScale(graphicsSettings->reticleScale);
+			reticle_setColor(&graphicsSettings->reticleRed);
+
+			// Enhancements
+			bool useHD = temp == TEMPLATE_MODERN && enhanceGOBExists();
+			enhancements->enableHdTextures = useHD;
+			enhancements->enableHdSprites = useHD;
+			enhancements->enableHdHud = useHD;
+			enhancements->enableHdCutscenes = useHD;
+
+		} break;
+		case TEMPLATE_VANILLA:
+		{
+			// Controls
+			s_inputConfig->mouseMode = MMODE_TURN;
+			// Game
+			gameSettings->df_showSecretFoundMsg = false;
+			gameSettings->df_bobaFettFacePlayer = false;
+			gameSettings->df_smoothVUEs = false;
+			gameSettings->df_solidWallFlagFix = false;
+			gameSettings->df_enableUnusedItem = false;
+			gameSettings->df_jsonAiLogics = false;
+			// Graphics
+			graphicsSettings->rendererIndex = RENDERER_SOFTWARE;
+			graphicsSettings->widescreen = false;
+			graphicsSettings->gameResolution.x = 320;
+			graphicsSettings->gameResolution.z = 200;
+			graphicsSettings->colorMode = COLORMODE_8BIT;
+			// Reticle.
+			graphicsSettings->reticleEnable = false;
+		} break;
+		default:
+		{
+			TFE_System::logWrite(LOG_ERROR, "Settings", "Invalid settings template: %d", s32(temp));
+			return;
+		}
 		}
 
 		TFE_Settings::writeToDisk();

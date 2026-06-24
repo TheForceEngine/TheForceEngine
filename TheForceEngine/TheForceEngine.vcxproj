@@ -131,8 +131,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ForceScript\Angelscript\angelscript\include;$(ProjectDir)\TFE_ForceScript\Angelscript\add_on;$(ProjectDir)\sdl2_win32\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\sdl2_win32\lib\x64;$(ProjectDir)\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ForceScript\Angelscript\angelscript\include;$(ProjectDir)\TFE_ForceScript\Angelscript\add_on;$(ProjectDir)\sdl2_win32\include;$(ProjectDir)\ogg_theora_win32\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)\sdl2_win32\lib\x64;$(ProjectDir)\lib;$(ProjectDir)\ogg_theora_win32\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -145,18 +145,18 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ForceScript\Angelscript\angelscript\include;$(ProjectDir)\TFE_ForceScript\Angelscript\add_on;$(ProjectDir)\sdl2_win32\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\sdl2_win32\lib\x64;$(ProjectDir)\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ForceScript\Angelscript\angelscript\include;$(ProjectDir)\TFE_ForceScript\Angelscript\add_on;$(ProjectDir)\sdl2_win32\include;$(ProjectDir)\ogg_theora_win32\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)\sdl2_win32\lib\x64;$(ProjectDir)\lib;$(ProjectDir)\ogg_theora_win32\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='BuildForRelease|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\angelscript\include;$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\add_on;$(ProjectDir)\devILx64\include;$(ProjectDir)\sdl2_win32\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\sdl2_win32\lib\x64;$(ProjectDir)\lib;$(ProjectDir)\devILx64\lib\x64\Release;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\angelscript\include;$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\add_on;$(ProjectDir)\devILx64\include;$(ProjectDir)\sdl2_win32\include;$(ProjectDir)\ogg_theora_win32\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)\sdl2_win32\lib\x64;$(ProjectDir)\lib;$(ProjectDir)\devILx64\lib\x64\Release;$(ProjectDir)\ogg_theora_win32\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\angelscript\include;$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\add_on;$(ProjectDir)\devILx64\include;$(ProjectDir)\sdl2_win32\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\sdl2_win32\lib\x64;$(ProjectDir)\lib;$(ProjectDir)\devILx64\lib\x64\Release;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\angelscript\include;$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\add_on;$(ProjectDir)\devILx64\include;$(ProjectDir)\sdl2_win32\include;$(ProjectDir)\ogg_theora_win32\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)\sdl2_win32\lib\x64;$(ProjectDir)\lib;$(ProjectDir)\devILx64\lib\x64\Release;$(ProjectDir)\ogg_theora_win32\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -178,14 +178,14 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;BUILD_SYSMIDI;BUILD_EDITOR;WIN32_OPENGL;__WINDOWS_MM__;ASMJIT_EMBED;ASMJIT_STATIC;ASMJIT_NO_FOREIGN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;BUILD_SYSMIDI;BUILD_EDITOR;WIN32_OPENGL;__WINDOWS_MM__;ASMJIT_EMBED;ASMJIT_STATIC;ASMJIT_NO_FOREIGN;ENABLE_OGV_CUTSCENES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ogg.lib;theora.lib;theoradec.lib;vorbis.lib;vorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>
@@ -257,7 +257,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;BUILD_SYSMIDI;BUILD_EDITOR;WIN32_OPENGL;__WINDOWS_MM__;ASMJIT_EMBED;ASMJIT_STATIC;ASMJIT_NO_FOREIGN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;BUILD_SYSMIDI;BUILD_EDITOR;WIN32_OPENGL;__WINDOWS_MM__;ASMJIT_EMBED;ASMJIT_STATIC;ASMJIT_NO_FOREIGN;ENABLE_OGV_CUTSCENES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
@@ -266,7 +266,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ogg.lib;theora.lib;theoradec.lib;vorbis.lib;vorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
@@ -280,7 +280,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;WIN32_OPENGL;__WINDOWS_MM__;ASMJIT_EMBED;ASMJIT_STATIC;ASMJIT_NO_FOREIGN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;WIN32_OPENGL;__WINDOWS_MM__;ASMJIT_EMBED;ASMJIT_STATIC;ASMJIT_NO_FOREIGN;ENABLE_OGV_CUTSCENES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
@@ -289,7 +289,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ogg.lib;theora.lib;theoradec.lib;vorbis.lib;vorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>@(
@@ -310,7 +310,7 @@ echo ^)";
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;WIN32_OPENGL;__WINDOWS_MM__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;WIN32_OPENGL;__WINDOWS_MM__;ENABLE_OGV_CUTSCENES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -318,7 +318,7 @@ echo ^)";
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ogg.lib;theora.lib;theoradec.lib;vorbis.lib;vorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
@@ -431,6 +431,10 @@ echo ^)";
     <ClInclude Include="TFE_DarkForces\Landru\ltimer.h" />
     <ClInclude Include="TFE_DarkForces\Landru\lview.h" />
     <ClInclude Include="TFE_DarkForces\Landru\textCrawl.h" />
+    <ClInclude Include="TFE_DarkForces\Remaster\dcssParser.h" />
+    <ClInclude Include="TFE_DarkForces\Remaster\ogvPlayer.h" />
+    <ClInclude Include="TFE_DarkForces\Remaster\remasterCutscenes.h" />
+    <ClInclude Include="TFE_DarkForces\Remaster\srtParser.h" />
     <ClInclude Include="TFE_DarkForces\logic.h" />
     <ClInclude Include="TFE_DarkForces\mission.h" />
     <ClInclude Include="TFE_DarkForces\pickup.h" />
@@ -849,6 +853,10 @@ echo ^)";
     <ClCompile Include="TFE_DarkForces\Landru\ltimer.cpp" />
     <ClCompile Include="TFE_DarkForces\Landru\lview.cpp" />
     <ClCompile Include="TFE_DarkForces\Landru\textCrawl.cpp" />
+    <ClCompile Include="TFE_DarkForces\Remaster\dcssParser.cpp" />
+    <ClCompile Include="TFE_DarkForces\Remaster\ogvPlayer.cpp" />
+    <ClCompile Include="TFE_DarkForces\Remaster\remasterCutscenes.cpp" />
+    <ClCompile Include="TFE_DarkForces\Remaster\srtParser.cpp" />
     <ClCompile Include="TFE_DarkForces\logic.cpp" />
     <ClCompile Include="TFE_DarkForces\mission.cpp" />
     <ClCompile Include="TFE_DarkForces\pickup.cpp" />
@@ -1163,6 +1171,7 @@ echo ^)";
     <None Include="Documentation\markdown\Level Editor Shortcuts.md" />
     <None Include="Documentation\markdown\Manifesto.md" />
     <None Include="Documentation\markdown\Manual.md" />
+	<None Include="Documentation\markdown\RemasteredCredits.md" />
     <None Include="Shaders\blit.frag" />
     <None Include="Shaders\blit.vert" />
     <None Include="Shaders\bloom.vert" />

@@ -480,6 +480,7 @@ namespace TFE_Settings
 		writeKeyValue_Int(settings, "hdTextures", s_enhancementsSettings.enableHdTextures);
 		writeKeyValue_Int(settings, "hdSprites", s_enhancementsSettings.enableHdSprites);
 		writeKeyValue_Int(settings, "hdHud", s_enhancementsSettings.enableHdHud);
+		writeKeyValue_Int(settings, "hdCutscenes", s_enhancementsSettings.enableHdCutscenes);
 	}
 
 	void writeHudSettings(FileStream& settings)
@@ -921,6 +922,10 @@ namespace TFE_Settings
 		else if (strcasecmp("hdHud", key) == 0)
 		{
 			s_enhancementsSettings.enableHdHud = parseBool(value);
+		}
+		else if (strcasecmp("hdCutscenes", key) == 0)
+		{
+			s_enhancementsSettings.enableHdCutscenes = parseBool(value);
 		}
 	}
 
