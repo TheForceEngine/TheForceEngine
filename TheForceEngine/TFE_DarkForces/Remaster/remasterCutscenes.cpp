@@ -8,6 +8,7 @@
 #include <TFE_Settings/windows/registry.h>
 #endif
 #include <TFE_Settings/gameSourceData.h>
+#include <TFE_Archive/zipArchive.h>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -219,27 +220,82 @@ namespace TFE_DarkForces
 
 		// Walk back one directory. s_videoBasePath ends in "movies/" or
 		// "Cutscenes/"; strip that component to get the parent.
-		std::string root = s_videoBasePath;
-		if (!root.empty() && (root.back() == '/' || root.back() == '\\')) { root.pop_back(); }
-		size_t slash = root.find_last_of("/\\");
-		if (slash != std::string::npos) { root = root.substr(0, slash + 1); }
-		else { root += '/'; }
+		std::string remasterRoot = s_videoBasePath;
+		if (!remasterRoot.empty() && (remasterRoot.back() == '/' || remasterRoot.back() == '\\')) { remasterRoot.pop_back(); }
+		size_t slash = remasterRoot.find_last_of("/\\");
+		if (slash != std::string::npos) { remasterRoot = remasterRoot.substr(0, slash + 1); }
+		else { remasterRoot += '/'; }
 
 		// Canonical location: sibling of movies/.
-		char testPath[TFE_MAX_PATH];
-		snprintf(testPath, TFE_MAX_PATH, "%scutscene_scripts/", root.c_str());
-		if (FileUtil::directoryExists(testPath))
+		char cutsceneScriptPath[TFE_MAX_PATH];
+		sprintf(cutsceneScriptPath, "%scutscene_scripts/", s_videoBasePath.c_str());
+
+		// Check if it exists 
+		if (FileUtil::directoryExists(cutsceneScriptPath))
 		{
-			s_scriptBasePath = testPath;
-			TFE_System::logWrite(LOG_MSG, "Remaster", "Found cutscene scripts at: %s", testPath);
+			s_scriptBasePath = cutsceneScriptPath;
+			TFE_System::logWrite(LOG_MSG, "Remaster", "Found cutscene scripts at: %s", cutsceneScriptPath);
 			return;
 		}
 
-		// Modder convenience: cutscene_scripts/ inside movies/.
-		snprintf(testPath, TFE_MAX_PATH, "%scutscene_scripts/", s_videoBasePath.c_str());
-		if (FileUtil::directoryExists(testPath))
+		else
 		{
-			s_scriptBasePath = testPath;
+			// Ok then we must extract the folder from DarkEx.kpf which is a zip file.
+			ZipArchive darkExFile;
+			u8 * s_fileBuffer;
+			char darkExPath[TFE_MAX_PATH];
+			sprintf(darkExPath, "%sDarkEX.kpf", TFE_Settings::getGameHeader("Dark Forces")->sourcePath);
+			if (FileUtil::exists(darkExPath))
+			{
+				if (darkExFile.open(darkExPath))
+				{
+					// Ok we found the Kex File now we can create a directory and save the DCSS
+					FileUtil::makeDirectory(cutsceneScriptPath);
+					// Look for the folder cutscene_scripts in the zip and extract 
+					// the cutscene_script into the path moviesRoot 
+
+					s32 foldIndex = -1;
+					const u32 count = darkExFile.getFileCount();
+					for (u32 i = 0; i < count; i++)
+					{
+						const char* name = darkExFile.getFileName(i);
+						TFE_System::logWrite(LOG_WARNING, "Remaster", name);
+
+						// Check if the name of the file starts with cutscene_scripts/
+						if (strncasecmp(name, "cutscene_scripts/", strlen("cutscene_scripts/")) == 0)
+						{							
+							u32 bufferLen = (u32)darkExFile.getFileLength(i);
+							u8* buffer = (u8*)malloc(bufferLen);
+							darkExFile.openFile(i);
+							darkExFile.readFile(buffer, bufferLen);
+							darkExFile.closeFile();
+
+							FileStream file;
+							char scriptFilePath[TFE_MAX_PATH];
+							sprintf(scriptFilePath, "%s%s", s_videoBasePath.c_str(), name);
+							if (file.open(scriptFilePath, Stream::MODE_WRITE))
+							{
+								file.writeBuffer(buffer, bufferLen);
+								file.close();
+							}
+							free(buffer);
+						}
+					}
+					darkExFile.close();
+				}
+				else
+				{
+					TFE_System::logWrite(LOG_WARNING, "Remaster", "Could not find DarkEx.kpf at: %s", darkExPath);
+					return;
+				}
+			}
+		}
+
+		// Modder convenience: cutscene_scripts/ inside movies/.
+		snprintf(cutsceneScriptPath, TFE_MAX_PATH, "%scutscene_scripts/", s_videoBasePath.c_str());
+		if (FileUtil::directoryExists(cutsceneScriptPath))
+		{
+			s_scriptBasePath = cutsceneScriptPath;
 			return;
 		}
 
