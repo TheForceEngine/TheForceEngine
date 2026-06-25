@@ -13,6 +13,7 @@
 #include <cstring>
 #include <string>
 
+
 //============================================================================
 // Remastered cutscene path resolution
 //============================================================================
@@ -242,12 +243,29 @@ namespace TFE_DarkForces
 		{
 			// Ok then we must extract the folder from DarkEx.kpf which is a zip file.
 			ZipArchive darkExFile;
-			u8 * s_fileBuffer;
 			char darkExPath[TFE_MAX_PATH];
 			sprintf(darkExPath, "%sDarkEX.kpf", TFE_Settings::getGameHeader("Dark Forces")->sourcePath);
 			if (FileUtil::exists(darkExPath))
 			{
-				if (darkExFile.open(darkExPath))
+				// This is a fix for the trademark symbol in Star Wars GOG version
+				// Zip Archiver needs specific encoding for it.
+				const std::string trademark = "™";
+				const char tmReplacement[3] = {'\xE2','\x84','\xA2'};
+
+				std::string darkExPathUtf8 = std::string(darkExPath);
+				size_t pos = darkExPathUtf8.find(trademark);
+				size_t pathLen = darkExPathUtf8.size();
+				if (pos != std::string::npos)
+				{
+					std::string newPath;
+					newPath.reserve(pathLen + 2);
+					newPath.append(darkExPathUtf8, 0, pos);
+					newPath.append(tmReplacement, 3);
+					newPath.append(darkExPathUtf8, pos+1, pathLen - pos - 1);
+					darkExPathUtf8 = newPath;
+				}
+
+				if (darkExFile.open(darkExPathUtf8.c_str()))
 				{
 					// Ok we found the Kex File now we can create a directory and save the DCSS
 					FileUtil::makeDirectory(cutsceneScriptPath);
@@ -263,7 +281,7 @@ namespace TFE_DarkForces
 
 						// Check if the name of the file starts with cutscene_scripts/
 						if (strncasecmp(name, "cutscene_scripts/", strlen("cutscene_scripts/")) == 0)
-						{							
+						{
 							u32 bufferLen = (u32)darkExFile.getFileLength(i);
 							u8* buffer = (u8*)malloc(bufferLen);
 							darkExFile.openFile(i);
