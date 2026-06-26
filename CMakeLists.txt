@@ -54,7 +54,7 @@ option(ENABLE_TFE "Enable building “The Force Engine”" ON)
 option(ENABLE_SYSMIDI "Enable System-MIDI Output if RTMidi is available" ON)
 option(ENABLE_EDITOR "Enable TFE Editor" OFF)
 option(ENABLE_OGV_CUTSCENES "Enable OGV (Ogg Theora) video cutscene support" OFF)
-option(ENABLE_ADJUSTABLEHUD_MOD "Install the build‑in "AdjustableHud mod" with TFE" ON)
+option(ENABLE_ADJUSTABLEHUD_MOD "Install the build‑in 'AdjustableHud mod' with TFE" ON)
 
 if(ENABLE_TFE)
 	add_executable(tfe)
