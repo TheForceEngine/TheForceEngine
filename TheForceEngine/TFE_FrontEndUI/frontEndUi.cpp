@@ -1588,7 +1588,10 @@ namespace TFE_FrontEndUI
 			enhancements->enableHdTextures = false;
 			enhancements->enableHdSprites = false;
 			enhancements->enableHdHud = false;
-			enhancements->enableHdCutscenes = false;
+
+			// Special case for cutscenes. You should still be able to watch them in 8bit mode
+			// So only disable the cutscenes if the enhanced gob doesn't exist.
+			if (!enhancedGobExists)	enhancements->enableHdCutscenes = false;
 		}
 
 		ImGui::Spacing();
@@ -1619,18 +1622,26 @@ namespace TFE_FrontEndUI
 			forceTextureUpdate = true;
 		}
 
-		bool useHdCutscenes = enhancements->enableHdCutscenes;
-		if (ImGui::Checkbox("Use HD Cutscenes", &useHdCutscenes))
-		{
-			enhancements->enableHdCutscenes = useHdCutscenes;
-			forceTextureUpdate = true;
-		}
-
 		if (!enhancedGobExists || graphics->colorMode != COLORMODE_TRUE_COLOR)
 		{
 			ImGui::PopItemFlag();
 			ImGui::PopStyleVar();
 		}
+
+		ImGui::Spacing();
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.25f, 1.0f));
+		ImGui::TextWrapped("Special Case for HD cutscenes. If remaster assets exist\n"
+			               "Allow user to change them at will");
+		ImGui::PopStyleColor();
+
+		// Special case for HD cutscenes
+		bool useHdCutscenes = enhancements->enableHdCutscenes;
+		if (enhancedGobExists && ImGui::Checkbox("Use HD Cutscenes", &useHdCutscenes))
+		{
+			enhancements->enableHdCutscenes = useHdCutscenes;
+			forceTextureUpdate = true;
+		}
+
 		return forceTextureUpdate;
 	}
 
