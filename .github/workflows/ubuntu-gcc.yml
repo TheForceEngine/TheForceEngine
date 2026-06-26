@@ -29,7 +29,7 @@ jobs:
 
     - name: Install Dependencies
       shell: bash
-      run: sudo apt-get update -qq && sudo apt-get install -y libsdl2-dev libsdl2-image-dev
+      run: sudo apt-get update -qq && sudo apt-get install -y libsdl2-dev libsdl2-image-dev libtheora-dev libogg-dev libvorbis-dev
 
     - name: Configure cmake
       shell: bash
@@ -37,7 +37,9 @@ jobs:
         cmake -B ./build \
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
           -DENABLE_FORCE_SCRIPT=ON \
-          -DENABLE_EDITOR=ON
+          -DENABLE_EDITOR=ON \
+          -DENABLE_OGV_CUTSCENES=ON
+          
 
     - name: Build
       shell: bash
