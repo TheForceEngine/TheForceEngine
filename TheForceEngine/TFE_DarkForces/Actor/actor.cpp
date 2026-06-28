@@ -982,6 +982,11 @@ namespace TFE_DarkForces
 								// Do ranged attack (secondary)
 								attackMod->anim.state = STATE_ATTACK2;
 								attackMod->timing.delay = attackMod->timing.rangedDelay;
+
+								if (attackMod->hasBurstFire)
+								{
+									attackMod->anim.flags &= ~AFLAG_PLAYONCE;	// if logic has burst fire, allow attack anim to loop
+								}
 							}
 						}
 						else  // Actor does not have melee attack
