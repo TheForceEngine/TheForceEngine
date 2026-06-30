@@ -34,5 +34,6 @@ namespace TFE_DarkForces
 		void findConnectedSectors(ScriptSector initSector, u32 matchProp, CScriptArray& results);
 		void setGravity(s32 grav);
 		void setProjectileGravity(s32 grav);
+		int playCutscene(std::string cutsceneName);
 	};
 }

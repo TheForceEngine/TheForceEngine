@@ -85,6 +85,7 @@ namespace TFE_DarkForces
 	enum GameConstants
 	{
 		MAX_MOD_LFD = 16,
+		MAX_MOD_OGV = 16,
 	};
 
 	enum GameState
@@ -959,6 +960,9 @@ namespace TFE_DarkForces
 		s32 lfdCount = 0;
 		s32 briefingIndex = -1;
 
+		s32 ogvIndex[MAX_MOD_OGV];
+		s32 ogvCount = 0;
+
 		strcpy(s_sharedState.customGobName, gobName);
 
 		if (TFE_Paths::getFilePath(gobName, &archivePath))
@@ -1002,6 +1006,10 @@ namespace TFE_DarkForces
 							{
 								lfdIndex[lfdCount++] = i;
 							}
+						}
+						else if (strcasecmp(zext, "ogv") == 0 && ogvCount < MAX_MOD_OGV)
+						{
+							ogvIndex[ogvCount++] = i;
 						}
 						else if (strcasecmp(zext4, "json") == 0)
 						{
@@ -1135,6 +1143,32 @@ namespace TFE_DarkForces
 						free(buffer);
 
 						TFE_Paths::addSingleFilePath(zipArchive->getFileName(lfdIndex[i]), lfdPath);
+					}
+
+					// Extract and copy any OGV cutscenes. Registered under
+					// their original zip name (e.g. "intro.ogv") so
+					// cutscene_playVideoFile("intro.ogv") finds them
+					// regardless of which mod is currently loaded - same
+					// name-vs-disk-path split as the LFD case above.
+					for (s32 i = 0; i < ogvCount; i++)
+					{
+						u32 bufferLen = (u32)zipArchive->getFileLength(ogvIndex[i]);
+						u8* buffer = (u8*)malloc(bufferLen);
+						zipArchive->openFile(ogvIndex[i]);
+						zipArchive->readFile(buffer, bufferLen);
+						zipArchive->closeFile();
+
+						char ogvPath[TFE_MAX_PATH];
+						sprintf(ogvPath, "%scutscenes%d.ogv", tempPath, i);
+						FileStream file;
+						if (file.open(ogvPath, Stream::MODE_WRITE))
+						{
+							file.writeBuffer(buffer, bufferLen);
+							file.close();
+						}
+						free(buffer);
+
+						TFE_Paths::addSingleFilePath(zipArchive->getFileName(ogvIndex[i]), ogvPath);
 					}
 
 					// Add the ZIP archive itself.

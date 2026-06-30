@@ -42,7 +42,9 @@
 #include <TFE_Audio/audioSystem.h>
 #include <TFE_Audio/midiPlayer.h>
 #include <TFE_Jedi/Math/core_math.h>
+#include <TFE_Jedi/Renderer/virtualFramebuffer.h>
 #include <TFE_FileSystem/filestream.h>
+#include <TFE_FileSystem/paths.h>
 #include <TFE_Settings/settings.h>
 #include <TFE_System/parser.h>
 #include <TFE_DarkForces/Remaster/ogvPlayer.h>
@@ -78,18 +80,18 @@ namespace TFE_DarkForces
 	static f64 s_lastCreditsTime = 0.0;
 
 	enum CreditLineType { CL_SUBTITLE, CL_CENTERED, CL_SPACE, CL_CREDIT };
-	
+
 	struct CreditLine
 	{
 		CreditLineType type;
-		string jobTitle;  
+		string jobTitle;
 		string personName;
 	};
 
 	// Credits storage and rendering parameters
 	static vector<CreditLine> s_remasterCredits;
 	static float s_creditsY = 0.0f;
-	static const float s_creditsSpeed = 80.0f; 
+	static const float s_creditsSpeed = 80.0f;
 	static const float s_lineSpacing = 4.0f;
 	static const float s_creditNormalSize = 24.0f;
 	static const float s_creditSubtitleSize = 48.0f;
@@ -107,18 +109,19 @@ namespace TFE_DarkForces
 	// Forward declarations
 	static void bakeCreditsFonts(float uiScale);
 	static void loadRemasteredCredits();
+	static JBool ogvCutscene_update();
 
 	// Timing-test instrumentation. Flip this to 1 in a local build when
 	// authoring a new DCSS or diagnosing a sync issue: every cue fire logs
 	// expected-vs-actual timestamps, and teardown logs the total video
 	// duration. Off in production to keep the default log quiet.
-	#define DCSS_TIMING_TRACE 0
-	#if DCSS_TIMING_TRACE
+#define DCSS_TIMING_TRACE 0
+#if DCSS_TIMING_TRACE
 	static f64 s_ogvStartWallTime = 0.0;
 	static f64 s_ogvLastVideoTime = 0.0;
 	static const char* s_ogvTraceSceneName = "";
-	#endif
-	
+#endif
+
 
 	// ----------------------------------------------------------------------
 	// Initialization
@@ -132,6 +135,7 @@ namespace TFE_DarkForces
 		s_playSeq = cutsceneList;
 		s_playing = JFALSE;
 
+#ifdef ENABLE_OGV_CUTSCENES
 		// Bake the credits fonts
 		f32 uiScale = (f32)TFE_Ui::getUiScale() * 0.01f;
 		bakeCreditsFonts(uiScale);
@@ -140,8 +144,10 @@ namespace TFE_DarkForces
 		{
 			remasterCutscenes_init();
 		}
+#endif
 	}
 
+#ifdef ENABLE_OGV_CUTSCENES
 	// ======================================================================
 	// OGV path helpers
 	// ======================================================================
@@ -187,9 +193,11 @@ namespace TFE_DarkForces
 	// idempotent).
 	static void ogvCutscene_teardown()
 	{
-	#if DCSS_TIMING_TRACE
+		TFE_RenderBackend::setSkipDisplayAndClear(true);
+
+#if DCSS_TIMING_TRACE
 		{
-			f64 wallSec  = TFE_System::getTime() - s_ogvStartWallTime;
+			f64 wallSec = TFE_System::getTime() - s_ogvStartWallTime;
 			// getVideoTime() returns 0 once the player has closed, so
 			// capture the last value we saw during dispatch instead. This
 			// gives us an accurate duration figure for the END log.
@@ -200,7 +208,7 @@ namespace TFE_DarkForces
 				"[%s] END videoDuration~=%.3fs wallDuration=%.3fs cuesFired=%zu/%zu",
 				s_ogvTraceSceneName, videoSec, wallSec, fired, total);
 		}
-	#endif
+#endif
 		TFE_OgvPlayer::close();
 		s_ogvPlaying = false;
 		TFE_System::logWrite(LOG_MSG, "Cutscene", "Teardown Cutscene");
@@ -309,12 +317,12 @@ namespace TFE_DarkForces
 		}
 
 		s_ogvPlaying = true;
-	#if DCSS_TIMING_TRACE
+#if DCSS_TIMING_TRACE
 		s_ogvStartWallTime = TFE_System::getTime();
 		s_ogvTraceSceneName = scene->scene;
 		TFE_System::logWrite(LOG_MSG, "DcssTiming",
 			"[%s] START scene=%d entries=%zu", s_ogvTraceSceneName, sceneId, s_ogvScript.entries.size());
-	#endif
+#endif
 		TFE_System::logWrite(LOG_MSG, "Cutscene", "Playing remastered OGV cutscene for scene %d ('%s').",
 			sceneId, scene->scene);
 
@@ -325,6 +333,49 @@ namespace TFE_DarkForces
 			TFE_OgvPlayer::setHoldLastFrame(true);
 		}
 		return true;
+	}
+
+	// Play OGV cutscenes for mods
+	JBool cutscene_playVideoFile(const char* videoName)
+	{
+		if (!s_enabled) { return JFALSE; }
+		if (!videoName || !videoName[0]) { return JFALSE; }
+
+		// We assume the OGV is in the zip
+		FilePath resolved;
+		if (!TFE_Paths::getFilePath(videoName, &resolved))
+		{
+			TFE_System::logWrite(LOG_WARNING, "Cutscene", "Cannot find OGV file: %s.", videoName);
+			return JFALSE;
+		}
+
+		// Ok we assume it is in OGV format but in case you try to
+		// feed it an mp4 or something else - throw this error
+		if (!TFE_OgvPlayer::open(resolved.path))
+		{
+			TFE_System::logWrite(LOG_WARNING, "Cutscene", "Failed to open OGV file: %s (%s).", videoName, resolved.path);
+			return JFALSE;
+		}
+
+		// No DCSS cues, no subtitles - clear any leftovers from a previous
+		// scene-driven cutscene so dispatch/caption code sees empty data.
+		s_ogvSubtitles.clear();
+		s_ogvScript.entries.clear();
+		s_ogvScript.creditsFlag = false;
+		s_ogvScript.openingCreditsFlag = false;
+		s_ogvNextCueIdx = 0;
+
+		// Not a fullcred-style scene - no held-last-frame credits overlay.
+		s_fullCredScene = false;
+		TFE_OgvPlayer::setHoldLastFrame(false);
+
+		TFE_System::logWrite(LOG_MSG, "Cutscene", "Playing video file: %s (%s).", videoName, resolved.path);
+
+		s_ogvPlaying = true;
+		s_playing = JTRUE;
+		ogvCutscene_update();
+
+		return JTRUE;
 	}
 
 	// ----------------------------------------------------------------------
@@ -365,12 +416,12 @@ namespace TFE_DarkForces
 		// Intrinsic video clock. Converted to whole milliseconds for
 		// comparison against DCSS's u64 timestamps (which are in ms too).
 		const f64 videoTimeSec = TFE_OgvPlayer::getVideoTime();
-	#if DCSS_TIMING_TRACE
+#if DCSS_TIMING_TRACE
 		// Capture the last non-zero video time for the teardown log.
 		// (getVideoTime returns 0 once the player closes, which would
 		// make our "END videoDuration" log report 0 otherwise.)
 		if (videoTimeSec > 0.0) { s_ogvLastVideoTime = videoTimeSec; }
-	#endif
+#endif
 		const u64 nowMs = (u64)(videoTimeSec * 1000.0);
 
 		// Walk forward through the sorted cue list, firing every entry
@@ -378,10 +429,10 @@ namespace TFE_DarkForces
 		// game hitched and we skipped a frame, two cues might come due
 		// in the same update() call and we need to fire them both.
 		while (s_ogvNextCueIdx < s_ogvScript.entries.size() &&
-			   nowMs >= s_ogvScript.entries[s_ogvNextCueIdx].timeMs)
+			nowMs >= s_ogvScript.entries[s_ogvNextCueIdx].timeMs)
 		{
 			const DcssEntry& e = s_ogvScript.entries[s_ogvNextCueIdx];
-		#if DCSS_TIMING_TRACE
+#if DCSS_TIMING_TRACE
 			f64 wallSec = TFE_System::getTime() - s_ogvStartWallTime;
 			TFE_System::logWrite(LOG_MSG, "DcssTiming",
 				"[%s] cue #%d expected=%.3fs video=%.3fs wall=%.3fs videoDrift=%+.3fs wallDrift=%+.3fs seq=%d cue=%d musicvol=%d",
@@ -390,7 +441,7 @@ namespace TFE_DarkForces
 				videoTimeSec - (e.timeMs / 1000.0),
 				wallSec - (e.timeMs / 1000.0),
 				e.seq, e.cue, e.musicVol);
-		#endif
+#endif
 
 			// Order matters here: sequence changes reload MIDI, so we do
 			// that first, then fire the cue within the new sequence, then
@@ -579,8 +630,8 @@ namespace TFE_DarkForces
 				s_creditsY = (float)display.height + 32.0f;
 				s_creditsStarted = true;
 				s_lastCreditsTime = TFE_System::getTime();
-			}			
-			
+			}
+
 			// Draw credits overlay on top of the held last frame.
 			if (!s_remasterCredits.empty())
 			{
@@ -594,11 +645,11 @@ namespace TFE_DarkForces
 				const float separatorSize = 128.0f;
 				const float spaceGap = 18.0f;
 				const float leftX = (float)display.width * 0.15f;
-				const float rightMaxX = (float)display.width * 0.85f; 
+				const float rightMaxX = (float)display.width * 0.85f;
 				const ImU32 color = IM_COL32(255, 224, 64, 255); // Yellow
 
 				float y = s_creditsY;
-				
+
 				// Handle timing
 				const f64 now = TFE_System::getTime();
 				f32 dt = (f32)(now - s_lastCreditsTime);
@@ -623,7 +674,7 @@ namespace TFE_DarkForces
 					if (cl.type == CL_CREDIT)
 					{
 						if (!cl.jobTitle.empty())
-						{ 
+						{
 							if (y + normalSize >= -separatorSize && y <= display.height + separatorSize)
 								dl->AddText(font, normalSize, ImVec2(leftX, y), color, cl.jobTitle.c_str());
 						}
@@ -646,7 +697,7 @@ namespace TFE_DarkForces
 					float x = ((float)display.width - ts.x) * 0.5f;
 					if (y + fontSize >= -separatorSize && y <= display.height + separatorSize)
 						dl->AddText(lineFont, fontSize, ImVec2(x, y), color, cl.jobTitle.c_str());
-					y += fontSize + s_lineSpacing;					
+					y += fontSize + s_lineSpacing;
 				}
 
 				// If final y scrolled beyond top enough to consider finished, end credits.
@@ -693,7 +744,7 @@ namespace TFE_DarkForces
 		ogvCutscene_updateCaptions();
 		return JTRUE;
 	}
-
+#endif
 	// ======================================================================
 	// Public entry points
 	// ======================================================================
@@ -726,12 +777,19 @@ namespace TFE_DarkForces
 
 		// Try the remastered path first. If it returns false, no OGV is
 		// available for this scene (or the feature is disabled) - fall
-		// through to the LFD path.		
+		// through to the LFD path.
+#ifdef ENABLE_OGV_CUTSCENES		
 		if (TFE_Settings::getEnhancementsSettings()->enableHdCutscenes && tryPlayOgvCutscene(sceneId))
 		{
+			// Force the gameframe to be all black so it doesn't flash during
+			// cutscene playback.
+			vfb_forceToBlack();
 			s_playing = JTRUE;
+			ogvCutscene_update();
+
 			return JTRUE;
 		}
+#endif
 		lcanvas_init(320, 200);
 
 		s_playing = JTRUE;
@@ -743,13 +801,19 @@ namespace TFE_DarkForces
 	{
 		if (!s_playing) { return JFALSE; }
 
-		if (TFE_Settings::getEnhancementsSettings()->enableHdCutscenes && s_ogvPlaying)
+#ifdef ENABLE_OGV_CUTSCENES
+		if (s_ogvPlaying)
 		{
 			s_playing = ogvCutscene_update();
 			return s_playing;
 		}
-
+#endif
 		s_playing = cutscenePlayer_update();
+		return s_playing;
+	}
+
+	JBool cutscene_isPlaying()
+	{
 		return s_playing;
 	}
 

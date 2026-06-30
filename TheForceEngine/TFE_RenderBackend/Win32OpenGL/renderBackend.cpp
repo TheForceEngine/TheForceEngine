@@ -6,6 +6,7 @@
 #include <TFE_Ui/ui.h>
 #include <TFE_Asset/imageAsset.h>	// For image saving, this should be refactored...
 #include <TFE_System/profiler.h>
+#include <TFE_System/system.h>
 #include <TFE_PostProcess/blit.h>
 #include <TFE_PostProcess/bloomThreshold.h>
 #include <TFE_PostProcess/bloomDownsample.h>
@@ -334,7 +335,12 @@ namespace TFE_RenderBackend
 		{
 			s_skipDisplayAndClear = false;
 		}
-		else if (blitVirtualDisplay) { drawVirtualDisplay(); }
+		else if (blitVirtualDisplay)
+		{
+			// [DBG] drawVirtualDisplay firing - if this logs during cutscene, stale texture is reaching the screen.
+			//TFE_System::logWrite(LOG_WARNING, "Cutscene", "[DBG] swap: drawVirtualDisplay() called (blitVirtualDisplay=%d, skipDisplay was false)", (int)blitVirtualDisplay);
+			drawVirtualDisplay();
+		}
 		else { glClear(GL_COLOR_BUFFER_BIT); }
 
 		// Handle the UI.
