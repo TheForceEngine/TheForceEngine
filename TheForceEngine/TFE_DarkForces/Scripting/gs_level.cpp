@@ -249,7 +249,9 @@ namespace TFE_DarkForces
 			TFE_System::logWrite(LOG_ERROR, "Level Script", "Runtime error, cutscene name is empty.");
 			return false;
 		}
+		#ifdef ENABLE_OGV_CUTSCENES
 		cutscene_playVideoFile(cutsceneName.c_str());
+		#endif	
 		return 1;
 	}
 
