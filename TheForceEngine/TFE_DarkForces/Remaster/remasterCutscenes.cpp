@@ -349,6 +349,7 @@ namespace TFE_DarkForces
 		// only want to do path detection once. But force re-detection if the
 		// remaster base path changed (e.g. user switched).
 		if (s_initialized && strcmp(s_remasterBasePath, TFE_Paths::getPath(PATH_SOURCE_DATA)) == 0	) { return; }
+		TFE_System::logWrite(LOG_MSG, "Remaster", "Initializing Remaster Cutscene System");
 		s_initialized = true;
 		s_available = false;
 
