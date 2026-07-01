@@ -1221,6 +1221,8 @@ echo ^)";
     </CustomBuild>
     <None Include="Shaders\tri3dWall.frag" />
     <None Include="Shaders\tri3dWall.vert" />
+	<None Include="Shaders\yuv2rgb.frag" />
+    <None Include="Shaders\yuv2rgb.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
