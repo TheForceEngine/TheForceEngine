@@ -271,8 +271,6 @@ namespace TFE_DarkForces
 					for (u32 i = 0; i < count; i++)
 					{
 						const char* name = darkExFile.getFileName(i);
-						TFE_System::logWrite(LOG_WARNING, "Remaster", name);
-
 						// Check if the name of the file starts with cutscene_scripts/
 						if (strncasecmp(name, "cutscene_scripts/", strlen("cutscene_scripts/")) == 0)
 						{
