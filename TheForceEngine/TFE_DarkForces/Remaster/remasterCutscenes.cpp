@@ -53,7 +53,7 @@ namespace TFE_DarkForces
 	// across every call to getVideoPath / getDcssPath / getSubtitlePath,
 	// so callers must consume the returned pointer before asking again.
 	static bool s_initialized = false;
-	static bool s_available = false;
+	static bool s_available = false;	
 
 	// Directory paths (with trailing slash) where we found each kind of
 	// file. Cached at init time so per-cutscene lookups are fast.
@@ -67,6 +67,7 @@ namespace TFE_DarkForces
 	static char s_videoPathResult[TFE_MAX_PATH];
 	static char s_scriptPathResult[TFE_MAX_PATH];
 	static char s_subtitlePathResult[TFE_MAX_PATH];
+	static char s_remasterBasePath[TFE_MAX_PATH];
 
 	// ------------------------------------------------------------------
 	// Name utilities
@@ -345,11 +346,15 @@ namespace TFE_DarkForces
 	{
 		// Idempotent. cutscene_init might be called multiple times (e.g.
 		// if the user reloads the game without restarting TFE), and we
-		// only want to do path detection once.
-		if (s_initialized) { return; }
+		// only want to do path detection once. But force re-detection if the
+		// remaster base path changed (e.g. user switched).
+		if (s_initialized && strcmp(s_remasterBasePath, TFE_Paths::getPath(PATH_SOURCE_DATA)) == 0	) { return; }
 		s_initialized = true;
 		s_available = false;
 
+		// Preserve path in case the remaster base changes.
+		sprintf(s_remasterBasePath, "%s", TFE_Paths::getPath(PATH_SOURCE_DATA));
+		
 		if (detectVideoPath())
 		{
 			s_available = true;

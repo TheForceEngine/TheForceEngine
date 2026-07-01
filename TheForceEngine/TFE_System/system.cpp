@@ -22,6 +22,7 @@
 #elif defined __linux__
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #endif
 
 namespace TFE_System
@@ -264,8 +265,26 @@ namespace TFE_System
 			CloseHandle(ShExecInfo.hProcess);
 		}
 		return true;
+#else
+		// On Linux/macOS, use xdg-open / open to delegate to the user's default
+		// file manager or application. pathToExe is treated as the path to open.
+		pid_t pid = fork();
+		if (pid < 0)
+		{
+			return false;
+		}
+		if (pid == 0)
+		{
+			execlp("xdg-open", "xdg-open", pathToExe, nullptr);
+			_exit(1); // execlp failed
+		}
+		if (waitForCompletion)
+		{
+			int status;
+			waitpid(pid, &status, 0);
+		}
+		return true;
 #endif
-		return false;
 	}
 
 	void postErrorMessageBox(const char* msg, const char* title)

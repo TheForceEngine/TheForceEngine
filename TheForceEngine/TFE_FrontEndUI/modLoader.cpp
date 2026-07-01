@@ -485,7 +485,6 @@ namespace TFE_FrontEndUI
 			modLoader_read();
 		}
 
-		#ifdef _WIN32
 		ImGui::SameLine(730.0f * uiScale);
 		if (ImGui::Button("Open Mod Folder"))
 		{
@@ -496,7 +495,6 @@ namespace TFE_FrontEndUI
 				TFE_System::logWrite(LOG_ERROR, "ModLoader", "Failed to open the directory: '%s'", programDirModDir);
 			}
 		}
-		#endif
 		
 		ImGui::Separator();
 

@@ -1350,7 +1350,8 @@ namespace TFE_FrontEndUI
 					sprintf(testFile, "%sDARK.GOB", filePath);
 					if (FileUtil::exists(testFile))
 					{
-						strcpy(darkForces->sourcePath, filePath);						
+						strcpy(darkForces->sourcePath, filePath);		
+						TFE_System::logWrite(LOG_MSG, "Settings", "Updating Game Path to %s", filePath);
 						TFE_Paths::setPath(PATH_SOURCE_DATA, filePath);
 					}
 					else
@@ -2253,7 +2254,6 @@ namespace TFE_FrontEndUI
 			}
 			ImGui::EndChild();
 
-#ifdef _WIN32
 			ImGui::Spacing();
 			if (ImGui::Button("Open Replay Folder"))
 			{
@@ -2262,8 +2262,7 @@ namespace TFE_FrontEndUI
 					TFE_System::logWrite(LOG_ERROR, "frontEndUi", "Failed to open the directory: '%s'", s_replayDir);
 				}
 			}
-			ImGui::SameLine(0.0f);
-#endif		
+			ImGui::SameLine(0.0f);	
 
 			if (ImGui::Button("Refresh Demo Folder"))
 			{
@@ -3559,7 +3558,7 @@ namespace TFE_FrontEndUI
 		}
 		Tooltip("Appears in upper-left corner of screen. If disabled, a generic 'recording saved' message will be shown instead.");
 
-#ifdef _WIN32
+
 		ImGui::Separator();
 		if (ImGui::Button("Open Log Folder"))
 		{
@@ -3579,7 +3578,7 @@ namespace TFE_FrontEndUI
 				TFE_System::logWrite(LOG_ERROR, "Settings", "Failed to open directory: '%s'", screenshotDir);
 			}
 		}
-#endif
+
 		const char * resetMsg = "             Reset All Settings";
 
 		if (ImGui::Button("Reset All Settings"))
