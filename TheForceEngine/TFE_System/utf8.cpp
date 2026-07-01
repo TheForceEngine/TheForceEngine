@@ -1,4 +1,4 @@
-#include <cstring>
+﻿#include <cstring>
 
 #include "parser.h"
 #include <assert.h>
@@ -14,6 +14,19 @@ s32 convertCharToUtf8(char c, char* out)
 	}
 	// Extended ASCII encoded as two bytes.
 	u8 code = (u8)c;
+
+	// OK this is a fix for the trademark ND added to the GOG-only version
+	// which has compatibility issues in NT vs *nix systems.
+	// I can't believe we are writing code to satisfy 
+	// Disney Star Wars marketing but here we are ¯\_(ツ)_/¯  
+	if (code == 153) 
+	{
+		out[0] = (char)0xE2;
+		out[1] = (char)0x84;
+		out[2] = (char)0xA2;
+		return 3;
+	}
+
 	out[0] = (char)(0xc0 + (code >> 6));
 	out[1] = (char)(0x80 + (code & 0x3f));
 	return 2;
@@ -83,7 +96,10 @@ s32 convertUtf8ToChar(const char* data, char* c)
 			{
 				*c = char(153);	// extended ascii code.
 			}
-			*c = '?';
+			else
+			{
+				*c = '?';
+			}
 		}
 		else
 		{
@@ -97,30 +113,37 @@ s32 convertUtf8ToChar(const char* data, char* c)
 	return 0;
 }
 
-// Assumes codepoints between 0 - 255
 void convertExtendedAsciiToUtf8(const char* str, char* utf)
 {
-	char* out = utf;
-	size_t len = strlen(str);
-	for (size_t i = 0; i < len; i++)
-	{
-		s32 step = convertCharToUtf8(str[i], out);
-		out += step;
-	}
-	*out = 0;
+    #ifndef _WIN32		
+		strcpy(utf, str);
+	#else
+		char* out = utf;
+		size_t len = strlen(str);
+		for (size_t i = 0; i < len; i++)
+		{
+			s32 step = convertCharToUtf8(str[i], out);
+			out += step;
+		}
+		*out = 0;
+	#endif
 }
 
 void convertUtf8ToExtendedAscii(const char* utf, char* str)
 {
-	char* out = str;
-	size_t len = strlen(utf);
-	size_t index = 0;
-	for (size_t i = 0; i < len && index < len; i++)
-	{
-		s32 step = convertUtf8ToChar(utf, out);
-		utf += step;
-		index += step;
-		out++;
-	}
-	*out = 0;
+	#ifndef _WIN32
+		strcpy(str, utf);
+	#else
+		char* out = str;
+		size_t len = strlen(utf);
+		size_t index = 0;
+		for (size_t i = 0; i < len && index < len; i++)
+		{
+			s32 step = convertUtf8ToChar(utf, out);
+			utf += step;
+			index += step;
+			out++;
+		}
+		*out = 0;
+	#endif
 }

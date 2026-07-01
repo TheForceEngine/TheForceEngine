@@ -1120,16 +1120,12 @@ namespace TFE_FrontEndUI
 		if (ImGui::InputText("##DarkForcesSource", utf8Path, 1024))
 		{
 			convertUtf8ToExtendedAscii(utf8Path, darkForces->sourcePath);
-
 			char testFile[TFE_MAX_PATH];
 			char testPath[TFE_MAX_PATH];
 			strcpy(testPath, darkForces->sourcePath);
 			FileUtil::fixupPath(testPath);
-
+	
 			sprintf(testFile, "%sDARK.GOB", testPath);
-			strcpy(darkForces->sourcePath, testPath);
-			TFE_Paths::setPath(PATH_SOURCE_DATA, testPath);
-
 			if (FileUtil::exists(testFile))
 			{
 				strcpy(darkForces->sourcePath, testPath);
@@ -1149,7 +1145,7 @@ namespace TFE_FrontEndUI
 
 		ImGui::Text("Outlaws:"); ImGui::SameLine(100*s_uiScale);
 		convertExtendedAsciiToUtf8(outlaws->sourcePath, utf8Path);
-		if (ImGui::InputText("##OutlawsSource", outlaws->sourcePath, 1024))
+		if (ImGui::InputText("##OutlawsSource", utf8Path, 1024))
 		{
 			convertUtf8ToExtendedAscii(utf8Path, outlaws->sourcePath);
 			// TODO
@@ -1347,7 +1343,6 @@ namespace TFE_FrontEndUI
 				convertUtf8ToExtendedAscii(res[0].c_str(), exePath);
 				FileUtil::getFilePath(exePath, filePath);
 				FileUtil::fixupPath(filePath);
-
 				if (browseWinOpen == 0)
 				{
 					// Before accepting this path, verify that some of the required files are here...
@@ -1355,8 +1350,8 @@ namespace TFE_FrontEndUI
 					sprintf(testFile, "%sDARK.GOB", filePath);
 					if (FileUtil::exists(testFile))
 					{
-						strcpy(darkForces->sourcePath, filePath);
-						TFE_Paths::setPath(PATH_SOURCE_DATA, darkForces->sourcePath);
+						strcpy(darkForces->sourcePath, filePath);						
+						TFE_Paths::setPath(PATH_SOURCE_DATA, filePath);
 					}
 					else
 					{
@@ -1628,6 +1623,7 @@ namespace TFE_FrontEndUI
 			ImGui::PopStyleVar();
 		}
 
+		#ifdef ENABLE_OGV_CUTSCENES
 		ImGui::Spacing();
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.25f, 1.0f));
 		ImGui::TextWrapped("Special Case for HD cutscenes. If remaster assets exist\n"
@@ -1641,6 +1637,7 @@ namespace TFE_FrontEndUI
 			enhancements->enableHdCutscenes = useHdCutscenes;
 			forceTextureUpdate = true;
 		}
+        #endif
 
 		return forceTextureUpdate;
 	}

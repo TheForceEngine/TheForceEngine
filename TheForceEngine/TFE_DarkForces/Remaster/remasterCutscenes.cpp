@@ -4,6 +4,7 @@
 #include <TFE_FileSystem/fileutil.h>
 #include <TFE_Settings/settings.h>
 #include <TFE_System/system.h>
+#include <TFE_System/utf8.h>
 #ifdef _WIN32
 #include <TFE_Settings/windows/registry.h>
 #endif
@@ -137,18 +138,25 @@ namespace TFE_DarkForces
 	// priority order. First hit wins.
 	//
 	// Priority rationale:	
-	//   1. PATH_REMASTER_DOCS is a platform-specific override TFE uses on
+	//   1. Get remaster path from Source Data you choose in the settings menu.
+	//   2. PATH_REMASTER_DOCS is a platform-specific override TFE uses on
 	//      consoles / packaged distributions.
-	//   2. sourcePath lets the user install the remaster to whatever
+	//   3. sourcePath lets the user install the remaster to whatever
 	//      directory they want without hardcoding a registry lookup.
-	//   3. Registry lookup catches the common Steam/GOG install locations
+	//   4. Registry lookup catches the common Steam/GOG install locations
 	//      on Windows without requiring config.
-	//   4. Program directory is a last-ditch "they dropped files next to
+	//   5. Program directory is a last-ditch "they dropped files next to
 	//      the EXE" case.
 	static bool detectVideoPath()
 	{
+		// 1. Get remaster path from Source Data you choose in the settings menu.
+		if (TFE_Paths::hasPath(PATH_SOURCE_DATA))
+		{
+			if (tryBasePath(TFE_Paths::getPath(PATH_SOURCE_DATA)))
+				return true;
+		}
 
-		// 1. Platform-configured remaster docs path (currently unused on
+		// 2. Platform-configured remaster docs path (currently unused on
 		//    desktop; retained for console builds).
 		if (TFE_Paths::hasPath(PATH_REMASTER_DOCS))
 		{
@@ -156,7 +164,7 @@ namespace TFE_DarkForces
 				return true;
 		}
 
-		// 2. Same sourcePath they use for the original Dark Forces. If
+		// 3. Same sourcePath they use for the original Dark Forces. If
 		//    they pointed it at the remaster install, movies/ will be
 		//    right there.
 		const char* sourcePath = TFE_Settings::getGameHeader("Dark Forces")->sourcePath;
@@ -167,7 +175,7 @@ namespace TFE_DarkForces
 		}
 
 #ifdef _WIN32
-		// 3. Windows registry: check both the standard Steam install and
+		// 4. Windows registry: check both the standard Steam install and
 		//    the "TM" (trademark) variant that was briefly used. GOG has
 		//    its own registry entries handled elsewhere.
 		{
@@ -195,7 +203,7 @@ namespace TFE_DarkForces
 		}
 #endif
 
-		// 4. Last resort: right next to the TFE executable.
+		// 5. Last resort: right next to the TFE executable.
 		if (tryBasePath(TFE_Paths::getPath(PATH_PROGRAM)))
 			return true;
 
@@ -247,25 +255,11 @@ namespace TFE_DarkForces
 			sprintf(darkExPath, "%sDarkEX.kpf", TFE_Settings::getGameHeader("Dark Forces")->sourcePath);
 			if (FileUtil::exists(darkExPath))
 			{
-				// This is a fix for the trademark symbol in Star Wars GOG version
-				// Zip Archiver needs specific encoding for it.
-				const std::string trademark = "™";
-				const char tmReplacement[3] = {'\xE2','\x84','\xA2'};
-
-				std::string darkExPathUtf8 = std::string(darkExPath);
-				size_t pos = darkExPathUtf8.find(trademark);
-				size_t pathLen = darkExPathUtf8.size();
-				if (pos != std::string::npos)
-				{
-					std::string newPath;
-					newPath.reserve(pathLen + 2);
-					newPath.append(darkExPathUtf8, 0, pos);
-					newPath.append(tmReplacement, 3);
-					newPath.append(darkExPathUtf8, pos+1, pathLen - pos - 1);
-					darkExPathUtf8 = newPath;
-				}
-
-				if (darkExFile.open(darkExPathUtf8.c_str()))
+				// sourcePath from registry is ANSI/extended-ASCII. miniz uses
+				// MultiByteToWideChar(CP_UTF8) internally, so we must give it UTF-8.
+				char darkExUtf8[TFE_MAX_PATH];
+				convertExtendedAsciiToUtf8(darkExPath, darkExUtf8);
+				if (darkExFile.open(darkExUtf8))
 				{
 					// Ok we found the Kex File now we can create a directory and save the DCSS
 					FileUtil::makeDirectory(cutsceneScriptPath);
