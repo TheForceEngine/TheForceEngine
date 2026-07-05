@@ -47,6 +47,7 @@ namespace TFE_Editor
 					if (ImGui::Selectable(editor_getUniqueLabel(name), pos == i))
 					{
 						history_setPos(i);
+						LevelEditor::updateLevelBounds(nullptr);
 						history_showBranch(i);
 						// TODO: This should clear the selections for the current editor.
 						LevelEditor::edit_clearSelections(false);
