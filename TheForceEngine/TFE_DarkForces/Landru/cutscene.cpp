@@ -785,7 +785,6 @@ namespace TFE_DarkForces
 			// cutscene playback.
 			vfb_forceToBlack();
 			s_playing = JTRUE;
-			ogvCutscene_update();
 
 			return JTRUE;
 		}
