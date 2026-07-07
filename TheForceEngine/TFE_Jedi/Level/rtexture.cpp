@@ -209,7 +209,7 @@ namespace TFE_Jedi
 				s_textureTable[POOL_LEVEL][name] = i;
 
 				// Restore the runtime flags that bitmap_load() masked away
-				if (list->texture && LevelState_TextureFlags >= serialization_getVersion())
+				if (list->texture && serialization_getVersion() >= LevelState_TextureFlags)
 				{
 					list->texture->flags = flags;
 				}
