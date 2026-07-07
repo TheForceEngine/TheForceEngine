@@ -44,7 +44,7 @@ namespace LevelEditor
 
 	bool LS_Level::scriptRegister(ScriptAPI api)
 	{
-		ScriptClassBegin("Level", "level", api);
+		ScriptClassBegin("ELevel", "elevel", api);
 		{
 			// Functions
 			ScriptObjMethod("void findSector(const string &in)", findSector);
