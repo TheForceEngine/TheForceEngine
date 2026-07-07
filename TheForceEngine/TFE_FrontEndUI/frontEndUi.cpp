@@ -4004,7 +4004,6 @@ namespace TFE_FrontEndUI
 				gameSettings->df_ignoreInfLimit = true;
 				gameSettings->df_showKeyColors = true;
 				gameSettings->df_stepSecondAlt = true; 
-				gameSettings->df_enableUnusedItem = true;
 				gameSettings->df_centerHudPosition = true;
 				gameSettings->df_showMapSecrets = false;
 				gameSettings->df_showMapObjects = true;
@@ -4067,7 +4066,6 @@ namespace TFE_FrontEndUI
 				gameSettings->df_ignoreInfLimit = false;
 				gameSettings->df_showKeyColors = false;
 				gameSettings->df_stepSecondAlt = false;
-				gameSettings->df_enableUnusedItem = false;
 				gameSettings->df_centerHudPosition = false;
 				gameSettings->df_showMapSecrets = false;
 				gameSettings->df_showMapObjects = true;

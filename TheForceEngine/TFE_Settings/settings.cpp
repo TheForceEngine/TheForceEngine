@@ -580,7 +580,7 @@ namespace TFE_Settings
 		writeKeyValue_Bool(settings, "showKeyColors", s_gameSettings.df_showKeyColors);
 		writeKeyValue_Bool(settings, "centerHudPos", s_gameSettings.df_centerHudPosition);
 		writeKeyValue_Bool(settings, "showMapSecrets", s_gameSettings.df_showMapSecrets);
-		writeKeyValue_Bool(settings, "showMapObjects", s_gameSettings.df_showMapObjects);	
+		writeKeyValue_Bool(settings, "showMapObjects", s_gameSettings.df_showMapObjects);
 	}
 
 	void writePerGameSettings(FileStream& settings)
