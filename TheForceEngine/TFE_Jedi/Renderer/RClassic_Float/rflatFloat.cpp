@@ -86,11 +86,10 @@ namespace RClassic_Float
 		fixed44_20 V = s_scanlineV0;
 		fixed44_20 U = s_scanlineU0;
 
-		// Note this produces a distorted mapping if the texture is not 64x64.
-		// This behavior matches the original.
+		// Supports all texture dimensions. The original fixed point renderer only supported 64x64.
 		for (s32 i = s_scanlineWidth - 1; i >= 0; i--, U += dUdX, V += dVdX)
 		{
-			const u32 texel = ((floor20(U) & 63) * 64 + (floor20(V) & 63)) & s_ftexDataEnd;
+			const u32 texel = ((floor20(U) & s_ftexWidthMask) * s_ftexHeight + (floor20(V) & s_ftexHeightMask)) & s_ftexDataEnd;
 			s_scanlineOut[i] = s_scanlineLight[s_ftexImage[texel]];
 		}
 	}
@@ -102,11 +101,10 @@ namespace RClassic_Float
 		fixed44_20 V = s_scanlineV0;
 		fixed44_20 U = s_scanlineU0;
 
-		// Note this produces a distorted mapping if the texture is not 64x64.
-		// This behavior matches the original.
+		// Supports all texture dimensions. The original fixed point renderer only supported 64x64.
 		for (s32 i = s_scanlineWidth - 1; i >= 0; i--, U += dUdX, V += dVdX)
 		{
-			const u32 texel = ((floor20(U) & 63) * 64 + (floor20(V) & 63)) & s_ftexDataEnd;
+			const u32 texel = ((floor20(U) & s_ftexWidthMask) * s_ftexHeight + (floor20(V) & s_ftexHeightMask)) & s_ftexDataEnd;
 			s_scanlineOut[i] = s_ftexImage[texel];
 		}
 	}
@@ -118,11 +116,10 @@ namespace RClassic_Float
 		fixed44_20 V = s_scanlineV0;
 		fixed44_20 U = s_scanlineU0;
 
-		// Note this produces a distorted mapping if the texture is not 64x64.
-		// This behavior matches the original.
+		// Supports all texture dimensions. The original fixed point renderer only supported 64x64.
 		for (s32 i = s_scanlineWidth - 1; i >= 0; i--, U += dUdX, V += dVdX)
 		{
-			const u32 texel = ((floor20(U) & 63) * 64 + (floor20(V) & 63)) & s_ftexDataEnd;
+			const u32 texel = ((floor20(U) & s_ftexWidthMask) * s_ftexHeight + (floor20(V) & s_ftexHeightMask)) & s_ftexDataEnd;
 			const u8 baseColor = s_ftexImage[texel];
 
 			if (baseColor) { s_scanlineOut[i] = s_scanlineLight[baseColor]; }
@@ -136,11 +133,10 @@ namespace RClassic_Float
 		fixed44_20 V = s_scanlineV0;
 		fixed44_20 U = s_scanlineU0;
 
-		// Note this produces a distorted mapping if the texture is not 64x64.
-		// This behavior matches the original.
+		// Supports all texture dimensions. The original fixed point renderer only supported 64x64.
 		for (s32 i = s_scanlineWidth - 1; i >= 0; i--, U += dUdX, V += dVdX)
 		{
-			const u32 texel = ((floor20(U) & 63) * 64 + (floor20(V) & 63)) & s_ftexDataEnd;
+			const u32 texel = ((floor20(U) & s_ftexWidthMask) * s_ftexHeight + (floor20(V) & s_ftexHeightMask)) & s_ftexDataEnd;
 			const u8 baseColor = s_ftexImage[texel];
 
 			if (baseColor) { s_scanlineOut[i] = baseColor; }
