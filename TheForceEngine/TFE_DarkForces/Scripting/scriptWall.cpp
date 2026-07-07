@@ -1,6 +1,7 @@
 #include "scriptWall.h"
 #include "scriptTexture.h"
 #include <TFE_ForceScript/ScriptAPI-Shared/scriptMath.h>
+#include <TFE_ForceScript/ScriptAPI-Shared/scriptLevelShared.h>
 #include <TFE_Jedi/Level/levelData.h>
 #include <angelscript.h>
 
@@ -222,12 +223,6 @@ namespace TFE_DarkForces
 	{
 		s32 res = 0;
 		asIScriptEngine* engine = (asIScriptEngine*)TFE_ForceScript::getEngine();
-
-		ScriptEnumRegister("WallPart");
-		ScriptEnumStr(WP_MIDDLE);
-		ScriptEnumStr(WP_TOP);
-		ScriptEnumStr(WP_BOTTOM);
-		ScriptEnumStr(WP_SIGN);
 
 		ScriptValueType("Wall");
 		// Variables

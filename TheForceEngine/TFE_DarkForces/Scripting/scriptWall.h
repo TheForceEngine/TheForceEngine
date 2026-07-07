@@ -12,14 +12,6 @@
 
 namespace TFE_DarkForces
 {
-	enum WallPart
-	{
-		WP_MIDDLE = 0,
-		WP_TOP,
-		WP_BOTTOM,
-		WP_SIGN
-	};
-
 	class ScriptWall
 	{
 	public:
