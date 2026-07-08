@@ -460,6 +460,7 @@ namespace TFE_Jedi
 
 		// Clamp the pitch to 60 degrees (vanilla plus) for software renderer
 		// Higher values may be passed in if the camera is being moved by a VUE or is attached to a non-player object
+		if (pitch > 8192) { pitch -= ANGLE_MAX; }
 		angle14_32 clampedPitch = clamp(pitch, -2730, 2730);
 
 		// For now compute both fixed-point and floating-point camera transforms so that it is easier to swap between sub-renderers.

@@ -232,8 +232,8 @@ struct TFE_Settings_Game
 	bool df_showReplayCounter = false;  // Show the replay counter on the HUD.
 	bool df_demologging = false;        // Log the record/playback logging
 	bool df_autoEndMission = false;     // Automatically skip to the next mission
-  bool df_showKeyColors = false;      // Shows the door key color on the minimap
-	bool df_showMapSecrets = true;	    // Show secrets on the automap.
+    bool df_showKeyColors = false;      // Shows the door key color on the minimap
+	bool df_showMapSecrets = false;	    // Show secrets on the automap.
 	bool df_showMapObjects = true;      // Show objects on the automap.
 	s32  df_recordFrameRate = 4;        // Recording Framerate value
 	s32  df_playbackFrameRate = 2;      // Playback Framerate value
