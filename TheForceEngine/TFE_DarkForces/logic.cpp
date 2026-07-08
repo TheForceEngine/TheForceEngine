@@ -500,7 +500,15 @@ namespace TFE_DarkForces
 		obj->flags |= OBJ_FLAG_AIM;
 		obj->entityFlags = ETFLAG_AI_ACTOR;
 
-		if (customLogic->isFlying) { obj->entityFlags |= ETFLAG_FLYING; }
+		if (customLogic->isFlying)
+		{
+			obj->entityFlags |= ETFLAG_FLYING;
+		}
+		else
+		{
+			obj->entityFlags |= ETFLAG_HAS_GRAVITY;
+		}
+
 		if (customLogic->hasGravity) { obj->entityFlags |= ETFLAG_HAS_GRAVITY; }
 
 		LogicSetupFunc* setupFunc = nullptr;

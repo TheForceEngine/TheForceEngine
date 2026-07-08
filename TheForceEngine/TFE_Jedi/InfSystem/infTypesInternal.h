@@ -49,10 +49,11 @@ namespace TFE_Jedi
 		ITRIGGER_SINGLE
 	};
 		
+	// Note: These values correspond to object EntityTypeFlags
 	enum InfEntityMask
 	{
-		INF_ENTITY_ENEMY     = FLAG_BIT(0),
-		INF_ENTITY_WEAPON    = FLAG_BIT(3),
+		INF_ENTITY_AI_ACTOR   = FLAG_BIT(0),
+		INF_ENTITY_PROJECTILE = FLAG_BIT(3),
 		INF_ENTITY_SMART_OBJ = FLAG_BIT(11),
 		INF_ENTITY_PLAYER    = FLAG_BIT(31),
 		INF_ENTITY_ANY = 0xffffffffu
