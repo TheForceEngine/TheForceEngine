@@ -609,18 +609,17 @@ namespace TFE_DarkForces
 					// TFE - Level Script Support.
 					updateLevelScript(fixed16ToFloat(s_deltaTime));
 
+					// Dark Forces Draw.
+
 					// Ok this is just an extra check to make sure
 					// we don't render anything while a cutscene is playing. 
-					if (!cutscene_isPlaying())
+					updateScreensize();
+					if (s_playerEye)
 					{
-						updateScreensize();
-						if (s_playerEye)
-						{
-							drawWorld(s_framebuffer, s_playerEye->sector, s_levelColorMap, s_lightSourceRamp);
-						}
-						weapon_draw(s_framebuffer, (DrawRect*)vfb_getScreenRect(VFB_RECT_UI));
-						handleVisionFx();
+						drawWorld(s_framebuffer, s_playerEye->sector, s_levelColorMap, s_lightSourceRamp);
 					}
+					weapon_draw(s_framebuffer, (DrawRect*)vfb_getScreenRect(VFB_RECT_UI));
+					handleVisionFx();
 				}
 			}
 			else if (cutscene_isPlaying())
@@ -655,12 +654,8 @@ namespace TFE_DarkForces
 				TFE_Jedi::renderer_setPalFx(&lumMaskGpu, &palFxGpu);
 			}
 			
-			// Move this out of handleGeneralInput so that the HUD is properly copied.
-			if (cutscene_isPlaying())
-			{
-				// Nothing to do here - already handled above.
-			}
-			else if (escapeMenu_isOpen())
+			// Move this out of handleGeneralInput so that the HUD is properly copied.			
+			if (escapeMenu_isOpen() && !cutscene_isPlaying())
 			{
 				EscapeMenuAction action = escapeMenu_update();
 				if (action == ESC_RETURN || action == ESC_CONFIG)

@@ -85,7 +85,7 @@ namespace TFE_DarkForces
 	enum GameConstants
 	{
 		MAX_MOD_LFD = 16,
-		MAX_MOD_OGV = 16,
+		MAX_MOD_OGV = 32,
 	};
 
 	enum GameState
