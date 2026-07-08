@@ -5291,6 +5291,33 @@ namespace LevelEditor
 		readGuidelineFromSnapshot(guideline);
 	}
 
+	void level_createLevelNoteSnapshot(SnapshotBuffer* buffer)
+	{
+		setSnapshotWriteBuffer(buffer);
+		const u32 noteCount = (u32)s_level.notes.size();
+		const LevelNote* note = s_level.notes.data();
+
+		writeU32(noteCount);
+		for (u32 i = 0; i < noteCount; i++, note++)
+		{
+			writeLevelNoteToSnapshot(note);
+		}
+	}
+
+	void level_unpackLevelNoteSnapshot(u32 size, void* data)
+	{
+		setSnapshotReadBuffer((u8*)data, size);
+
+		const u32 noteCount = readU32();
+		s_level.notes.resize(noteCount);
+
+		LevelNote* note = s_level.notes.data();
+		for (u32 i = 0; i < noteCount; i++, note++)
+		{
+			readLevelNoteFromSnapshot(note);
+		}
+	}
+
 	// Find a sector based on DF rules.
 	EditorSector* findSectorDf(const Vec3f pos)
 	{

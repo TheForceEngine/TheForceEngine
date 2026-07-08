@@ -1233,83 +1233,33 @@ namespace TFE_FrontEndUI
 		ImGui::LabelText("##ConfigLabel", "UI Settings");
 		ImGui::PopFont();
 
-		bool showKeyColors = gameSettings->df_showKeyColors;
-		if (ImGui::Checkbox("Show the key color of the door on the map", &showKeyColors))
+		if (ImGui::TreeNodeEx("Expand UI Settings", ImGuiTreeNodeFlags_None))
 		{
-			gameSettings->df_showKeyColors = showKeyColors;
+			ImGui::Checkbox("Show the key color of the door on the map", &gameSettings->df_showKeyColors);
+			ImGui::Checkbox("Center the hud LADATA overlay", &gameSettings->df_centerHudPosition);
+			ImGui::Checkbox("Show Secret Found Message", &gameSettings->df_showSecretFoundMsg);
+			ImGui::Checkbox("Show the Total Number of Secrets Found", &gameSettings->df_showSecretCount);
+			ImGui::Checkbox("Show Key Used messages", &gameSettings->df_showKeyUsed);
+			ImGui::Checkbox("Show Secrets on the AutoMap", &gameSettings->df_showMapSecrets);
+			ImGui::Checkbox("Show Objects on the AutoMap", &gameSettings->df_showMapObjects);
+			ImGui::TreePop();
 		}
-
-		bool centerDataPos = gameSettings->df_centerHudPosition;
-		if (ImGui::Checkbox("Center the hud LADATA overlay", &centerDataPos))
-		{
-			gameSettings->df_centerHudPosition = centerDataPos;
-		}
-
-		bool showSecretMsg = gameSettings->df_showSecretFoundMsg;
-		if (ImGui::Checkbox("Show Secret Found Message", &showSecretMsg))
-		{
-			gameSettings->df_showSecretFoundMsg = showSecretMsg;
-		}
-
-		bool showSecretCount = gameSettings->df_showSecretCount;
-		if (ImGui::Checkbox("Show the Total Number of Secrets Found", &showSecretCount))
-		{
-			gameSettings->df_showSecretCount = showSecretCount;
-		}
-
-		bool showKeysUsed = gameSettings->df_showKeyUsed;
-		if (ImGui::Checkbox("Show Key Used messages", &showKeysUsed))
-		{
-			gameSettings->df_showKeyUsed = showKeysUsed;
-		}
-
-		bool showMapSecrets = gameSettings->df_showMapSecrets;
-		if (ImGui::Checkbox("Show Secrets on the AutoMap", &showMapSecrets))
-		{
-			gameSettings->df_showMapSecrets = showMapSecrets;
-		}
-
-		bool showMapObjects = gameSettings->df_showMapObjects;
-		if (ImGui::Checkbox("Show Objects on the AutoMap", &showMapObjects))
-		{
-			gameSettings->df_showMapObjects = showMapObjects;
-		}
-
-		ImGui::Separator();
 
 		ImGui::PushFont(s_versionFont);
 		ImGui::LabelText("##ConfigLabel", "Engine Settings");
-		ImGui::PopFont();
+		ImGui::PopFont(); 
 
-		bool ignoreInfLimit = gameSettings->df_ignoreInfLimit;
-		if (ImGui::Checkbox("Remove INF Item Limit (requires restart)", &ignoreInfLimit))
+		if (ImGui::TreeNodeEx("Expand Engine Settings", ImGuiTreeNodeFlags_None))
 		{
-			gameSettings->df_ignoreInfLimit = ignoreInfLimit;
+			ImGui::Checkbox("Remove INF Item Limit (requires restart)", &gameSettings->df_ignoreInfLimit);
+			ImGui::Checkbox("Allow the player to step up onto second heights, similar to normal stairs.", &gameSettings->df_stepSecondAlt);
+			ImGui::Checkbox("Enforce solid wall flag for moving walls", &gameSettings->df_solidWallFlagFix);
+			ImGui::Checkbox("Enable unused inventory item \"ITEM10\"", &gameSettings->df_enableUnusedItem);
+			ImGui::Checkbox("Enhanced AI logics (requires restart)", &gameSettings->df_jsonAiLogics);
+			ImGui::TreePop();
 		}
 
-		bool stepSecondAlt = gameSettings->df_stepSecondAlt;
-		if (ImGui::Checkbox("Allow the player to step up onto second heights, similar to normal stairs.", &stepSecondAlt))
-		{
-			gameSettings->df_stepSecondAlt = stepSecondAlt;
-		}
-
-		bool solidWallFlagFix = gameSettings->df_solidWallFlagFix;
-		if (ImGui::Checkbox("Enforce solid wall flag for moving walls", &solidWallFlagFix))
-		{
-			gameSettings->df_solidWallFlagFix = solidWallFlagFix;
-		}
-
-		bool enableUnusedItem = gameSettings->df_enableUnusedItem;
-		if (ImGui::Checkbox("Enable unused inventory item \"ITEM10\"", &enableUnusedItem))
-		{
-			gameSettings->df_enableUnusedItem = enableUnusedItem;
-		}
-
-		bool jsonAiLogics = gameSettings->df_jsonAiLogics;
-		if (ImGui::Checkbox("Enhanced AI logics (requires restart)", &jsonAiLogics))
-		{
-			gameSettings->df_jsonAiLogics = jsonAiLogics;
-		}
+		ImGui::Spacing();
 
 		if (s_drawNoGameDataMsg)
 		{

@@ -2,6 +2,7 @@
 #include "hotkeys.h"
 #include "levelEditor.h"
 #include "levelEditorData.h"
+#include "levelEditorHistory.h"
 #include "sharedState.h"
 #include <TFE_Editor/editorConfig.h>
 #include <TFE_Editor/LevelEditor/Rendering/viewport.h>
@@ -110,7 +111,11 @@ namespace LevelEditor
 			// Test
 			newNote.note = "Test Note\n  * Item 1\n  * Item 2\n";
 			//
-			addLevelNoteToLevel(&newNote);
+			s32 resultId = addLevelNoteToLevel(&newNote);
+			if (resultId >= 0)
+			{
+				cmd_levelNoteSnapshot(LName_LevelNote_Create, false);
+			}
 		}
 		else if (s_singleClick && s_hoveredLevelNote >= 0)
 		{
@@ -211,6 +216,17 @@ namespace LevelEditor
 				s_editMove = false;
 			}
 		}
+		else if (!s_leftMouseDown && s_editMove)
+		{
+			// Only record in history if moved, not clicked
+			if (s_moveBasePos3d.x != s_level.notes[s_curLevelNote].pos.x ||
+				s_moveBasePos3d.y != s_level.notes[s_curLevelNote].pos.y ||
+				s_moveBasePos3d.z != s_level.notes[s_curLevelNote].pos.z)
+			{
+				cmd_levelNoteSnapshot(LName_LevelNote_Move, false);
+			}
+			s_editMove = false;
+		}
 		else
 		{
 			s_editMove = false;
@@ -231,6 +247,7 @@ namespace LevelEditor
 			}
 			if (deleted)
 			{
+				cmd_levelNoteSnapshot(LName_LevelNote_Delete, false);
 				clearLevelNoteSelection();
 			}
 		}

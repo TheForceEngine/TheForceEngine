@@ -580,8 +580,8 @@ namespace TFE_Settings
 		writeKeyValue_Bool(settings, "showKeyUsed", s_gameSettings.df_showKeyUsed);
 		writeKeyValue_Bool(settings, "showKeyColors", s_gameSettings.df_showKeyColors);
 		writeKeyValue_Bool(settings, "centerHudPos", s_gameSettings.df_centerHudPosition);
-		writeKeyValue_Bool(settings, "df_showMapSecrets", s_gameSettings.df_showMapSecrets);
-		writeKeyValue_Bool(settings, "df_showMapObjects", s_gameSettings.df_showMapObjects);
+		writeKeyValue_Bool(settings, "showMapSecrets", s_gameSettings.df_showMapSecrets);
+		writeKeyValue_Bool(settings, "showMapObjects", s_gameSettings.df_showMapObjects);
 	}
 
 	void writePerGameSettings(FileStream& settings)
@@ -1263,18 +1263,14 @@ namespace TFE_Settings
 		{
 			s_gameSettings.df_centerHudPosition = parseBool(value);
 		}
-		else if (strcasecmp("df_showKeyColors", key) == 0)
-		{
-			s_gameSettings.df_showKeyColors = parseBool(value);
-		}
-		else if (strcasecmp("df_showMapSecrets", key) == 0)
+		else if (strcasecmp("showMapSecrets", key) == 0)
 		{
 			s_gameSettings.df_showMapSecrets = parseBool(value);
 		}
-		else if (strcasecmp("df_showMapObjects", key) == 0)
+		else if (strcasecmp("showMapObjects", key) == 0)
 		{
 			s_gameSettings.df_showMapObjects = parseBool(value);
-		}	
+		}
 	}
 
 	void parseOutlawsSettings(const char* key, const char* value)

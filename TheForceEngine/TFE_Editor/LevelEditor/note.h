@@ -48,6 +48,7 @@ namespace LevelEditor
 	extern const u32 c_noteColors[3];
 	extern s32 s_hoveredLevelNote;
 	extern s32 s_curLevelNote;
+	extern s32 s_prevLevelNote;
 
 	void clearLevelNoteSelection();
 }
