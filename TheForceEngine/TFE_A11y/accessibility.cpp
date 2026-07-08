@@ -21,7 +21,7 @@ namespace TFE_A11Y  // a11y is industry slang for accessibility
 	///////////////////////////////////////////
 	// Forward Declarations
 	///////////////////////////////////////////
-	
+
 	// Clear the list of caption and font files. Note that this does not unload fonts
 	// from ImGui (IIRC it's not practical to do so).
 	void clearFiles();
@@ -93,6 +93,7 @@ namespace TFE_A11Y  // a11y is industry slang for accessibility
 	static std::map<string, ImFont*> s_fontMap;
 	static ImFont* s_currentCaptionFont;
 	static string s_pendingFontPath;
+	static bool s_fontLoadPending = false;
 
 	void init()
 	{
@@ -106,7 +107,7 @@ namespace TFE_A11Y  // a11y is industry slang for accessibility
 		}
 		CVAR_BOOL(s_logSFXNames, "d_logSFXNames", CVFLAG_DO_NOT_SERIALIZE, "If enabled, log the name of each sound effect that plays.");
 	}
-	
+
 	void refreshFiles()
 	{
 		if (TFE_Settings::getA11ySettings()->captionSystemEnabled())
@@ -144,7 +145,7 @@ namespace TFE_A11Y  // a11y is industry slang for accessibility
 	FilePath getCurrentFontFile() { return s_currentFontFile; }
 
 	// True if we are waiting to load a font after we render ImGui.
-	bool hasPendingFont() { return !s_pendingFontPath.empty(); }
+	bool hasPendingFont() { return s_fontLoadPending; }
 
 	bool isFontLoaded() { return s_currentCaptionFont != nullptr && s_currentCaptionFont->IsLoaded(); }
 
@@ -181,7 +182,7 @@ namespace TFE_A11Y  // a11y is industry slang for accessibility
 		// Try to load the previously selected font.
 		string lastFontPath = TFE_Settings::getA11ySettings()->lastFontPath;
 
-		if (!lastFontPath.empty() && ImGui::GetIO().Fonts->Locked)	{ setPendingFont(lastFontPath);	}
+		if (ImGui::GetIO().Fonts->Locked) { setPendingFont(lastFontPath); }
 		else { tryLoadFont(lastFontPath, false); }
 	}
 
@@ -189,6 +190,7 @@ namespace TFE_A11Y  // a11y is industry slang for accessibility
 	void setPendingFont(const string path)
 	{
 		s_pendingFontPath = path;
+		s_fontLoadPending = true;
 	}
 
 	void loadDefaultFont(bool clearAtlas)
@@ -203,7 +205,7 @@ namespace TFE_A11Y  // a11y is industry slang for accessibility
 	// we automatically fall back to the default font.
 	void tryLoadFont(const string path, bool clearAtlas)
 	{
-		if (!path.empty() && FileUtil::exists(path.c_str())) 
+		if (!path.empty() && FileUtil::exists(path.c_str()))
 		{
 			try
 			{
@@ -231,9 +233,9 @@ namespace TFE_A11Y  // a11y is industry slang for accessibility
 		ImGuiIO& io = ImGui::GetIO();
 
 		if (s_fontMap.count(path) > 0) // Font has already been loaded.
-		{ 
-			s_currentCaptionFont = s_fontMap.at(path);	
-		} 
+		{
+			s_currentCaptionFont = s_fontMap.at(path);
+		}
 		else // Font hasn't been loaded before.
 		{
 			s_currentCaptionFont = io.Fonts->AddFontFromFileTTF(path.c_str(), 32, nullptr, GetGlyphRanges());
@@ -256,12 +258,13 @@ namespace TFE_A11Y  // a11y is industry slang for accessibility
 	{
 		tryLoadFont(s_pendingFontPath, true);
 		s_pendingFontPath.clear();
+		s_fontLoadPending = false;
 	}
 
 	//////////////////////////////////////////////////////
 	// Captions
 	//////////////////////////////////////////////////////
-	
+
 	A11yStatus getCaptionSystemStatus() { return s_captionsStatus; }
 
 	// Get the list of all caption files we detect in the Captions directories.
@@ -383,7 +386,7 @@ namespace TFE_A11Y  // a11y is industry slang for accessibility
 				if (caption.microsecondsRemaining > s_maxDuration) caption.microsecondsRemaining = (s64)s_maxDuration;
 			}
 			assert(caption.microsecondsRemaining > 0);
-			
+
 			if (caption.text[0] == '[') { caption.type = CC_EFFECT; }
 			else { caption.type = CC_VOICE; }
 
@@ -404,7 +407,7 @@ namespace TFE_A11Y  // a11y is industry slang for accessibility
 		// TODO: display an error dialog
 	}
 
-	void clearActiveCaptions() 
+	void clearActiveCaptions()
 	{
 		s_activeCaptions.clear();
 		s_exampleCaptions.clear();
@@ -671,8 +674,8 @@ namespace TFE_A11Y  // a11y is industry slang for accessibility
 	{
 		auto settings = TFE_Settings::getA11ySettings();
 		return (settings->showCutsceneCaptions || settings->showCutsceneSubtitles);
-	}	
-	
+	}
+
 	bool gameplayCaptionsEnabled()
 	{
 		auto settings = TFE_Settings::getA11ySettings();
@@ -708,7 +711,7 @@ namespace TFE_A11Y  // a11y is industry slang for accessibility
 		}
 		return input;
 	}
-	
+
 	string toFileName(string language)
 	{
 		return FILE_NAME_START + language + FILE_NAME_EXT;
