@@ -550,7 +550,7 @@ namespace TFE_DarkForces
 		if (!s_remasterCredits.empty()) return;
 
 		char path[TFE_MAX_PATH];
-		snprintf(path, TFE_MAX_PATH, "%sDocumentation/markdown/RemasteredCredits.md", TFE_Paths::getPath(PATH_PROGRAM));
+		snprintf(path, TFE_MAX_PATH, "%sUI_Text/DFRemasteredCredits.txt", TFE_Paths::getPath(PATH_PROGRAM));
 
 		FileStream file;
 		if (!file.open(path, Stream::MODE_READ)) return;
@@ -771,7 +771,11 @@ namespace TFE_DarkForces
 		s32 found = 0;
 		for (s32 i = 0; !found && s_playSeq[i].id != SCENE_EXIT; i++)
 		{
-			if (s_playSeq[i].id == sceneId){found = 1;break;}
+			if (s_playSeq[i].id == sceneId)
+			{
+				found = 1;
+				break;
+			}
 		}
 		if (!found) return JFALSE;
 
