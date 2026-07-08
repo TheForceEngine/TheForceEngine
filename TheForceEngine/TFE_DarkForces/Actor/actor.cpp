@@ -982,6 +982,11 @@ namespace TFE_DarkForces
 								// Do ranged attack (secondary)
 								attackMod->anim.state = STATE_ATTACK2;
 								attackMod->timing.delay = attackMod->timing.rangedDelay;
+
+								if (attackMod->hasBurstFire)
+								{
+									attackMod->anim.flags &= ~AFLAG_PLAYONCE;	// if logic has burst fire, allow attack anim to loop
+								}
 							}
 						}
 						else  // Actor does not have melee attack
@@ -1035,7 +1040,7 @@ namespace TFE_DarkForces
 			} break;
 			case STATE_ATTACK1:
 			{
-				if (!(attackMod->anim.flags & AFLAG_READY) && !attackMod->hasBurstFire)
+				if (!(attackMod->anim.flags & AFLAG_READY) && (!attackMod->hasBurstFire || attackMod->attackFlags & ATTFLAG_MELEE))
 				{
 					break;
 				}
@@ -1165,7 +1170,7 @@ namespace TFE_DarkForces
 			} break;
 			case STATE_ATTACK2:
 			{
-				if (!(attackMod->anim.flags & AFLAG_READY))
+				if (!(attackMod->anim.flags & AFLAG_READY) && !attackMod->hasBurstFire)
 				{
 					break;
 				}
@@ -1174,7 +1179,41 @@ namespace TFE_DarkForces
 					obj->flags |= OBJ_FLAG_FULLBRIGHT;
 				}
 
-				attackMod->anim.state = STATE_ANIMATE2;
+				// Burst fire option - set via custom logics
+				if (attackMod->hasBurstFire)
+				{
+					if (s_curTick < attackMod->burstFire.lastShot + attackMod->burstFire.interval)
+					{
+						break;
+					}
+
+					if (logic->flags & ACTOR_DYING) { break; }
+
+					if (attackMod->burstFire.shotCount <= 1)
+					{
+						// Burst is finished, end the looping & reset the shot count
+						attackMod->anim.state = STATE_ANIMATE2;
+						attackMod->anim.flags |= AFLAG_PLAYONCE;
+
+						s32 var = random(attackMod->burstFire.variation * 2);
+						s32 nextBurstNumber = attackMod->burstFire.burstNumber - attackMod->burstFire.variation + var;
+						attackMod->burstFire.shotCount = max(nextBurstNumber, 2);
+					}
+					else
+					{
+						// Reorient towards the player
+						attackMod->target.yaw = vec2ToAngle(s_playerObject->posWS.x - obj->posWS.x, s_playerObject->posWS.z - obj->posWS.z);
+
+						// Fire the next shot in the burst
+						attackMod->burstFire.lastShot = s_curTick;
+						attackMod->burstFire.shotCount--;
+					}
+				}
+				else
+				{
+					// No burst fire -- vanilla logic
+					attackMod->anim.state = STATE_ANIMATE2;
+				}
 
 				vec3_fixed fireOffset = {};
 				
