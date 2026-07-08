@@ -4080,7 +4080,7 @@ namespace TFE_FrontEndUI
 			{
 				graphicsSettings->anisotropyQuality = 1.0f;
 				graphicsSettings->bilinearSharpness = 1.0f;
-				graphicsSettings->useBilinear = true;
+				graphicsSettings->useBilinear   = true;
 				graphicsSettings->useMipmapping = true;
 			}
 			// Post-FX
