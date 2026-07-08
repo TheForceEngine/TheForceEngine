@@ -2718,6 +2718,12 @@
     <None Include="Shaders\tri3dTextureClamp.frag">
       <Filter>Source\Shaders</Filter>
     </None>
+    <None Include="Shaders\yuv2rgb.frag">
+      <Filter>Source\Shaders</Filter>
+    </None>
+    <None Include="Shaders\yuv2rgb.vert">
+      <Filter>Source\Shaders</Filter>
+    </None>
     <None Include="Documentation\markdown\Inf_Elevators.md">
       <Filter>Documentation\markdown</Filter>
     </None>
@@ -2773,9 +2779,6 @@
       <Filter>Documentation\markdown</Filter>
     </None>
     <None Include="Documentation\markdown\Inf_Editor.md">
-      <Filter>Documentation\markdown</Filter>
-    </None>
-	<None Include="Documentation\markdown\RemasteredCredits.md">
       <Filter>Documentation\markdown</Filter>
     </None>
     <None Include="Documentation\markdown\Game\About.md">

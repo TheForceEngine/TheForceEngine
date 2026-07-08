@@ -1171,7 +1171,6 @@ echo ^)";
     <None Include="Documentation\markdown\Level Editor Shortcuts.md" />
     <None Include="Documentation\markdown\Manifesto.md" />
     <None Include="Documentation\markdown\Manual.md" />
-	<None Include="Documentation\markdown\RemasteredCredits.md" />
     <None Include="Shaders\blit.frag" />
     <None Include="Shaders\blit.vert" />
     <None Include="Shaders\bloom.vert" />
