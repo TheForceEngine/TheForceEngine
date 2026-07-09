@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace TFE_DarkForces
+namespace TFE_Subtitles
 {
 	struct SrtEntry
 	{

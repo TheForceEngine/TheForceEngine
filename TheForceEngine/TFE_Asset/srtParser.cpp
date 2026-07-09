@@ -5,7 +5,7 @@
 #include <cstring>
 #include <cstdio>
 
-namespace TFE_DarkForces
+namespace TFE_Subtitles
 {
 	// HH:MM:SS,mmm -> seconds
 	static bool parseTimestamp(const char* str, f64& outSeconds)

@@ -5,6 +5,7 @@
 #include <TFE_System/system.h>
 #include <string>
 #include <angelscript.h>
+#include <TFE_DarkForces/Landru/cutscene.h>
 
 using namespace TFE_Jedi;
 
@@ -27,6 +28,20 @@ namespace TFE_DarkForces
 		TFE_DarkForces::hud_sendTextMessage(msg.c_str(), 0, false);
 	}
 
+	int GS_Game::playCutscene(std::string cutsceneName)
+	{
+		if (cutsceneName.empty())
+		{
+			TFE_System::logWrite(LOG_ERROR, "Level Script", "Runtime error, cutscene name is empty.");
+			return 0;
+		}
+		#ifdef ENABLE_OGV_CUTSCENES
+		cutscene_playVideoFile(cutsceneName.c_str());
+		#endif
+		return 1;
+	}
+
+
 	bool GS_Game::scriptRegister(ScriptAPI api)
 	{
 		ScriptClassBegin("Game", "game", api);
@@ -47,6 +62,7 @@ namespace TFE_DarkForces
 			ScriptObjMethod("float getGameTime()", getGameTime);
 			ScriptObjMethod("int random(int)", scriptRandom);
 			ScriptObjMethod("void text(string)", text);
+			ScriptObjMethod("int playCutscene(string)", playCutscene);
 		}
 		ScriptClassEnd();
 	}

@@ -352,8 +352,10 @@ echo ^)";
     <ClInclude Include="TFE_Asset\levelList.h" />
     <ClInclude Include="TFE_Asset\modelAsset_jedi.h" />
     <ClInclude Include="TFE_Asset\msf_gif.h" />
+    <ClInclude Include="TFE_Asset\ogvPlayer.h" />
     <ClInclude Include="TFE_Asset\paletteAsset.h" />
     <ClInclude Include="TFE_Asset\spriteAsset_Jedi.h" />
+    <ClInclude Include="TFE_Asset\srtParser.h" />
     <ClInclude Include="TFE_Asset\textureAsset.h" />
     <ClInclude Include="TFE_Asset\vocAsset.h" />
     <ClInclude Include="TFE_Asset\vueAsset.h" />
@@ -432,9 +434,7 @@ echo ^)";
     <ClInclude Include="TFE_DarkForces\Landru\lview.h" />
     <ClInclude Include="TFE_DarkForces\Landru\textCrawl.h" />
     <ClInclude Include="TFE_DarkForces\Remaster\dcssParser.h" />
-    <ClInclude Include="TFE_DarkForces\Remaster\ogvPlayer.h" />
     <ClInclude Include="TFE_DarkForces\Remaster\remasterCutscenes.h" />
-    <ClInclude Include="TFE_DarkForces\Remaster\srtParser.h" />
     <ClInclude Include="TFE_DarkForces\logic.h" />
     <ClInclude Include="TFE_DarkForces\mission.h" />
     <ClInclude Include="TFE_DarkForces\pickup.h" />
@@ -781,8 +781,10 @@ echo ^)";
     <ClCompile Include="TFE_Asset\imageAsset.cpp" />
     <ClCompile Include="TFE_Asset\levelList.cpp" />
     <ClCompile Include="TFE_Asset\modelAsset_jedi.cpp" />
+    <ClCompile Include="TFE_Asset\ogvPlayer.cpp" />
     <ClCompile Include="TFE_Asset\paletteAsset.cpp" />
     <ClCompile Include="TFE_Asset\spriteAsset_Jedi.cpp" />
+    <ClCompile Include="TFE_Asset\srtParser.cpp" />
     <ClCompile Include="TFE_Asset\textureAsset.cpp" />
     <ClCompile Include="TFE_Asset\vocAsset.cpp" />
     <ClCompile Include="TFE_Asset\vueAsset.cpp" />
@@ -854,9 +856,7 @@ echo ^)";
     <ClCompile Include="TFE_DarkForces\Landru\lview.cpp" />
     <ClCompile Include="TFE_DarkForces\Landru\textCrawl.cpp" />
     <ClCompile Include="TFE_DarkForces\Remaster\dcssParser.cpp" />
-    <ClCompile Include="TFE_DarkForces\Remaster\ogvPlayer.cpp" />
     <ClCompile Include="TFE_DarkForces\Remaster\remasterCutscenes.cpp" />
-    <ClCompile Include="TFE_DarkForces\Remaster\srtParser.cpp" />
     <ClCompile Include="TFE_DarkForces\logic.cpp" />
     <ClCompile Include="TFE_DarkForces\mission.cpp" />
     <ClCompile Include="TFE_DarkForces\pickup.cpp" />
@@ -1220,7 +1220,7 @@ echo ^)";
     </CustomBuild>
     <None Include="Shaders\tri3dWall.frag" />
     <None Include="Shaders\tri3dWall.vert" />
-	<None Include="Shaders\yuv2rgb.frag" />
+    <None Include="Shaders\yuv2rgb.frag" />
     <None Include="Shaders\yuv2rgb.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
