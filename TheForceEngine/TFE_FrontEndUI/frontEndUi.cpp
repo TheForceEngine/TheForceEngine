@@ -3777,7 +3777,7 @@ namespace TFE_FrontEndUI
 		string tag2 = "##LB" + to_string(index);
 		string tag3 = "##LVS" + to_string(index);
 		string tag4 = "##LWS" + to_string(index);
-		ImGui::LabelText("##ConfigLabel3", label1.c_str());
+		ImGui::LabelText("##ConfigLabel3", "%s", label1.c_str());
 		DrawLabelledFloatSlider(labelW, valueW * 0.5f - 2, "  Brightness", tag2.c_str(), &RClassic_Float::s_cameraLight[index].brightness, 0.0f, 8.0f);
 		Tooltip("Values above 1.0 only affect obliquely lit faces.");
 

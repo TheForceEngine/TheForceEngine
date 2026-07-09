@@ -1,4 +1,5 @@
 #include <cstdarg>
+#include <cinttypes>
 #include <cstring>
 
 #include <TFE_System/system.h>
@@ -100,7 +101,7 @@ namespace TFE_System
 			strftime(timeStr, sizeof(timeStr) - 4, "%Y-%b-%d %H:%M:%S", &now_tm); // Leave space for milliseconds
 
 			// Add milliseconds to the formatted time
-			snprintf(timeStr + strlen(timeStr), 8, ".%03lld - ", milliseconds.count());
+			snprintf(timeStr + strlen(timeStr), 8, ".%03" PRIu64 " - ", milliseconds.count());
 		}
 		else
 		{

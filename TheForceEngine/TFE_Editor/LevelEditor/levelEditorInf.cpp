@@ -3099,7 +3099,7 @@ namespace LevelEditor
 	void selectableClassName(const char* className, ImVec2 itemStart, s32 classIndex)
 	{
 		ImVec2 itemEnd = ImGui::GetCursorPos();
-		ImGui::TextColored(colorKeywordInner, className);
+		ImGui::TextColored(colorKeywordInner, "%s", className);
 		itemEnd.x += ImGui::CalcTextSize(className).x;
 		ImVec2 itemNext = ImGui::GetCursorPos();
 

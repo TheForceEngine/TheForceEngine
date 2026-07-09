@@ -7,6 +7,7 @@
 #include <TFE_ForceScript/float3.h>
 #include <TFE_ForceScript/Angelscript/add_on/scriptarray/scriptarray.h>
 #include <angelscript.h>
+#include <cinttypes>
 
 namespace LevelEditor
 {
@@ -85,7 +86,7 @@ namespace LevelEditor
 						case 5:
 						{
 							s64 local = *(s64*)(data);
-							sprintf(tmp, "%lld", local);
+							sprintf(tmp, "%" PRIi64, local);
 							value = tmp;
 							break;
 						}
@@ -113,7 +114,7 @@ namespace LevelEditor
 						case 9:
 						{
 							u64 local = *(u64*)(data);
-							sprintf(tmp, "%llu", local);
+							sprintf(tmp, "%" PRIu64, local);
 							value = tmp;
 							break;
 						}
@@ -221,7 +222,7 @@ namespace LevelEditor
 					case 5:
 					{
 						s64 local = *(s64*)(ref);
-						sprintf(tmp, "%lld", local);
+						sprintf(tmp, "%" PRIi64, local);
 						value = tmp;
 						break;
 					}
@@ -249,7 +250,7 @@ namespace LevelEditor
 					case 9:
 					{
 						u64 local = *(u64*)(ref);
-						sprintf(tmp, "%llu", local);
+						sprintf(tmp, "%" PRIu64, local);
 						value = tmp;
 						break;
 					}

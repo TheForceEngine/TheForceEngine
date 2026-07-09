@@ -5,6 +5,7 @@
 #include <TFE_Jedi/Level/rwall.h>
 #include <TFE_Jedi/Level/rsector.h>
 #include <angelscript.h>
+#include <cinttypes>
 
 using namespace TFE_Jedi;
 
@@ -186,8 +187,8 @@ namespace TFE_ForceScript
 					s64 v1 = *(s64*)(ref1);
 					if ((equal && v0 != v1) || (!equal && v0 == v1))
 					{
-						if (equal) { sprintf(errMsg, "%lld != %lld", v0, v1); }
-						else { sprintf(errMsg, "%lld == %lld", v0, v1); }
+						if (equal) { sprintf(errMsg, "%" PRIi64 " != %" PRIi64, v0, v1); }
+						else { sprintf(errMsg, "%" PRIi64 " ==  %" PRIi64, v0, v1); }
 						errorMsg = errMsg;
 						return false;
 					}
@@ -242,8 +243,8 @@ namespace TFE_ForceScript
 					u64 v1 = *(u64*)(ref1);
 					if ((equal && v0 != v1) || (!equal && v0 == v1))
 					{
-						if (equal) { sprintf(errMsg, "%llu != %llu", v0, v1); }
-						else { sprintf(errMsg, "%llu == %llu", v0, v1); }
+						if (equal) { sprintf(errMsg, "%" PRIu64 " !=  %" PRIu64, v0, v1); }
+						else { sprintf(errMsg, "%" PRIu64 " ==  %" PRIu64, v0, v1); }
 						errorMsg = errMsg;
 						return false;
 					}
@@ -404,8 +405,8 @@ namespace TFE_ForceScript
 					s64 v = *(s64*)(ref);
 					if ((testForTrue && v == 0) || (!testForTrue && v != 0))
 					{
-						if (testForTrue) { sprintf(errMsg, "%lld is false, true expected", v); }
-						else { sprintf(errMsg, "%lld is true, false expected", v); }
+						if (testForTrue) { sprintf(errMsg, "%" PRIi64 " is false, true expected", v); }
+						else { sprintf(errMsg, "%" PRIi64 " is true, false expected", v); }
 						errorMsg = errMsg;
 						return false;
 					}
@@ -456,8 +457,8 @@ namespace TFE_ForceScript
 					u64 v = *(u64*)(ref);
 					if ((testForTrue && v == 0) || (!testForTrue && v != 0))
 					{
-						if (testForTrue) { sprintf(errMsg, "%llu is false, true expected", v); }
-						else { sprintf(errMsg, "%llu is true, false expected", v); }
+						if (testForTrue) { sprintf(errMsg, "%" PRIu64 " is false, true expected", v); }
+						else { sprintf(errMsg, "%" PRIu64 " is true, false expected", v); }
 						errorMsg = errMsg;
 						return false;
 					}

@@ -24,6 +24,7 @@
 #include <TFE_Jedi/Renderer/jediRenderer.h>
 #include <map>
 #include <algorithm>
+#include <cinttypes>
 
 using namespace TFE_Input;
 
@@ -420,11 +421,11 @@ namespace TFE_FrontEndUI
 	{
 		readFromQueue(c_itemsPerFrame);
 	}
-		
+
 	bool modLoader_selectionUI()
 	{
 		bool stayOpen = true;
-		f32 uiScale = (f32)TFE_Ui::getUiScale() * 0.01f;	
+		f32 uiScale = (f32)TFE_Ui::getUiScale() * 0.01f;
 
 		// Load in the mod data a few at a time so to limit waiting for loading.
 		readFromQueue(c_itemsPerFrame);
@@ -524,10 +525,10 @@ namespace TFE_FrontEndUI
 
 		ImVec4 infoColor = ImVec4(0.2f, 0.8f, 0.4f, 1.0f);  // RGBA
 
-		ImGui::TextColored(infoColor, "Showing %d out of %d mods.", s_filteredMods.size(), s_mods.size());
+		ImGui::TextColored(infoColor, "Showing %lu out of %lu mods.", s_filteredMods.size(), s_mods.size());
 
 		ImGui::Separator();
-					   
+
 		if (s_viewMode == VIEW_IMAGES)
 		{
 			modLoader_imageListUI(uiScale);
