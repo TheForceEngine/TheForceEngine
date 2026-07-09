@@ -491,13 +491,24 @@ namespace TFE_DarkForces
 		{
 			interpolatedFrame->mtx[i] = lerp(previous->mtx[i], current->mtx[i], t);
 		}
+
+		// If we are jumping > 180 degrees, take the shorter distance
+		// note: angles have already had ANGLE_MASK applied by vec2ToAngle() so they will always be between 0 and 16383
+		angle14_16 prevYaw, currYaw, prevPitch, currPitch, prevRoll, currRoll;
+		prevYaw = (previous->yaw - current->yaw > 8192) ? previous->yaw - ANGLE_MAX : previous->yaw;
+		currYaw = (current->yaw - previous->yaw > 8192) ? current->yaw - ANGLE_MAX : current->yaw;
+		prevPitch = (previous->pitch - current->pitch > 8192) ? previous->pitch - ANGLE_MAX : previous->pitch;
+		currPitch = (current->pitch - previous->pitch > 8192) ? current->pitch - ANGLE_MAX : current->pitch;
+		prevRoll = (previous->roll - current->roll > 8192) ? previous->roll - ANGLE_MAX : previous->roll;
+		currRoll = (current->roll - previous->roll > 8192) ? current->roll - ANGLE_MAX : current->roll;
+
 		// Use linear interpolation for offset and angles.
 		interpolatedFrame->offset.x = lerp(previous->offset.x, current->offset.x, t);
 		interpolatedFrame->offset.y = lerp(previous->offset.y, current->offset.y, t);
 		interpolatedFrame->offset.z = lerp(previous->offset.z, current->offset.z, t);
-		interpolatedFrame->pitch = lerp(previous->pitch, current->pitch, t);
-		interpolatedFrame->yaw = lerp(previous->yaw, current->yaw, t);
-		interpolatedFrame->roll = lerp(previous->roll, current->roll, t);
+		interpolatedFrame->pitch = lerp(prevPitch, currPitch, t);
+		interpolatedFrame->yaw = lerp(prevYaw, currYaw, t);
+		interpolatedFrame->roll = lerp(prevRoll, currRoll, t);
 		// Copy the flags from the current frame.
 		interpolatedFrame->flags = current->flags;
 	}
