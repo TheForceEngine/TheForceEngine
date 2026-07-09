@@ -1579,8 +1579,8 @@ namespace TFE_FrontEndUI
 		#ifdef ENABLE_OGV_CUTSCENES
 		ImGui::Spacing();
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.25f, 1.0f));
-		ImGui::TextWrapped("Special Case for HD cutscenes. If remaster assets exist\n"
-			               "Allow user to change them at will");
+		ImGui::TextWrapped("HD cutscenes can be used if remaster assets exist. True\n"
+			               "Color is not required.");
 		ImGui::PopStyleColor();
 
 		// Special case for HD cutscenes
