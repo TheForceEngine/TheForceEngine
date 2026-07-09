@@ -234,7 +234,7 @@ namespace TFE_System
 	{
 		time_t _tm = time(NULL);
 		struct tm* curtime = localtime(&_tm);
-		sprintf(output, "%0.2d-%0.2d-%0.4d-%0.2d-%0.2d", curtime->tm_mon + 1, curtime->tm_mday, curtime->tm_year + 1900, curtime->tm_hour + 1, curtime->tm_min);
+		strftime(output, 16, "%m-%d-%Y-%H-%M", curtime);
 	}
 
 	bool osShellExecute(const char* pathToExe, const char* exeDir, const char* param, bool waitForCompletion)

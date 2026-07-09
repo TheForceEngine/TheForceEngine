@@ -66,8 +66,8 @@ namespace TFE_Input
 	bool showReplayMsgFrame = false;
 	bool alwaysRecord = false;
 	
-	extern f64 gameFrameLimit = 0;	
-	extern f64 replayFrameLimit = 0;
+	f64 gameFrameLimit = 0;
+	f64 replayFrameLimit = 0;
 
 	// Notification for replay system initialization. 
 	bool demoStartNotified = false;
