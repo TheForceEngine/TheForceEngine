@@ -779,9 +779,6 @@ namespace TFE_DarkForces
 		}
 		if (!found) return JFALSE;
 
-		// Re-initialize the canvas, so cutscenes run at the correct resolution even if it was changed for gameplay
-		// (i.e. high resolution support).
-
 		// Try the remastered path first. If it returns false, no OGV is
 		// available for this scene (or the feature is disabled) - fall
 		// through to the LFD path.
@@ -796,6 +793,9 @@ namespace TFE_DarkForces
 			return JTRUE;
 		}
 #endif
+
+		// Re-initialize the canvas, so cutscenes run at the correct resolution even if it was changed for gameplay
+		// (i.e. high resolution support).
 		lcanvas_init(320, 200);
 
 		// The original code then starts the cutscene loop here, and then returns when done.

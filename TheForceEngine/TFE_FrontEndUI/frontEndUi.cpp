@@ -737,7 +737,7 @@ namespace TFE_FrontEndUI
 				ImVec2 textSize = ImVec2(f32(textWidth), f32(textHeight));
 				for (s32 i = 0; i < s_menuItemCount; i++)
 				{
-#if ENABLE_EDITOR == 0
+				#if ENABLE_EDITOR == 0
 					// Disable the editor for now when not running on Windows.
 					if (s_menuItemselected[i] == menuItem_Editor)
 					{
@@ -745,11 +745,11 @@ namespace TFE_FrontEndUI
 							ImVec2(0, 0), ImVec2(1, 1), ImVec2(0, 0), ImVec2(1, 1), ImVec4(0, 0, 0, 0), ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
 					}
 					else
-#endif
-						if (ImGui::ImageAnimButton(s_buttonNormal[i].image, s_buttonSelected[i].image, textSize))
-						{
-							s_menuItemselected[i]();
-						}
+				#endif
+					if (ImGui::ImageAnimButton(s_buttonNormal[i].image, s_buttonSelected[i].image, textSize))
+					{
+						s_menuItemselected[i]();
+					}
 				}
 
 				ImGui::End();
@@ -1518,9 +1518,9 @@ namespace TFE_FrontEndUI
 
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.25f, 1.0f));
 		ImGui::TextWrapped("Note: HD Assets are only used if 'True Color' is enabled\n"
-			"in the Graphics panel. To enable True Color select \n"
-			"'GPU / OpenGL' as the Renderer, and 'True Color' as the\n"
-			"Color Mode.");
+						   "in the Graphics panel. To enable True Color select \n"
+						   "'GPU / OpenGL' as the Renderer, and 'True Color' as the\n"
+						   "Color Mode.");
 		ImGui::PopStyleColor();
 		ImGui::Spacing();
 
@@ -1537,7 +1537,7 @@ namespace TFE_FrontEndUI
 
 			// Special case for cutscenes. You should still be able to watch them in 8bit mode
 			// So only disable the cutscenes if the enhanced gob doesn't exist.
-			if (!enhancedGobExists)	enhancements->enableHdCutscenes = false;
+			if (!enhancedGobExists) { enhancements->enableHdCutscenes = false; }
 		}
 
 		ImGui::Spacing();
@@ -2123,11 +2123,11 @@ namespace TFE_FrontEndUI
 			}
 
 			size.x = 420 * s_uiScale;
-#ifdef _WIN32
+			#ifdef _WIN32
 			size.y = 85 * s_uiScale;
-#else
+			#else
 			size.y = 100 * s_uiScale;
-#endif		
+			#endif		
 
 			ImGui::BeginChild("##InfoWithBorderRecord", size, true);
 			{
@@ -2183,11 +2183,11 @@ namespace TFE_FrontEndUI
 			ImGui::PopStyleColor();
 			ImGui::PopFont();
 
-#ifdef _WIN32
+			#ifdef _WIN32
 			size.y = 100 * s_uiScale;
-#else
+			#else
 			size.y = 120 * s_uiScale;
-#endif		
+			#endif		
 
 			ImGui::BeginChild("##InfoWithBorderPlayBack", size, true);
 			{
@@ -2508,7 +2508,7 @@ namespace TFE_FrontEndUI
 				if (ImGui::Checkbox("Enable", &controllerEnable))
 				{
 					if (controllerEnable) { s_inputConfig->controllerFlags |=  CFLAG_ENABLE; }
-					else { s_inputConfig->controllerFlags &= ~CFLAG_ENABLE; }
+					                 else { s_inputConfig->controllerFlags &= ~CFLAG_ENABLE; }
 				}
 
 				ImGui::PushFont(s_dialogFont);
@@ -2575,7 +2575,7 @@ namespace TFE_FrontEndUI
 				if (invertLeftHorz) { s_inputConfig->controllerFlags |=  CFLAG_INVERT_LEFT_HORZ; }
 				else                { s_inputConfig->controllerFlags &= ~CFLAG_INVERT_LEFT_HORZ; }
 				if (invertLeftVert) { s_inputConfig->controllerFlags |=  CFLAG_INVERT_LEFT_VERT; }
-							  else { s_inputConfig->controllerFlags &= ~CFLAG_INVERT_LEFT_VERT; }
+				               else { s_inputConfig->controllerFlags &= ~CFLAG_INVERT_LEFT_VERT; }
 
 				bool invertRightHorz = (s_inputConfig->controllerFlags & CFLAG_INVERT_RIGHT_HORZ) != 0;
 				bool invertRightVert = (s_inputConfig->controllerFlags & CFLAG_INVERT_RIGHT_VERT) != 0;
@@ -2583,9 +2583,9 @@ namespace TFE_FrontEndUI
 				ImGui::Checkbox("Horizontal##Right", &invertRightHorz); ImGui::SameLine();
 				ImGui::Checkbox("Vertical##Right", &invertRightVert);
 				if (invertRightHorz) { s_inputConfig->controllerFlags |=  CFLAG_INVERT_RIGHT_HORZ; }
-				else { s_inputConfig->controllerFlags &= ~CFLAG_INVERT_RIGHT_HORZ; }
+				                else { s_inputConfig->controllerFlags &= ~CFLAG_INVERT_RIGHT_HORZ; }
 				if (invertRightVert) { s_inputConfig->controllerFlags |=  CFLAG_INVERT_RIGHT_VERT; }
-				else { s_inputConfig->controllerFlags &= ~CFLAG_INVERT_RIGHT_VERT; }
+				                else { s_inputConfig->controllerFlags &= ~CFLAG_INVERT_RIGHT_VERT; }
 
 				yNext += 480.0f*s_uiScale;
 			}
@@ -2648,9 +2648,9 @@ namespace TFE_FrontEndUI
 				ImGui::Checkbox("Horizontal##Mouse", &invertHorz); ImGui::SameLine();
 				ImGui::Checkbox("Vertical##Mouse", &invertVert);
 				if (invertHorz) { s_inputConfig->mouseFlags |=  MFLAG_INVERT_HORZ; }
-				else { s_inputConfig->mouseFlags &= ~MFLAG_INVERT_HORZ; }
+				           else { s_inputConfig->mouseFlags &= ~MFLAG_INVERT_HORZ; }
 				if (invertVert) { s_inputConfig->mouseFlags |=  MFLAG_INVERT_VERT; }
-				else { s_inputConfig->mouseFlags &= ~MFLAG_INVERT_VERT; }
+				           else { s_inputConfig->mouseFlags &= ~MFLAG_INVERT_VERT; }
 
 				yNext += 250.0f*s_uiScale;
 			}
@@ -3555,7 +3555,6 @@ namespace TFE_FrontEndUI
 			}
 
 			ImGui::EndPopup();
-
 		}
 	}
 
@@ -4003,93 +4002,93 @@ namespace TFE_FrontEndUI
 
 		switch (temp)
 		{
-		case TEMPLATE_MODERN:
-		case TEMPLATE_RETRO:
-		{
-			// Controls
-			s_inputConfig->mouseMode = MMODE_LOOK;
-			// Game
-			gameSettings->df_showSecretFoundMsg = true;
-			gameSettings->df_bobaFettFacePlayer = true;
-			gameSettings->df_smoothVUEs = true;
-			gameSettings->df_pitchLimit = (temp == TEMPLATE_MODERN) ? PITCH_MAXIMUM : PITCH_VANILLA_PLUS;
-			gameSettings->df_solidWallFlagFix = true;
-			gameSettings->df_enableUnusedItem = true;
-			gameSettings->df_jsonAiLogics = true;
-			gameSettings->df_enableUnusedItem = true;
-			// Graphics
-			graphicsSettings->rendererIndex = RENDERER_HARDWARE;
-			graphicsSettings->skyMode = SKYMODE_CYLINDER;
-			graphicsSettings->widescreen = true;
-			graphicsSettings->gameResolution.x = displayInfo.width;
-			graphicsSettings->gameResolution.z = displayInfo.height;
-			// Color mode and texture filtering are the main differences between modes.
-			graphicsSettings->colorMode = (temp == TEMPLATE_MODERN) ? COLORMODE_TRUE_COLOR : COLORMODE_8BIT_INTERP;
-			// Texture filtering.
-			if (temp == TEMPLATE_MODERN)
+			case TEMPLATE_MODERN:
+			case TEMPLATE_RETRO:
 			{
-				graphicsSettings->anisotropyQuality = 1.0f;
-				graphicsSettings->bilinearSharpness = 1.0f;
-				graphicsSettings->useBilinear   = true;
-				graphicsSettings->useMipmapping = true;
-			}
-			// Post-FX
-			if (temp == TEMPLATE_MODERN)
+				// Controls
+				s_inputConfig->mouseMode = MMODE_LOOK;
+				// Game
+				gameSettings->df_showSecretFoundMsg = true;
+				gameSettings->df_bobaFettFacePlayer = true;
+				gameSettings->df_smoothVUEs = true;
+				gameSettings->df_pitchLimit = (temp == TEMPLATE_MODERN) ? PITCH_MAXIMUM : PITCH_VANILLA_PLUS;
+				gameSettings->df_solidWallFlagFix = true;
+				gameSettings->df_enableUnusedItem = true;
+				gameSettings->df_jsonAiLogics = true;
+				gameSettings->df_enableUnusedItem = true;
+				// Graphics
+				graphicsSettings->rendererIndex = RENDERER_HARDWARE;
+				graphicsSettings->skyMode = SKYMODE_CYLINDER;
+				graphicsSettings->widescreen = true;
+				graphicsSettings->gameResolution.x = displayInfo.width;
+				graphicsSettings->gameResolution.z = displayInfo.height;
+				// Color mode and texture filtering are the main differences between modes.
+				graphicsSettings->colorMode = (temp == TEMPLATE_MODERN) ? COLORMODE_TRUE_COLOR : COLORMODE_8BIT_INTERP;
+				// Texture filtering.
+				if (temp == TEMPLATE_MODERN)
+				{
+					graphicsSettings->anisotropyQuality = 1.0f;
+					graphicsSettings->bilinearSharpness = 1.0f;
+					graphicsSettings->useBilinear   = true;
+					graphicsSettings->useMipmapping = true;
+				}
+				// Post-FX
+				if (temp == TEMPLATE_MODERN)
+				{
+					graphicsSettings->bloomEnabled = true;
+					graphicsSettings->bloomStrength = 0.4f;
+					graphicsSettings->bloomSpread = 0.6f;
+				}
+				else
+				{
+					graphicsSettings->bloomEnabled = false;
+				}
+				// Reticle.
+				graphicsSettings->reticleEnable = true;
+				graphicsSettings->reticleIndex = 4;
+				graphicsSettings->reticleRed = 0.25f;
+				graphicsSettings->reticleGreen = 1.0f;
+				graphicsSettings->reticleBlue = 0.25f;
+				graphicsSettings->reticleOpacity = 1.0f;
+				graphicsSettings->reticleScale = 0.5f;
+
+				reticle_setShape(graphicsSettings->reticleIndex);
+				reticle_setScale(graphicsSettings->reticleScale);
+				reticle_setColor(&graphicsSettings->reticleRed);
+
+				// Enhancements
+				bool useHD = temp == TEMPLATE_MODERN && enhanceGOBExists();
+				enhancements->enableHdTextures = useHD;
+				enhancements->enableHdSprites = useHD;
+				enhancements->enableHdHud = useHD;
+				enhancements->enableHdCutscenes = useHD;
+
+			} break;
+			case TEMPLATE_VANILLA:
 			{
-				graphicsSettings->bloomEnabled = true;
-				graphicsSettings->bloomStrength = 0.4f;
-				graphicsSettings->bloomSpread = 0.6f;
-			}
-			else
+				// Controls
+				s_inputConfig->mouseMode = MMODE_TURN;
+				// Game
+				gameSettings->df_showSecretFoundMsg = false;
+				gameSettings->df_bobaFettFacePlayer = false;
+				gameSettings->df_smoothVUEs = false;
+				gameSettings->df_solidWallFlagFix = false;
+				gameSettings->df_enableUnusedItem = false;
+				gameSettings->df_jsonAiLogics = false;
+				// Graphics
+				graphicsSettings->rendererIndex = RENDERER_SOFTWARE;
+				graphicsSettings->widescreen = false;
+				graphicsSettings->gameResolution.x = 320;
+				graphicsSettings->gameResolution.z = 200;
+				graphicsSettings->colorMode = COLORMODE_8BIT;
+				// Reticle.
+				graphicsSettings->reticleEnable = false;
+			} break;
+			default:
 			{
-				graphicsSettings->bloomEnabled = false;
+				TFE_System::logWrite(LOG_ERROR, "Settings", "Invalid settings template: %d", s32(temp));
+				return;
 			}
-			// Reticle.
-			graphicsSettings->reticleEnable = true;
-			graphicsSettings->reticleIndex = 4;
-			graphicsSettings->reticleRed = 0.25f;
-			graphicsSettings->reticleGreen = 1.0f;
-			graphicsSettings->reticleBlue = 0.25f;
-			graphicsSettings->reticleOpacity = 1.0f;
-			graphicsSettings->reticleScale = 0.5f;
-
-			reticle_setShape(graphicsSettings->reticleIndex);
-			reticle_setScale(graphicsSettings->reticleScale);
-			reticle_setColor(&graphicsSettings->reticleRed);
-
-			// Enhancements
-			bool useHD = temp == TEMPLATE_MODERN && enhanceGOBExists();
-			enhancements->enableHdTextures = useHD;
-			enhancements->enableHdSprites = useHD;
-			enhancements->enableHdHud = useHD;
-			enhancements->enableHdCutscenes = useHD;
-
-		} break;
-		case TEMPLATE_VANILLA:
-		{
-			// Controls
-			s_inputConfig->mouseMode = MMODE_TURN;
-			// Game
-			gameSettings->df_showSecretFoundMsg = false;
-			gameSettings->df_bobaFettFacePlayer = false;
-			gameSettings->df_smoothVUEs = false;
-			gameSettings->df_solidWallFlagFix = false;
-			gameSettings->df_enableUnusedItem = false;
-			gameSettings->df_jsonAiLogics = false;
-			// Graphics
-			graphicsSettings->rendererIndex = RENDERER_SOFTWARE;
-			graphicsSettings->widescreen = false;
-			graphicsSettings->gameResolution.x = 320;
-			graphicsSettings->gameResolution.z = 200;
-			graphicsSettings->colorMode = COLORMODE_8BIT;
-			// Reticle.
-			graphicsSettings->reticleEnable = false;
-		} break;
-		default:
-		{
-			TFE_System::logWrite(LOG_ERROR, "Settings", "Invalid settings template: %d", s32(temp));
-			return;
-		}
 		}
 
 		TFE_Settings::writeToDisk();

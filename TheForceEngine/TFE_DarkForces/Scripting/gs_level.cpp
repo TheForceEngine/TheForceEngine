@@ -18,7 +18,6 @@
 #include <TFE_Jedi/Level/rwall.h>
 #include <TFE_Jedi/Level/rsector.h>
 #include <TFE_Jedi/Level/rtexture.h>
-#include <TFE_DarkForces/Landru/cutscene.h>
 
 #include <angelscript.h>
 
@@ -242,19 +241,6 @@ namespace TFE_DarkForces
 		}
 	}
 
-	int GS_Level::playCutscene(std::string cutsceneName)
-	{
-		if (cutsceneName.empty())
-		{
-			TFE_System::logWrite(LOG_ERROR, "Level Script", "Runtime error, cutscene name is empty.");
-			return 0;
-		}
-		#ifdef ENABLE_OGV_CUTSCENES
-		cutscene_playVideoFile(cutsceneName.c_str());
-		#endif	
-		return 1;
-	}
-
 	bool GS_Level::scriptRegister(ScriptAPI api)
 	{
 		ScriptElev scriptElev;
@@ -335,8 +321,6 @@ namespace TFE_DarkForces
 			ScriptObjMethod("Object getObject(int)", getObjectById);
 			ScriptObjFunc("Object getObject(string)", getObjectByName);
 			ScriptObjFunc("int getObjectsByName(string, array<Object>&)", getAllObjectsByName);
-			ScriptObjMethod("int playCutscene(string)", playCutscene);
-
 
 			ScriptPropertySet("void set_gravity(int)", setGravity);
 			ScriptPropertySet("void set_projectileGravity(int)", setProjectileGravity);

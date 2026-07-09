@@ -610,9 +610,6 @@ namespace TFE_DarkForces
 					updateLevelScript(fixed16ToFloat(s_deltaTime));
 
 					// Dark Forces Draw.
-
-					// Ok this is just an extra check to make sure
-					// we don't render anything while a cutscene is playing. 
 					updateScreensize();
 					if (s_playerEye)
 					{
