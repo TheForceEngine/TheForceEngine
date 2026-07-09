@@ -540,8 +540,9 @@ namespace LevelEditor
 		selection_clearHovered();
 		s_featureTex = {};
 
-		// Clear notes.
+		// Clear notes and guidelines
 		s_level.notes.clear();
+		s_level.guidelines.clear();
 		levelSetClean();
 
 		// First check to see if there is a "tfl" version of the level.
