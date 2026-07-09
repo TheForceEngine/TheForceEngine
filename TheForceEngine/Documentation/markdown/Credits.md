@@ -3,8 +3,8 @@ I believe that I have captured all of the individual contributors and dependenci
 
 ## Individual Contributors
   * luciusDXL (me) - Principle Developer / Project Lead.
-  * Jereth Kok - Project Developer - Logic enhancements,  Scripting
-  * Ilya Feldshteyn - Project Developer  -  Modding, UI, Replay System, Cutscene enhancements
+  * Jerethk - Project Developer - Logic enhancements,  Scripting
+  * Karjala - Project Developer - Modding, UI, Replay System, Cutscene enhancements
   * Azamat H. Hackimov - Fixed VS 2019 Compilation issues.
   * Manuel Lauss - Most of the Linux support contributions, other contributions.
   * Matthew Gilmore - Contributed to Linux support and testing.
