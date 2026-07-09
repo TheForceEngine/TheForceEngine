@@ -311,7 +311,7 @@ namespace LevelEditor
 	bool loadFromTFL(const char* name);
 	bool loadFromTFLWithPath(const char* filePath);
 	void updateLevelBounds(EditorSector* sector = nullptr);
-	void updateCurrentLayer(s32* oldLayers);
+	void updateCurrentLayer(s32* oldLayerRange);
 
 	bool exportLevel(const char* path, const char* name, const StartPoint* start);
 	bool exportSelectionToText(std::string& buffer);

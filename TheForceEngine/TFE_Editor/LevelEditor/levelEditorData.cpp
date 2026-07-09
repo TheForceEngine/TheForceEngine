@@ -938,6 +938,10 @@ namespace LevelEditor
 				}
 			}
 		}
+		else
+		{
+			updateBoundsWithSector(sector);
+		}
 	}
 
 	bool loadFromTFLWithPath(const char* filePath)
@@ -5499,17 +5503,17 @@ namespace LevelEditor
 	}
 
 	// Update visible layer when history replay changes the overall layer bounds.
-	void updateCurrentLayer(s32* oldLayers)
+	void updateCurrentLayer(s32* oldLayerRange)
 	{
 		bool inRange = s_curLayer >= s_level.layerRange[0] && s_curLayer <= s_level.layerRange[1];
 		if (inRange)
 		{
 			// If layer bounds expands, follow it
-			if (oldLayers[0] > s_level.layerRange[0])
+			if (oldLayerRange[0] > s_level.layerRange[0])
 			{
 				s_curLayer = s_level.layerRange[0];
 			}
-			else if (oldLayers[1] < s_level.layerRange[1])
+			else if (oldLayerRange[1] < s_level.layerRange[1])
 			{
 				s_curLayer = s_level.layerRange[1];
 			}

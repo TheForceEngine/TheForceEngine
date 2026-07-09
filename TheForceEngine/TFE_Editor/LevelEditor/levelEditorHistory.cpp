@@ -119,21 +119,21 @@ namespace LevelEditor
 		
 	void levHistory_undo()
 	{
-		s32 oldLayers[2] = { s_level.layerRange[0], s_level.layerRange[1] };
+		s32 oldLayerRange[2] = { s_level.layerRange[0], s_level.layerRange[1] };
 		history_step(-1);
 		edit_clearSelections(false);
 		updateLevelBounds(nullptr);
-		updateCurrentLayer(oldLayers);
+		updateCurrentLayer(oldLayerRange);
 
 	}
 
 	void levHistory_redo()
 	{
-		s32 oldLayers[2] = { s_level.layerRange[0], s_level.layerRange[1] };
+		s32 oldLayerRange[2] = { s_level.layerRange[0], s_level.layerRange[1] };
 		history_step(1);
 		edit_clearSelections(false);
 		updateLevelBounds(nullptr);
-		updateCurrentLayer(oldLayers);
+		updateCurrentLayer(oldLayerRange);
 	}
 		
 	////////////////////////////////
