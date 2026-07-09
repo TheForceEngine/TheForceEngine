@@ -1,4 +1,5 @@
 #include "customEffect.h"
+#include <cstring>
 
 
 namespace TFE_ExternalData

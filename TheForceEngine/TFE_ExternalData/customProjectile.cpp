@@ -1,4 +1,5 @@
 #include "customProjectile.h"
+#include <cstring>
 
 
 namespace TFE_ExternalData
