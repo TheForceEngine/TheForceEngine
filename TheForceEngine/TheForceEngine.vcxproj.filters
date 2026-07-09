@@ -122,7 +122,7 @@
     <Filter Include="Source\TFE_DarkForces\Landru">
       <UniqueIdentifier>{16d4cd76-d325-4388-9c2f-ef36f102cbce}</UniqueIdentifier>
     </Filter>
-	<Filter Include="Source\TFE_DarkForces\Remaster">
+    <Filter Include="Source\TFE_DarkForces\Remaster">
       <UniqueIdentifier>{46d4ed72-e3a5-2384-712b-ef31f2024bda}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\TFE_Jedi\IMuse">
@@ -838,18 +838,12 @@
     <ClInclude Include="TFE_DarkForces\Landru\textCrawl.h">
       <Filter>Source\TFE_DarkForces\Landru</Filter>
     </ClInclude>
-	<ClInclude Include="TFE_DarkForces\Remaster\dcssParser.h">
+    <ClInclude Include="TFE_DarkForces\Remaster\dcssParser.h">
       <Filter>Source\TFE_DarkForces\Remaster</Filter>
     </ClInclude>
-	<ClInclude Include="TFE_DarkForces\Remaster\ogvPlayer.h">
+    <ClInclude Include="TFE_DarkForces\Remaster\remasterCutscenes.h">
       <Filter>Source\TFE_DarkForces\Remaster</Filter>
     </ClInclude>
-	<ClInclude Include="TFE_DarkForces\Remaster\remasterCutscenes.h">
-      <Filter>Source\TFE_DarkForces\Remaster</Filter>
-    </ClInclude>
-	<ClInclude Include="TFE_DarkForces\Remaster\srtParser.h">
-      <Filter>Source\TFE_DarkForces\Remaster</Filter>
-    </ClInclude>	
     <ClInclude Include="TFE_DarkForces\briefingList.h">
       <Filter>Source\TFE_DarkForces</Filter>
     </ClInclude>
@@ -1510,6 +1504,12 @@
     <ClInclude Include="TFE_DarkForces\Scripting\scriptObject.h">
       <Filter>Source\TFE_DarkForces\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="TFE_Asset\ogvPlayer.h">
+      <Filter>Source\TFE_Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="TFE_Asset\srtParser.h">
+      <Filter>Source\TFE_Asset</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -2049,18 +2049,12 @@
     <ClCompile Include="TFE_DarkForces\Landru\textCrawl.cpp">
       <Filter>Source\TFE_DarkForces\Landru</Filter>
     </ClCompile>
-	<ClCompile Include="TFE_DarkForces\Remaster\dcssParser.cpp">
+    <ClCompile Include="TFE_DarkForces\Remaster\dcssParser.cpp">
       <Filter>Source\TFE_DarkForces\Remaster</Filter>
     </ClCompile>
-	<ClCompile Include="TFE_DarkForces\Remaster\ogvPlayer.cpp">
+    <ClCompile Include="TFE_DarkForces\Remaster\remasterCutscenes.cpp">
       <Filter>Source\TFE_DarkForces\Remaster</Filter>
     </ClCompile>
-	<ClCompile Include="TFE_DarkForces\Remaster\remasterCutscenes.cpp">
-      <Filter>Source\TFE_DarkForces\Remaster</Filter>
-    </ClCompile>
-	<ClCompile Include="TFE_DarkForces\Remaster\srtParser.cpp">
-      <Filter>Source\TFE_DarkForces\Remaster</Filter>
-    </ClCompile>	
     <ClCompile Include="TFE_DarkForces\briefingList.cpp">
       <Filter>Source\TFE_DarkForces</Filter>
     </ClCompile>
@@ -2648,6 +2642,12 @@
     </ClCompile>
     <ClCompile Include="TFE_DarkForces\Scripting\scriptObject.cpp">
       <Filter>Source\TFE_DarkForces\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="TFE_Asset\ogvPlayer.cpp">
+      <Filter>Source\TFE_Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="TFE_Asset\srtParser.cpp">
+      <Filter>Source\TFE_Asset</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

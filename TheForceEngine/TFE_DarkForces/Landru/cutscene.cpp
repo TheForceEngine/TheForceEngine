@@ -47,9 +47,9 @@
 #include <TFE_FileSystem/paths.h>
 #include <TFE_Settings/settings.h>
 #include <TFE_System/parser.h>
-#include <TFE_DarkForces/Remaster/ogvPlayer.h>
+#include <TFE_Asset/ogvPlayer.h>
+#include <TFE_Asset/srtParser.h>
 #include <TFE_DarkForces/Remaster/remasterCutscenes.h>
-#include <TFE_DarkForces/Remaster/srtParser.h>
 #include <TFE_DarkForces/Remaster/dcssParser.h>
 #include <TFE_A11y/accessibility.h>
 #include <TFE_Input/input.h>
@@ -100,7 +100,7 @@ namespace TFE_DarkForces
 	static ImFont* s_creditsBodyFont  = nullptr;  // baked for normalSize
 	static ImFont* s_creditsTitleFont = nullptr;  // baked for subtitleSize
 	static bool s_ogvPlaying = false;
-	static vector<SrtEntry> s_ogvSubtitles;
+	static vector<TFE_Subtitles::SrtEntry> s_ogvSubtitles;
 
 	// DCSS cue script stuff
 	static DcssScript s_ogvScript;
@@ -468,7 +468,7 @@ namespace TFE_DarkForces
 		// Video time (not wall-clock) so captions stay in sync with the
 		// visible frame, same as music dispatch.
 		f64 time = TFE_OgvPlayer::getVideoTime();
-		const SrtEntry* entry = srt_getActiveEntry(s_ogvSubtitles, time);
+		const TFE_Subtitles::SrtEntry* entry = srt_getActiveEntry(s_ogvSubtitles, time);
 		if (entry)
 		{
 			TFE_A11Y::Caption caption;
