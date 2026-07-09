@@ -1495,6 +1495,9 @@
     <ClInclude Include="TFE_DarkForces\Scripting\scriptObject.h">
       <Filter>Source\TFE_DarkForces\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="TFE_ForceScript\ScriptAPI-Shared\scriptLevelShared.h">
+      <Filter>Source\TFE_ForceScript\ScriptAPI-Shared</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -2621,6 +2624,9 @@
     </ClCompile>
     <ClCompile Include="TFE_DarkForces\Scripting\scriptObject.cpp">
       <Filter>Source\TFE_DarkForces\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="TFE_ForceScript\ScriptAPI-Shared\scriptLevelShared.cpp">
+      <Filter>Source\TFE_ForceScript\ScriptAPI-Shared</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,7 @@
 #include "sharedScriptAPI.h"
 #include "scriptMath.h"
 #include "scriptTest.h"
+#include "scriptLevelShared.h"
 #include <TFE_System/math.h>
 #include <TFE_System/system.h>
 #include <TFE_Jedi/Math/core_math.h>
@@ -27,6 +28,7 @@ namespace TFE_ForceScript
 
 	ScriptMath s_math;
 	ScriptTest s_test;
+	ScriptLevelShared s_levelShared;
 		
 	void registerSharedScriptAPI(ScriptAPI api)
 	{
@@ -35,5 +37,6 @@ namespace TFE_ForceScript
 
 		s_math.scriptRegister(api);
 		s_test.scriptRegister(api);
+		s_levelShared.scriptRegister();
 	}
 }
