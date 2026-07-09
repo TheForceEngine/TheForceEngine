@@ -90,9 +90,9 @@ Clipper
   * License: Boost Software License
 
 **Music**
-RtMidi (Core Midi Hardware I/O)
-  * [https://www.music.mcgill.ca/~gary/rtmidi/](https://www.music.mcgill.ca/~gary/rtmidi/)
-  * License: Custom
+libremidi (Core Midi Hardware I/O)
+  * [https://github.com/celtera/libremidi](https://github.com/celtera/libremidi)
+  * License: Custom / BSD 2-Clause
 
 TinySoundFont
   * [https://github.com/schellingb/TinySoundFont](https://github.com/schellingb/TinySoundFont)

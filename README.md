@@ -59,7 +59,7 @@ This can be overridden by defining the `TFE_DATA_HOME` environment variable.
 * OpenGL 3.3 capable driver (latest [Mesa 3D](https://www.mesa3d.org) or Nvidia proprietary driver recommended)
 
 ### Optional Libraries
-* [RtMidi](https://www.music.mcgill.ca/~gary/rtmidi/) 5.0.0 or higher for external MIDI synthesizer support
+* [libremidi](https://github.com/celtera/libremidi) 5.4.0 or higher for external MIDI synthesizer support
 
 ### Building from Source
 #### Recommended Tools
