@@ -30,6 +30,14 @@ bool FileStream::exists(const char* filename)
 	return res;
 }
 
+bool FileStream::renameFile(const char* oldName, const char* newName)
+{
+	remove(newName);
+	int status = rename(oldName, newName);
+	if (status < 0) { return false; }
+	return true;
+}
+
 bool FileStream::open(const char* filename, AccessMode mode)
 {
 	const char* modeStrings[] = { "rb", "wb", "rb+", "ab"};
