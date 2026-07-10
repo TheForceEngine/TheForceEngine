@@ -965,12 +965,12 @@ namespace TFE_DarkForces
 
 		// TFE uses a dynamic multi-buffered texture for the palette. This doesn't work well when trying to set it only once.
 		// For this reason, it is easier to just set the palette every frame regardless of change.
-		#if 0
+	#if 0
 		if (!s_luminanceMask[0] && !s_luminanceMask[1] && !s_luminanceMask[2] && !s_healthFxLevel && !s_shieldFxLevel && !s_flashFxLevel && s_screenBrightness == ONE_16)
 		{
 			s_palModified = JFALSE;
 		}
-		#endif
+	#endif
 	}
 
 	void setCurrentColorMap(u8* colorMap, u8* lightRamp)
@@ -1582,7 +1582,7 @@ namespace TFE_DarkForces
 		}
 
 		// DEBUG - change music state.
-		#if 0
+	#if 0
 		if (TFE_Input::keyPressed(KEY_F))
 		{
 			gameMusic_setState(MUS_STATE_FIGHT);
@@ -1591,7 +1591,7 @@ namespace TFE_DarkForces
 		{
 			gameMusic_setState(MUS_STATE_STALK);
 		}
-		#endif
+	#endif
 	}
 
 	void updateScreensize()
