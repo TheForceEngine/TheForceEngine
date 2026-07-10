@@ -30,6 +30,7 @@ namespace TFE_ExternalData
 		u32 hitPoints = 4;
 		s32 dropItem = -1;
 		s32 dieEffect = -1;
+		const char* dieEffectName = "";
 		bool stopOnDamage = true;
 
 		// Attack
@@ -38,6 +39,7 @@ namespace TFE_ExternalData
 		bool litWithMeleeAttack = false;
 		bool litWithRangedAttack = true;
 		s32 projectile = 2;
+		const char* customProjectileName = "";
 		u32 rangedAttackDelay = 291;
 		u32 meleeAttackDelay = 0;
 		u32 losDelay = 43695;

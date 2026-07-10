@@ -1468,8 +1468,6 @@ namespace TFE_DarkForces
 		loadCutsceneList();
 		loadLangHotkeys();
 
-		TFE_ExternalData::loadCustomLogics();
-
 		TFE_ExternalData::loadExternalPickups();
 		if (!TFE_ExternalData::validateExternalPickups())
 		{
@@ -1493,6 +1491,8 @@ namespace TFE_DarkForces
 		{
 			TFE_System::logWrite(LOG_ERROR, "EXTERNAL_DATA", "Warning: Weapon data is incomplete. WEAPONS.JSON may have been altered. Weapons may not behave as expected.");
 		}
+
+		TFE_ExternalData::loadCustomLogics();
 
 		projectile_startup();
 		hitEffect_startup();

@@ -5,8 +5,12 @@
 #include <TFE_FileSystem/filestream.h>
 #include <TFE_FileSystem/paths.h>
 #include <TFE_DarkForces/time.h>
+#include <TFE_DarkForces/projectile.h>
+#include <TFE_DarkForces/weapon.h>
 #include "dfLogics.h"
 #include "logicTables.h"
+#include "customProjectile.h"
+#include "customEffect.h"
 
 namespace TFE_ExternalData
 {
@@ -16,6 +20,7 @@ namespace TFE_ExternalData
 	/// Forward declarations 
 	///////////////////////////
 	void parseLogicData(char* data, const char* filename, std::vector<CustomActorLogic>& actorLogics);
+	void assignCustomEffectsToProjectile(ExternalProjectile* proj);
 	bool tryAssignProperty(cJSON* data, CustomActorLogic& customLogic);
 
 
@@ -50,6 +55,87 @@ namespace TFE_ExternalData
 			parseLogicData(data, fileName, s_externalLogics.actorLogics);
 			free(data);
 		}
+
+		// All custom projectiles & effects have now been loaded and can be assigned
+		for (u32 i = 0; i < s_externalLogics.actorLogics.size(); i++)
+		{
+			CustomActorLogic* logic = &s_externalLogics.actorLogics[i];
+			if (logic->customProjectileName && logic->customProjectileName[0])
+			{
+				s32 index = getCustomProjectileIndex(logic->customProjectileName);
+				if (index >= 0)
+				{
+					logic->projectile = index + CUSTOM_PROJ_STARTNUM;	// start custom projectile numbering at 100
+				}
+			}
+
+			if (logic->dieEffectName && logic->dieEffectName[0])
+			{
+				s32 index = getCustomEffectIndex(logic->dieEffectName);
+				if (index >= 0)
+				{
+					logic->dieEffect = index + CUSTOM_EFFECT_STARTNUM;	// start custom effect numbering at 100
+				}
+			}
+		}
+
+		ExternalWeapon* weapons = getExternalWeapons();
+		for (u32 w = 0; w < TFE_DarkForces::WPN_COUNT; w++)
+		{
+			ExternalWeapon* weap = &weapons[w];
+			if (weap->primaryProjectileName && weap->primaryProjectileName[0])
+			{
+				s32 index = getCustomProjectileIndex(weap->primaryProjectileName);
+				if (index >= 0)
+				{
+					weap->primaryProjectile = index + CUSTOM_PROJ_STARTNUM;	// start custom projectile numbering at 100
+				}
+			}
+
+			if (weap->secondaryProjectileName && weap->secondaryProjectileName[0])
+			{
+				s32 index = getCustomProjectileIndex(weap->secondaryProjectileName);
+				if (index >= 0)
+				{
+					weap->secondaryProjectile = index + CUSTOM_PROJ_STARTNUM;	// start custom projectile numbering at 100
+				}
+			}
+		}
+
+		ExternalProjectile* projectiles = getExternalProjectiles();
+		for (u32 p = 0; p < TFE_DarkForces::PROJ_COUNT; p++)
+		{
+			ExternalProjectile* proj = &projectiles[p];
+			assignCustomEffectsToProjectile(proj);
+		}
+
+		std::vector<ExternalProjectile>* custProjectiles = getCustomProjectiles();
+		for (u32 p = 0; p < custProjectiles->size(); p++)
+		{
+			ExternalProjectile* proj = &custProjectiles->at(p);
+			assignCustomEffectsToProjectile(proj);
+		}
+	}
+
+	void assignCustomEffectsToProjectile(ExternalProjectile* proj)
+	{
+		if (proj->reflectEffectName && proj->reflectEffectName[0])
+		{
+			s32 index = getCustomEffectIndex(proj->reflectEffectName);
+			if (index >= 0)
+			{
+				proj->reflectEffectId = index + CUSTOM_EFFECT_STARTNUM;	// start custom effect numbering at 100
+			}
+		}
+
+		if (proj->hitEffectName && proj->hitEffectName[0])
+		{
+			s32 index = getCustomEffectIndex(proj->hitEffectName);
+			if (index >= 0)
+			{
+				proj->hitEffectId = index + CUSTOM_EFFECT_STARTNUM;	// start custom effect numbering at 100
+			}
+		}
 	}
 
 	void parseLogicData(char* data, const char* filename, std::vector<CustomActorLogic>& actorLogics)
@@ -58,37 +144,54 @@ namespace TFE_ExternalData
 		if (root)
 		{
 			cJSON* section = root->child;
-			if (section && cJSON_IsArray(section) && strcasecmp(section->string, "logics") == 0)
+			while (section)
 			{
-				cJSON* logic = section->child;
-				while (logic)
+				if (cJSON_IsArray(section) && strcasecmp(section->string, "logics") == 0)
 				{
-					cJSON* logicName = logic->child;
-
-					// get the logic name
-					if (logicName && cJSON_IsString(logicName) && strcasecmp(logicName->string, "logicname") == 0)
+					cJSON* logic = section->child;
+					while (logic)
 					{
-						CustomActorLogic customLogic;
-						customLogic.logicName = logicName->valuestring;
+						cJSON* logicName = logic->child;
 
-						cJSON* logicData = logicName->next;
-						if (logicData && cJSON_IsObject(logicData))
+						// get the logic name
+						if (logicName && cJSON_IsString(logicName) && strcasecmp(logicName->string, "logicname") == 0)
 						{
-							cJSON* dataItem = logicData->child;
+							CustomActorLogic customLogic;
+							customLogic.logicName = logicName->valuestring;
 
-							// iterate through the data and assign properties
-							while (dataItem)
+							cJSON* logicData = logicName->next;
+							if (logicData && cJSON_IsObject(logicData))
 							{
-								tryAssignProperty(dataItem, customLogic);
-								dataItem = dataItem->next;
+								cJSON* dataItem = logicData->child;
+
+								// iterate through the data and assign properties
+								while (dataItem)
+								{
+									tryAssignProperty(dataItem, customLogic);
+									dataItem = dataItem->next;
+								}
 							}
+
+							actorLogics.push_back(customLogic);
 						}
 
-						actorLogics.push_back(customLogic);
+						logic = logic->next;
 					}
-
-					logic = logic->next;
 				}
+
+				// Custom projectiles
+				if (section && cJSON_IsArray(section) && strcasecmp(section->string, "projectiles") == 0)
+				{
+					parseCustomProjectiles(section->child);
+				}
+
+				// Custom effects
+				if (section && cJSON_IsArray(section) && strcasecmp(section->string, "effects") == 0)
+				{
+					parseCustomEffects(section->child);
+				}
+
+				section = section->next;
 			}
 		}
 		else
@@ -204,7 +307,7 @@ namespace TFE_ExternalData
 		// Die effect as a string
 		if (cJSON_IsString(data) && strcasecmp(data->string, "dieEffect") == 0)
 		{
-			for (int i = 0; i <= 17; i++)
+			for (int i = 0; i < HEFFECT_COUNT; i++)
 			{
 				if (strcasecmp(data->valuestring, df_effectTable[i]) == 0)
 				{
@@ -212,6 +315,9 @@ namespace TFE_ExternalData
 					return true;
 				}
 			}
+
+			// Save the effect name to check against custom effects
+			customLogic.dieEffectName = data->valuestring;
 
 			return false;
 		}
@@ -250,7 +356,8 @@ namespace TFE_ExternalData
 		// Projectile as string
 		if (cJSON_IsString(data) && strcasecmp(data->string, "projectile") == 0)
 		{
-			for (int i = 0; i <= 18; i++)
+			// First check the main list
+			for (int i = 0; i < TFE_DarkForces::PROJ_COUNT; i++)
 			{
 				if (strcasecmp(data->valuestring, df_projectileTable[i]) == 0)
 				{
@@ -258,6 +365,9 @@ namespace TFE_ExternalData
 					return true;
 				}
 			}
+
+			// Save the projectile name to check against custom projectiles
+			customLogic.customProjectileName = data->valuestring;
 
 			return false;
 		}

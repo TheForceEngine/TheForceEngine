@@ -1,5 +1,6 @@
 #pragma once
 #include <TFE_System/types.h>
+#include <TFE_System/cJSON.h>
 #include <TFE_DarkForces/player.h>
 
 ///////////////////////////////////////////
@@ -12,6 +13,7 @@ namespace TFE_ExternalData
 	{
 		WEAPON_NUM_TEXTURES = 16,
 		WEAPON_NUM_ANIMFRAMES = 16,
+		WEAPON_MAX_PROJECTILES = 4,
 	};
 
 	struct ExternalProjectile
@@ -46,7 +48,11 @@ namespace TFE_ExternalData
 		const char* cameraPassSound = "";
 		s32 reflectEffectId = -1;
 		s32 hitEffectId = -1;
+		const char* reflectEffectName = "";
+		const char* hitEffectName = "";
 		bool explodeOnTimeout = false;
+
+		bool doNotScale = false;
 	};
 
 	struct ExternalEffect
@@ -85,6 +91,22 @@ namespace TFE_ExternalData
 		s32 primaryFireConsumption = 1;
 		s32 secondaryFireConsumption = 1;
 
+		u32 primaryProjectile = 0;
+		u32 secondaryProjectile = 0;
+		const char* primaryProjectileName = "";
+		const char* secondaryProjectileName = "";
+
+		f32 pitchOffsets[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 yawOffsets[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 xOffsets[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 yOffsets[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 zOffsets[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 pitchOffsetsSecondary[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 yawOffsetsSecondary[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 xOffsetsSecondary[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 yOffsetsSecondary[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+		f32 zOffsetsSecondary[WEAPON_MAX_PROJECTILES] = { 0, 0, 0, 0 };
+
 		s32 numAnimFrames = 1;
 		WeaponAnimFrame animFrames[WEAPON_NUM_ANIMFRAMES];
 		s32 numSecondaryAnimFrames = 1;
@@ -108,10 +130,12 @@ namespace TFE_ExternalData
 	void loadExternalProjectiles();
 	void parseExternalProjectiles(char* data, bool fromMod);
 	bool validateExternalProjectiles();
+	bool tryAssignProjectileProperty(cJSON* data, ExternalProjectile& projectile);
 	void loadExternalEffects();
 	void parseExternalEffects(char* data, bool fromMod);
 	bool validateExternalEffects();
 	void loadExternalWeapons();
 	void parseExternalWeapons(char* data, bool fromMod);
 	bool validateExternalWeapons();
+	bool tryAssignEffectProperty(cJSON* data, ExternalEffect& effect);
 }

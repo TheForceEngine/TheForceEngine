@@ -16,6 +16,7 @@ namespace TFE_DarkForces
 	{
 		MAX_AUTOAIM_DIST = COL_INFINITY,
 		WPN_NUM_ANIMFRAMES = 16,
+		WPN_MAX_PROJECTILES = 4,
 	};
 
 	static SoundEffectId s_punchSwingSndId = 0;
@@ -93,27 +94,30 @@ namespace TFE_DarkForces
 	static WeaponAnimFrame s_cannonPrimaryAnim[WPN_NUM_ANIMFRAMES];
 	static WeaponAnimFrame s_cannonSecondaryAnim[WPN_NUM_ANIMFRAMES];
 
-	static const angle14_32 c_repeaterYawOffset[3] = { 0, 136, -136 };
-	static const angle14_32 c_repeaterPitchOffset[3] = { 136, -136, -136 };
-	// Deltas for repeater - note the order is ZXY
-	static fixed16_16 c_repeaterDelta[3 * 3] =
+	// TFE
+	struct WeaponProjOffsets
 	{
-		0x50000, 0xe666,  0xfae1,   // 5.0, 0.9, 0.98
-		0x50000, 0x8000,  0x18000,  // 5.0, 0.5, 1.5
-		0x50000, 0x18000, 0x18000,  // 5.0, 1.5, 1.5
+		angle14_32 pitchOffset[WPN_MAX_PROJECTILES];
+		angle14_32 yawOffset[WPN_MAX_PROJECTILES];
+		angle14_32 xOffset[WPN_MAX_PROJECTILES];
+		angle14_32 yOffset[WPN_MAX_PROJECTILES];
+		angle14_32 zOffset[WPN_MAX_PROJECTILES];
 	};
+
+	static WeaponProjOffsets s_punchOffsets;
+	static WeaponProjOffsets s_pistolOffsets;
+	static WeaponProjOffsets s_rifleOffsets;
+	static WeaponProjOffsets s_thermalDetOffsets;
+	static WeaponProjOffsets s_repeaterOffsets;
+	static WeaponProjOffsets s_repeaterSecOffsets;
+	static WeaponProjOffsets s_fusionOffsets;
+	static WeaponProjOffsets s_fusionSecOffsets;
+	static WeaponProjOffsets s_mortarOffsets;
+	static WeaponProjOffsets s_concussionOffsets;
+	static WeaponProjOffsets s_cannonOffsets;
+	static WeaponProjOffsets s_cannonSecOffsets;
+
 	static s32 s_fusionCylinder = 1;
-	static fixed16_16 s_fusionOffset[] =
-	{
-		FIXED(3), -ONE_16, 0x8000,	// 3.0, -1.0, 0.5
-		FIXED(3),  -19660, 0xcccc,	// 3.0, -0.3, 0.8
-		FIXED(3),  0x4ccc, 0x11999,	// 3.0,  0.3, 1.1
-		FIXED(3),  0xcccc, 0x14ccc, // 3.0,  0.8, 1.3
-	};
-	static angle14_32 s_fusionYawOffset[] =
-	{
-		-375, -125, 125, 375
-	};
 	static JBool s_fusionCycleForward = JTRUE;
 
 	extern void weapon_handleState(MessageType msg);
@@ -210,6 +214,56 @@ namespace TFE_DarkForces
 				secondaryFrames[i].delaySupercharge = extSecFrames[i].durationSupercharge;
 				secondaryFrames[i].delayNormal = extSecFrames[i].durationNormal;
 			}
+		}
+	}
+
+	// TFE: Set up weapon offsets from external data (these were hardcoded in vanilla DF)
+	void setWeaponProjOffsets(WeaponProjOffsets* projOffsets, f32* pitchOffsets, f32* yawOffsets, f32* xOffsets, f32* yOffsets, f32* zOffsets)
+	{
+		for (u32 i = 0; i < WPN_MAX_PROJECTILES; i++)
+		{
+			projOffsets->pitchOffset[i] = floatToAngle(pitchOffsets[i]);
+			projOffsets->yawOffset[i] = floatToAngle(yawOffsets[i]);
+			projOffsets->xOffset[i] = floatToFixed16(xOffsets[i]);
+			projOffsets->yOffset[i] = -floatToFixed16(yOffsets[i]);
+			projOffsets->zOffset[i] = floatToFixed16(zOffsets[i]);
+		}
+	}
+	
+	void setupWeaponOffsets(WeaponID weaponId, TFE_ExternalData::ExternalWeapon* extWeapon)
+	{
+		switch (weaponId)
+		{
+			case WPN_FIST:
+				setWeaponProjOffsets(&s_punchOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				break;
+			case WPN_PISTOL:
+				setWeaponProjOffsets(&s_pistolOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				break;
+			case WPN_RIFLE:
+				setWeaponProjOffsets(&s_rifleOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				break;
+			case WPN_THERMAL_DET:
+				setWeaponProjOffsets(&s_thermalDetOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				break;
+			case WPN_REPEATER:
+				setWeaponProjOffsets(&s_repeaterOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				setWeaponProjOffsets(&s_repeaterSecOffsets, extWeapon->pitchOffsetsSecondary, extWeapon->yawOffsetsSecondary, extWeapon->xOffsetsSecondary, extWeapon->yOffsetsSecondary, extWeapon->zOffsetsSecondary);
+				break;
+			case WPN_FUSION:
+				setWeaponProjOffsets(&s_fusionOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				setWeaponProjOffsets(&s_fusionSecOffsets, extWeapon->pitchOffsetsSecondary, extWeapon->yawOffsetsSecondary, extWeapon->xOffsetsSecondary, extWeapon->yOffsetsSecondary, extWeapon->zOffsetsSecondary);
+				break;
+			case WPN_MORTAR:
+				setWeaponProjOffsets(&s_mortarOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				break;
+			case WPN_CONCUSSION:
+				setWeaponProjOffsets(&s_concussionOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				break;
+			case WPN_CANNON:
+				setWeaponProjOffsets(&s_cannonOffsets, extWeapon->pitchOffsets, extWeapon->yawOffsets, extWeapon->xOffsets, extWeapon->yOffsets, extWeapon->zOffsets);
+				setWeaponProjOffsets(&s_cannonSecOffsets, extWeapon->pitchOffsetsSecondary, extWeapon->yawOffsetsSecondary, extWeapon->xOffsetsSecondary, extWeapon->yOffsetsSecondary, extWeapon->zOffsetsSecondary);
+				break;
 		}
 	}
 
@@ -313,14 +367,14 @@ namespace TFE_DarkForces
 		fixed16_16 mtx[9];
 		weapon_computeMatrix(mtx, -s_playerObject->pitch, -s_playerObject->yaw);
 
-		fixed16_16 xOffset = -114688;	// -1.75
-		angle14_32 yawOffset = -910;
-		for (s32 i = 0; i < 3; i++, xOffset += 0x1c000, yawOffset += 910)
+		fixed16_16 xOffset = -s_punchOffsets.xOffset[0];	// -1.75
+		angle14_32 yawOffset = -s_punchOffsets.yawOffset[0];
+		for (s32 i = 0; i < 3; i++, xOffset += s_punchOffsets.xOffset[0], yawOffset += s_punchOffsets.yawOffset[0])
 		{
-			ProjectileLogic* proj = (ProjectileLogic*)createProjectile(ProjectileType::PROJ_PUNCH, s_playerObject->sector, s_playerObject->posWS.x, s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset, s_playerObject->posWS.z, s_playerObject);
+			ProjectileLogic* proj = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset, s_playerObject->posWS.z, s_playerObject);
 			if (s_oneHitKillEnabled) {	applyOneHitKillCheat(proj); }
 
-			s_weaponFirePitch = s_playerObject->pitch + 0x638;
+			s_weaponFirePitch = s_playerObject->pitch + s_punchOffsets.pitchOffset[0];
 			s_weaponFireYaw   = s_playerObject->yaw + yawOffset;
 			proj_setTransform(proj, s_weaponFirePitch, s_weaponFireYaw);
 
@@ -331,8 +385,8 @@ namespace TFE_DarkForces
 			vec3_fixed inVec =
 			{
 				xOffset, // -1.75, 0.0, +1.75
-				0x18000, // 1.5
-				0x60000  // 6.0
+				s_punchOffsets.yOffset[0], // 1.5
+				s_punchOffsets.zOffset[0]  // 6.0
 			};
 			rotateVectorM3x3(&inVec, &proj->delta, mtx);
 
@@ -396,9 +450,9 @@ namespace TFE_DarkForces
 
 			vec3_fixed inVec =
 			{
-				0x6666,	// 0.4
-				0x9999, // 0.6
-				0x33333 // 3.2
+				s_pistolOffsets.xOffset[0],	// 0.4
+				s_pistolOffsets.yOffset[0], // 0.6
+				s_pistolOffsets.zOffset[0]  // 3.2
 			};
 			vec3_fixed outVec;
 			rotateVectorM3x3(&inVec, &outVec, mtx);
@@ -412,11 +466,11 @@ namespace TFE_DarkForces
 			{
 				s32 variation = s_curPlayerWeapon->variation & 0xffff;
 				variation = random(variation * 2) - variation;
-				s_weaponFirePitch = s_playerObject->pitch + variation;
+				s_weaponFirePitch = s_playerObject->pitch + variation + s_pistolOffsets.pitchOffset[0];
 
 				variation = s_curPlayerWeapon->variation & 0xffff;
 				variation = random(variation * 2) - variation;
-				s_weaponFireYaw = s_playerObject->yaw + variation;
+				s_weaponFireYaw = s_playerObject->yaw + variation + s_pistolOffsets.yawOffset[0];
 			}
 
 			s32 canFire = s_canFireWeaponPrim;
@@ -450,7 +504,7 @@ namespace TFE_DarkForces
 
 				ProjectileLogic* projLogic;
 				fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-				projLogic = (ProjectileLogic*)createProjectile(PROJ_PISTOL_BOLT, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+				projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 				projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 				projLogic->prevColObj = s_playerObject;
 				if (s_oneHitKillEnabled) { applyOneHitKillCheat(projLogic); }
@@ -587,9 +641,9 @@ namespace TFE_DarkForces
 
 			vec3_fixed inVec =
 			{
-				0x6666,	// 0.4
-				0xc000, // 0.75
-				0x40000 // 4.0
+				s_rifleOffsets.xOffset[0],	// 0.4
+				s_rifleOffsets.yOffset[0],  // 0.75
+				s_rifleOffsets.zOffset[0]   // 4.0
 			};
 			vec3_fixed outVec;
 			rotateVectorM3x3(&inVec, &outVec, mtx);
@@ -603,11 +657,11 @@ namespace TFE_DarkForces
 			{
 				s32 variation = s_curPlayerWeapon->variation & 0xffff;
 				variation = random(variation * 2) - variation;
-				s_weaponFirePitch = s_playerObject->pitch + variation;
+				s_weaponFirePitch = s_playerObject->pitch + variation + s_rifleOffsets.pitchOffset[0];
 
 				variation = s_curPlayerWeapon->variation & 0xffff;
 				variation = random(variation * 2) - variation;
-				s_weaponFireYaw = s_playerObject->yaw + variation;
+				s_weaponFireYaw = s_playerObject->yaw + variation + s_rifleOffsets.yawOffset[0];
 			}
 
 			s32 canFire = s_canFireWeaponPrim;
@@ -641,7 +695,7 @@ namespace TFE_DarkForces
 
 				ProjectileLogic* projLogic;
 				fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-				projLogic = (ProjectileLogic*)createProjectile(PROJ_RIFLE_BOLT, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+				projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 				projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 				projLogic->prevColObj = s_playerObject;
 				if (s_oneHitKillEnabled) { applyOneHitKillCheat(projLogic); }
@@ -798,7 +852,7 @@ namespace TFE_DarkForces
 			}
 
 			fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-			ProjectileLogic* proj = (ProjectileLogic*)createProjectile(PROJ_THERMAL_DET, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+			ProjectileLogic* proj = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 			proj->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 			proj->prevColObj = s_playerObject;
 
@@ -819,18 +873,18 @@ namespace TFE_DarkForces
 			// Calculate projectile transform.
 			s32 baseVariation = s_curPlayerWeapon->variation & 0xffff;
 			s32 pitchVariation = random(baseVariation * 2) - baseVariation;
-			s_weaponFirePitch = (s_playerObject->pitch >> 1) + 0x638 + pitchVariation;
+			s_weaponFirePitch = (s_playerObject->pitch >> 1) + s_thermalDetOffsets.pitchOffset[0] + pitchVariation;
 
 			s32 yawVariation = random(baseVariation * 2) - baseVariation;
-			s_weaponFireYaw = s_playerObject->yaw + yawVariation;
+			s_weaponFireYaw = s_playerObject->yaw + s_thermalDetOffsets.yawOffset[0] + yawVariation;
 
 			proj_setTransform(proj, s_weaponFirePitch, s_weaponFireYaw);
 
 			// Calculate initial projectile delta and handle up close collision.
 			fixed16_16 mtx[9];
-			weapon_computeMatrix(mtx, -(s_playerObject->pitch + 0x638), -s_playerObject->yaw);
+			weapon_computeMatrix(mtx, -(s_playerObject->pitch + s_thermalDetOffsets.pitchOffset[0]), -s_playerObject->yaw);
 
-			vec3_fixed inVec = { FIXED(2), FIXED(2), FIXED(2) };
+			vec3_fixed inVec = { s_thermalDetOffsets.xOffset[0], s_thermalDetOffsets.yOffset[0], s_thermalDetOffsets.zOffset[0] };
 			rotateVectorM3x3(&inVec, &proj->delta, mtx);
 			tfe_adjustWeaponCollisionSpeed(proj);
 
@@ -987,16 +1041,16 @@ namespace TFE_DarkForces
 					ProjectileLogic* proj[3];
 					for (s32 i = 0; i < 3; i++)
 					{
-						proj[i] = (ProjectileLogic*)createProjectile(PROJ_REPEATER, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+						proj[i] = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->secondaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 						proj[i]->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
-						proj_setTransform(proj[i], s_weaponFirePitch + c_repeaterPitchOffset[i], s_weaponFireYaw + c_repeaterYawOffset[i]);
+						proj_setTransform(proj[i], s_weaponFirePitch + s_repeaterSecOffsets.pitchOffset[i], s_weaponFireYaw + s_repeaterSecOffsets.yawOffset[i]);
 						proj[i]->prevColObj = s_playerObject;
 						if (s_oneHitKillEnabled) { applyOneHitKillCheat(proj[i]); }
 					}
 
 					for (s32 i = 0; i < 3; i++)
 					{
-						vec3_fixed inVec = { c_repeaterDelta[1 + i*3], c_repeaterDelta[2 + i*3], c_repeaterDelta[i*3] };
+						vec3_fixed inVec = { s_repeaterSecOffsets.xOffset[i], s_repeaterSecOffsets.yOffset[i], s_repeaterSecOffsets.zOffset[i] };
 						vec3_fixed outVec;
 						rotateVectorM3x3(&inVec, &outVec, mtx);
 
@@ -1102,9 +1156,9 @@ namespace TFE_DarkForces
 
 				vec3_fixed inVec =
 				{
-					0xcccc,	// 0.8
-					0xfae1, // 0.98
-					0x50000 // 5.0
+					s_repeaterOffsets.xOffset[0],	// 0.8
+					s_repeaterOffsets.yOffset[0],   // 0.98
+					s_repeaterOffsets.zOffset[0]    // 5.0
 				};
 				vec3_fixed outVec;
 				rotateVectorM3x3(&inVec, &outVec, mtx);
@@ -1118,10 +1172,10 @@ namespace TFE_DarkForces
 				if (!targetFound)
 				{
 					s32 variation = random(baseVariation * 2) - baseVariation;
-					s_weaponFirePitch = s_playerObject->pitch + variation;
+					s_weaponFirePitch = s_playerObject->pitch + variation + s_repeaterOffsets.pitchOffset[0];
 
 					variation = random(variation * 2) - variation;
-					s_weaponFireYaw = s_playerObject->yaw + variation;
+					s_weaponFireYaw = s_playerObject->yaw + variation + s_repeaterOffsets.yawOffset[0];
 				}
 
 				s32 canFire = s_canFireWeaponPrim;
@@ -1154,7 +1208,7 @@ namespace TFE_DarkForces
 					}
 
 					fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(PROJ_REPEATER, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 					projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 					projLogic->prevColObj = s_playerObject;
 					if (s_oneHitKillEnabled) { applyOneHitKillCheat(projLogic); }
@@ -1326,16 +1380,16 @@ namespace TFE_DarkForces
 					ProjectileLogic* proj[4];
 					for (s32 i = 0; i < 4; i++)
 					{
-						proj[i] = (ProjectileLogic*)createProjectile(PROJ_PLASMA, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+						proj[i] = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->secondaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 						proj[i]->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
-						proj_setTransform(proj[i], s_weaponFirePitch, s_weaponFireYaw + s_fusionYawOffset[i]);
+						proj_setTransform(proj[i], s_weaponFirePitch + s_fusionSecOffsets.pitchOffset[i], s_weaponFireYaw + s_fusionSecOffsets.yawOffset[i]);
 						proj[i]->prevColObj = s_playerObject;
 						if (s_oneHitKillEnabled) { applyOneHitKillCheat(proj[i]); }
 					}
 
 					for (s32 i = 0; i < 4; i++)
 					{
-						vec3_fixed inVec = { s_fusionOffset[1 + i*3], s_fusionOffset[2 + i*3], s_fusionOffset[i*3] };
+						vec3_fixed inVec = { s_fusionSecOffsets.xOffset[i], s_fusionSecOffsets.yOffset[i], s_fusionSecOffsets.zOffset[i] };
 						vec3_fixed outVec;
 						rotateVectorM3x3(&inVec, &outVec, mtx);
 
@@ -1443,9 +1497,9 @@ namespace TFE_DarkForces
 
 					vec3_fixed inVec =
 					{
-						s_fusionOffset[(s_fusionCylinder-1)*3 + 1],
-						s_fusionOffset[(s_fusionCylinder-1)*3 + 2],
-						s_fusionOffset[(s_fusionCylinder-1)*3 + 0]
+						s_fusionOffsets.xOffset[(s_fusionCylinder - 1)],
+						s_fusionOffsets.yOffset[(s_fusionCylinder - 1)],
+						s_fusionOffsets.zOffset[(s_fusionCylinder - 1)],
 					};
 					vec3_fixed outVec;
 					rotateVectorM3x3(&inVec, &outVec, mtx);
@@ -1459,10 +1513,10 @@ namespace TFE_DarkForces
 					if (!targetFound)
 					{
 						s32 variation = random(baseVariation * 2) - baseVariation;
-						s_weaponFirePitch = s_playerObject->pitch + variation;
+						s_weaponFirePitch = s_playerObject->pitch + variation + s_fusionOffsets.pitchOffset[(s_fusionCylinder - 1)];
 
 						variation = random(baseVariation * 2) - baseVariation;
-						s_weaponFireYaw = s_playerObject->yaw + variation;
+						s_weaponFireYaw = s_playerObject->yaw + variation + s_fusionOffsets.yawOffset[(s_fusionCylinder - 1)];
 					}
 
 					s32 superChargeFrame = s_superCharge ? 0 : 1;
@@ -1477,7 +1531,7 @@ namespace TFE_DarkForces
 					}
 
 					fixed16_16 yPlayerPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(PROJ_PLASMA, s_playerObject->sector, s_playerObject->posWS.x, yPlayerPos, s_playerObject->posWS.z, s_playerObject);
+					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPlayerPos, s_playerObject->posWS.z, s_playerObject);
 					projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 					projLogic->prevColObj = s_playerObject;
 					if (s_oneHitKillEnabled) { applyOneHitKillCheat(projLogic); }
@@ -1620,23 +1674,23 @@ namespace TFE_DarkForces
 			s32 variation;
 			if (canFire > 1)
 			{
-				variation = random(wpnVariation * 2) - wpnVariation + 0x333;
+				variation = random(wpnVariation * 2) - wpnVariation + s_mortarOffsets.pitchOffset[0];
 				s_weaponFirePitch = s_playerObject->pitch + (variation >> 2);
 			}
 			else
 			{
-				variation = random(wpnVariation * 2) - wpnVariation + 0x333;
+				variation = random(wpnVariation * 2) - wpnVariation + s_mortarOffsets.pitchOffset[0];
 				s_weaponFirePitch = s_playerObject->pitch + variation;
 			}
 
-			variation = random(wpnVariation * 2) - wpnVariation;
+			variation = random(wpnVariation * 2) - wpnVariation + s_mortarOffsets.yawOffset[0];
 			s_weaponFireYaw = s_playerObject->yaw + variation;
 
 			vec3_fixed inVec =
 			{
-				0xb333,	 // 0.7
-				0x1b333, // 1.7
-				0x20000  // 2.0
+				s_mortarOffsets.xOffset[0],	 // 0.7
+				s_mortarOffsets.yOffset[0],  // 1.7
+				s_mortarOffsets.zOffset[0]   // 2.0
 			};
 			vec3_fixed outVec;
 			rotateVectorM3x3(&inVec, &outVec, mtx);
@@ -1670,7 +1724,7 @@ namespace TFE_DarkForces
 
 				ProjectileLogic* projLogic;
 				fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-				projLogic = (ProjectileLogic*)createProjectile(PROJ_MORTAR, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+				projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 				projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 				projLogic->prevColObj = s_playerObject;
 				proj_setTransform(projLogic, s_weaponFirePitch, s_weaponFireYaw);
@@ -1803,7 +1857,7 @@ namespace TFE_DarkForces
 			fixed16_16 floorHeight, ceilHeight;
 			sector_getObjFloorAndCeilHeight(s_playerObject->sector, s_playerObject->posWS.y, &floorHeight, &ceilHeight);
 
-			ProjectileType type = (s_secondaryFire) ? PROJ_LAND_MINE_PROX : PROJ_LAND_MINE;
+			ProjectileType type = (s_secondaryFire) ? s_curPlayerWeapon->secondaryProjectile : s_curPlayerWeapon->primaryProjectile;
 			ProjectileLogic* mine = (ProjectileLogic*)createProjectile(type, s_playerObject->sector, s_playerObject->posWS.x, floorHeight, s_playerObject->posWS.z, s_playerObject);
 			mine->vel = { 0, 0, 0 };
 
@@ -1881,9 +1935,9 @@ namespace TFE_DarkForces
 
 			vec3_fixed inVec =
 			{
-				0x10000, // 1.0
-				0x8000,  // 0.5
-				0x30000  // 3.0
+				s_concussionOffsets.xOffset[0],  // 1.0
+				s_concussionOffsets.yOffset[0],  // 0.5
+				s_concussionOffsets.zOffset[0]   // 3.0
 			};
 			vec3_fixed outVec;
 			rotateVectorM3x3(&inVec, &outVec, mtx);
@@ -1897,10 +1951,10 @@ namespace TFE_DarkForces
 			if (!targetFound)
 			{
 				s32 variation = random(baseVariation * 2) - baseVariation;
-				s_weaponFirePitch = s_playerObject->pitch + variation;
+				s_weaponFirePitch = s_playerObject->pitch + variation + s_concussionOffsets.pitchOffset[0];
 
 				variation = random(baseVariation * 2) - baseVariation;
-				s_weaponFireYaw = s_playerObject->yaw + variation;
+				s_weaponFireYaw = s_playerObject->yaw + variation + s_concussionOffsets.yawOffset[0];
 			}
 
 			s32 canFire = s_canFireWeaponPrim;
@@ -1934,7 +1988,7 @@ namespace TFE_DarkForces
 
 				ProjectileLogic* projLogic;
 				fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-				projLogic = (ProjectileLogic*)createProjectile(PROJ_CONCUSSION, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+				projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 				projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 				projLogic->prevColObj = s_playerObject;
 
@@ -2064,9 +2118,9 @@ namespace TFE_DarkForces
 				vec3_fixed outVec;
 				vec3_fixed inVec =
 				{
-					0x20000,	// 2.0
-					0x4000,		// 0.25
-					0x40000,	// 4.0
+					s_cannonSecOffsets.xOffset[0],	 // 2.0
+					s_cannonSecOffsets.yOffset[0],	 // 0.25
+					s_cannonSecOffsets.zOffset[0],	 // 4.0
 				};
 				rotateVectorM3x3(&inVec, &outVec, mtx);
 
@@ -2079,10 +2133,10 @@ namespace TFE_DarkForces
 				if (!targetFound)
 				{
 					s32 variation = random(baseVariation * 2) - baseVariation;
-					s_weaponFirePitch = s_playerObject->pitch + variation;
+					s_weaponFirePitch = s_playerObject->pitch + variation + s_cannonSecOffsets.pitchOffset[0];
 
 					variation = random(baseVariation * 2) - baseVariation;
-					s_weaponFireYaw = s_playerObject->yaw + variation;
+					s_weaponFireYaw = s_playerObject->yaw + variation + s_cannonSecOffsets.yawOffset[0];
 				}
 
 				s32 canFire = s_canFireWeaponSec;
@@ -2111,7 +2165,7 @@ namespace TFE_DarkForces
 					}
 
 					fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(PROJ_MISSILE, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->secondaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 					projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 					projLogic->prevColObj = s_playerObject;
 					if (targetFound)
@@ -2199,9 +2253,9 @@ namespace TFE_DarkForces
 
 				vec3_fixed inVec =
 				{
-					0x10000,	// 1.0
-					0x9999,		// 0.6
-					0x30000		// 3.0
+					s_cannonOffsets.xOffset[0],  	// 1.0
+					s_cannonOffsets.yOffset[0],		// 0.6
+					s_cannonOffsets.zOffset[0]		// 3.0
 				};
 				vec3_fixed outVec;
 				rotateVectorM3x3(&inVec, &outVec, mtx);
@@ -2215,10 +2269,10 @@ namespace TFE_DarkForces
 				if (!targetFound)
 				{
 					s32 variation = random(baseVariation * 2) - baseVariation;
-					s_weaponFirePitch = s_playerObject->pitch + variation;
+					s_weaponFirePitch = s_playerObject->pitch + variation + s_cannonOffsets.pitchOffset[0];
 
 					variation = random(variation * 2) - variation;
-					s_weaponFireYaw = s_playerObject->yaw + variation;
+					s_weaponFireYaw = s_playerObject->yaw + variation + s_cannonOffsets.yawOffset[0];
 				}
 
 				s32 canFire = s_canFireWeaponPrim;
@@ -2246,7 +2300,7 @@ namespace TFE_DarkForces
 					}
 
 					fixed16_16 yPos = s_playerObject->posWS.y - s_playerObject->worldHeight + s_headwaveVerticalOffset;
-					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(PROJ_CANNON, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
+					ProjectileLogic* projLogic = (ProjectileLogic*)createProjectile(s_curPlayerWeapon->primaryProjectile, s_playerObject->sector, s_playerObject->posWS.x, yPos, s_playerObject->posWS.z, s_playerObject);
 					projLogic->flags &= ~PROJFLAG_CAMERA_PASS_SOUND;
 					projLogic->prevColObj = s_playerObject;
 					if (s_oneHitKillEnabled) { applyOneHitKillCheat(projLogic); }

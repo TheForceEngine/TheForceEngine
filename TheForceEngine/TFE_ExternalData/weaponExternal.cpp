@@ -1,6 +1,5 @@
 #include <cstring>
 #include <vector>
-#include <TFE_System/cJSON.h>
 #include <TFE_System/system.h>
 #include <TFE_FileSystem/filestream.h>
 #include <TFE_DarkForces/projectile.h>
@@ -23,9 +22,7 @@ namespace TFE_ExternalData
 	// Forward Declarations
 	//////////////////////////////
 	int getProjectileIndex(char* type);
-	bool tryAssignProjectileProperty(cJSON* data, ExternalProjectile& projectile);
 	int getEffectIndex(char* type);
-	bool tryAssignEffectProperty(cJSON* data, ExternalEffect& effect);
 	int getWeaponIndex(char* name);
 	bool tryAssignGasmaskProperty(cJSON* data);
 	bool tryAssignWeaponProperty(cJSON* data, ExternalWeapon& weapon);
@@ -619,6 +616,9 @@ namespace TFE_ExternalData
 				}
 			}
 
+			// Save the effect name to check against custom effects
+			projectile.reflectEffectName = data->valuestring;
+
 			return false;
 		}
 
@@ -633,12 +633,21 @@ namespace TFE_ExternalData
 				}
 			}
 
+			// Save the effect name to check against custom effects
+			projectile.hitEffectName = data->valuestring;
+
 			return false;
 		}
 
 		if (cJSON_IsBool(data) && strcasecmp(data->string, "explodeOnTimeout") == 0)
 		{
 			projectile.explodeOnTimeout = cJSON_IsTrue(data);
+			return true;
+		}
+
+		if (cJSON_IsBool(data) && strcasecmp(data->string, "doNotScale") == 0)
+		{
+			projectile.doNotScale = cJSON_IsTrue(data);
 			return true;
 		}
 
@@ -894,6 +903,212 @@ namespace TFE_ExternalData
 		if (cJSON_IsNumber(data) && strcasecmp(data->string, "secondaryFireConsumption") == 0)
 		{
 			weapon.secondaryFireConsumption = data->valueint;
+			return true;
+		}
+
+		if (cJSON_IsString(data) && strcasecmp(data->string, "primaryProjectile") == 0)
+		{
+			// First check the main list
+			for (int i = 0; i < TFE_DarkForces::PROJ_COUNT; i++)
+			{
+				if (strcasecmp(data->valuestring, df_projectileTable[i]) == 0)
+				{
+					weapon.primaryProjectile = i;
+					return true;
+				}
+			}
+
+			// Save the projectile name to check against custom projectiles
+			weapon.primaryProjectileName = data->valuestring;
+
+			return false;
+		}
+
+		if (cJSON_IsString(data) && strcasecmp(data->string, "secondaryProjectile") == 0)
+		{
+			// First check the main list
+			for (int i = 0; i < TFE_DarkForces::PROJ_COUNT; i++)
+			{
+				if (strcasecmp(data->valuestring, df_projectileTable[i]) == 0)
+				{
+					weapon.secondaryProjectile = i;
+					return true;
+				}
+			}
+
+			// Save the projectile name to check against custom projectiles
+			weapon.secondaryProjectileName = data->valuestring;
+
+			return false;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "pitchOffsets") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.pitchOffsets[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "yawOffsets") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.yawOffsets[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "xOffsets") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.xOffsets[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "yOffsets") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.yOffsets[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "zOffsets") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.zOffsets[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "pitchOffsetsSecondary") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.pitchOffsetsSecondary[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "yawOffsetsSecondary") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.yawOffsetsSecondary[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "xOffsetsSecondary") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.xOffsetsSecondary[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "yOffsetsSecondary") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.yOffsetsSecondary[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
+			return true;
+		}
+
+		if (cJSON_IsArray(data) && strcasecmp(data->string, "zOffsetsSecondary") == 0)
+		{
+			cJSON* element;
+			s32 index = 0;
+			cJSON_ArrayForEach(element, data)
+			{
+				if (cJSON_IsNumber(element))
+				{
+					weapon.zOffsetsSecondary[index] = element->valuedouble;
+					index++;
+				}
+				if (index >= WEAPON_MAX_PROJECTILES) { break; }
+			}
+
 			return true;
 		}
 

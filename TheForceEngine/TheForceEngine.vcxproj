@@ -527,6 +527,8 @@ echo ^)";
     <ClInclude Include="TFE_Editor\LevelEditor\testOptions.h" />
     <ClInclude Include="TFE_Editor\LevelEditor\userPreferences.h" />
     <ClInclude Include="TFE_Editor\snapshotReaderWriter.h" />
+    <ClInclude Include="TFE_ExternalData\customEffect.h" />
+    <ClInclude Include="TFE_ExternalData\customProjectile.h" />
     <ClInclude Include="TFE_ExternalData\pickupExternal.h" />
     <ClInclude Include="TFE_FileSystem\filestream.h" />
     <ClInclude Include="TFE_FileSystem\fileutil.h" />
@@ -946,6 +948,8 @@ echo ^)";
     <ClCompile Include="TFE_Editor\LevelEditor\testOptions.cpp" />
     <ClCompile Include="TFE_Editor\LevelEditor\userPreferences.cpp" />
     <ClCompile Include="TFE_Editor\snapshotReaderWriter.cpp" />
+    <ClCompile Include="TFE_ExternalData\customEffect.cpp" />
+    <ClCompile Include="TFE_ExternalData\customProjectile.cpp" />
     <ClCompile Include="TFE_ExternalData\pickupExternal.cpp" />
     <ClCompile Include="TFE_FileSystem\filestream.cpp" />
     <ClCompile Include="TFE_FileSystem\fileutil.cpp" />

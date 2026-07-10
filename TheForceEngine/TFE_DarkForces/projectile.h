@@ -63,6 +63,9 @@ namespace TFE_DarkForces
 	{
 		PROJFLAG_CAMERA_PASS_SOUND = FLAG_BIT(0),
 		PROJFLAG_EXPLODE           = FLAG_BIT(1),		// Explodes when reaches end of life.
+		
+		// TFE
+		PROJFLAG_DONOT_SCALE       = FLAG_BIT(2),       // Disable framerate based scaling on 3DOs
 	};
 
 	struct ProjectileLogic;
@@ -119,6 +122,8 @@ namespace TFE_DarkForces
 	void proj_setTransform(ProjectileLogic* projLogic, angle14_32 pitch, angle14_32 yaw);
 	ProjectileHitType proj_handleMovement(ProjectileLogic* logic);
 	JBool handleProjectileHit(ProjectileLogic* logic, ProjectileHitType hitType);
+
+	ProjectileHitType arcingProjectileUpdateFunc(ProjectileLogic* logic);
 
 	void proj_aimAtTarget(ProjectileLogic* proj, vec3_fixed target);
 	void proj_aimArcing(ProjectileLogic* proj, vec3_fixed target, fixed16_16 speed);
