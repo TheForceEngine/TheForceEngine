@@ -1,0 +1,7 @@
+{
+  "name": "TheForceEngine",
+  "version": "1.24.0",
+  "dependencies": [
+    "libtheora"
+  ]
+}
