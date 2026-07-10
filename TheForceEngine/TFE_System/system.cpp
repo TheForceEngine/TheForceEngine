@@ -22,6 +22,7 @@
 #elif defined __linux__
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #endif
 
 namespace TFE_System
@@ -234,7 +235,7 @@ namespace TFE_System
 	{
 		time_t _tm = time(NULL);
 		struct tm* curtime = localtime(&_tm);
-		sprintf(output, "%0.2d-%0.2d-%0.4d-%0.2d-%0.2d", curtime->tm_mon + 1, curtime->tm_mday, curtime->tm_year + 1900, curtime->tm_hour + 1, curtime->tm_min);
+		strftime(output, 16, "%m-%d-%Y-%H-%M", curtime);
 	}
 
 	bool osShellExecute(const char* pathToExe, const char* exeDir, const char* param, bool waitForCompletion)
@@ -264,8 +265,26 @@ namespace TFE_System
 			CloseHandle(ShExecInfo.hProcess);
 		}
 		return true;
+#else
+		// On Linux/macOS, use xdg-open / open to delegate to the user's default
+		// file manager or application. pathToExe is treated as the path to open.
+		pid_t pid = fork();
+		if (pid < 0)
+		{
+			return false;
+		}
+		if (pid == 0)
+		{
+			execlp("xdg-open", "xdg-open", pathToExe, nullptr);
+			_exit(1); // execlp failed
+		}
+		if (waitForCompletion)
+		{
+			int status;
+			waitpid(pid, &status, 0);
+		}
+		return true;
 #endif
-		return false;
 	}
 
 	void postErrorMessageBox(const char* msg, const char* title)

@@ -1,6 +1,7 @@
 #include "historyView.h"
 #include "editor.h"
 #include "history.h"
+#include <TFE_Editor/LevelEditor/sharedState.h>
 #include <TFE_Editor/LevelEditor/levelEditor.h>
 #include <TFE_Ui/ui.h>
 
@@ -46,7 +47,10 @@ namespace TFE_Editor
 					if (isHidden) { ImGui::PushStyleColor(ImGuiCol_Text, hiddenColor); }
 					if (ImGui::Selectable(editor_getUniqueLabel(name), pos == i))
 					{
+						s32 oldLayerRange[2] = { LevelEditor::s_level.layerRange[0], LevelEditor::s_level.layerRange[1] };
 						history_setPos(i);
+						LevelEditor::updateLevelBounds(nullptr);
+						LevelEditor::updateCurrentLayer(oldLayerRange);
 						history_showBranch(i);
 						// TODO: This should clear the selections for the current editor.
 						LevelEditor::edit_clearSelections(false);

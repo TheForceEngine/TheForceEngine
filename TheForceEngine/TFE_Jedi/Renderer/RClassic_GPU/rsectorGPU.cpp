@@ -1886,6 +1886,7 @@ namespace TFE_Jedi
 		{
 			u32 dispWidth, dispHeight;
 			vfb_getResolution(&dispWidth, &dispHeight);
+			const f32 ssFactor = f32(TFE_RenderBackend::getVirtualDisplaySupersampleFactor());
 
 			// Compute the camera yaw from the camera direction and rotate it 90 degrees.
 			// This generates a value from 0 to 1.
@@ -1901,12 +1902,12 @@ namespace TFE_Jedi
 				cameraYaw * parallax[0],
 				clamp(cameraPitch, -rad45, rad45) * parallax[1] * oneOverTwoPi,
 				parallax[0] * oneOverTwoPi,
-				200.0f / f32(dispHeight),
+				200.0f / (f32(dispHeight) * ssFactor),
 			};
 			const f32 skyParam1[2] =
 			{
 			   -s_rcfltState.nearPlaneHalfLen,
-				s_rcfltState.nearPlaneHalfLen * 2.0f / f32(dispWidth),
+				s_rcfltState.nearPlaneHalfLen * 2.0f / (f32(dispWidth) * ssFactor),
 			};
 			shader->setVariable(skyInputs->skyParam0Id, SVT_VEC4, skyParam0);
 			shader->setVariable(skyInputs->skyParam1Id, SVT_VEC2, skyParam1);

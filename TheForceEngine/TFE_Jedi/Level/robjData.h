@@ -34,11 +34,17 @@ enum ObjectFlags
 	OBJ_FLAG_CAMERA			 = FLAG_BIT(7),  // New in TFE
 };
 
+// Note: These values correspond to InfEntityMask
 enum EntityTypeFlags
 {
 	ETFLAG_AI_ACTOR       = FLAG_BIT(0),	// AI Actor - moves and acts on its own.
-	ETFLAG_HAS_GRAVITY    = FLAG_BIT(1),	// This entity is effected by gravity.
+
+	// NOTE: The following 2 flag bits are not actually used in the code to determine behaviour.
+	// Whether an NPC is affected by gravity or can move vertically is actually determined by the ActorCollisionFlags set in their MovementModule.
+	// These flags however can still be used with ENTITY_MASK to selectively trigger INF events.
+	ETFLAG_HAS_GRAVITY    = FLAG_BIT(1),	// This entity is ground-based (not flying).
 	ETFLAG_FLYING         = FLAG_BIT(2),	// This entity is flying (can change Y height).
+
 	ETFLAG_PROJECTILE     = FLAG_BIT(3),	// The entity is a projectile.
 	ETFLAG_CAN_WAKE       = FLAG_BIT(6),	// An inactive object or animation waiting to be "woken up" - such as Vues waiting to play.
 	ETFLAG_PICKUP         = FLAG_BIT(7),	// An item pickup.

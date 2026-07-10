@@ -1600,16 +1600,16 @@ namespace LevelEditor
 
 	const char* c_infEntityMaskNames[] =
 	{
-		"Enemy",     // INF_ENTITY_ENEMY,
-		"Weapon",    // INF_ENTITY_WEAPON,
+		"Enemy",     // INF_ENTITY_AI_ACTOR,
+		"Weapon",    // INF_ENTITY_PROJECTILE,
 		"Smart Obj", // INF_ENTITY_SMART_OBJ,
 		"Player",    // INF_ENTITY_PLAYER,
 	};
 
 	const u32 c_infEntityMaskFlags[] =
 	{
-		u32(INF_ENTITY_ENEMY),
-		u32(INF_ENTITY_WEAPON),
+		u32(INF_ENTITY_AI_ACTOR),
+		u32(INF_ENTITY_PROJECTILE),
 		u32(INF_ENTITY_SMART_OBJ),
 		u32(INF_ENTITY_PLAYER),
 	};
@@ -3099,7 +3099,7 @@ namespace LevelEditor
 	void selectableClassName(const char* className, ImVec2 itemStart, s32 classIndex)
 	{
 		ImVec2 itemEnd = ImGui::GetCursorPos();
-		ImGui::TextColored(colorKeywordInner, className);
+		ImGui::TextColored(colorKeywordInner, "%s", className);
 		itemEnd.x += ImGui::CalcTextSize(className).x;
 		ImVec2 itemNext = ImGui::GetCursorPos();
 

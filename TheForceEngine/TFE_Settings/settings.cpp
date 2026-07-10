@@ -470,6 +470,7 @@ namespace TFE_Settings
 
 		writeKeyValue_Int(settings, "renderer", s_graphicsSettings.rendererIndex);
 		writeKeyValue_Int(settings, "colorMode", s_graphicsSettings.colorMode);
+		writeKeyValue_Int(settings, "supersampling", s_graphicsSettings.supersampling);
 		writeKeyValue_Int(settings, "skyMode", s_graphicsSettings.skyMode);
 		writeKeyValue_Bool(settings, "forceGouraud", s_graphicsSettings.forceGouraudShading);
 	}
@@ -480,6 +481,7 @@ namespace TFE_Settings
 		writeKeyValue_Int(settings, "hdTextures", s_enhancementsSettings.enableHdTextures);
 		writeKeyValue_Int(settings, "hdSprites", s_enhancementsSettings.enableHdSprites);
 		writeKeyValue_Int(settings, "hdHud", s_enhancementsSettings.enableHdHud);
+		writeKeyValue_Int(settings, "hdCutscenes", s_enhancementsSettings.enableHdCutscenes);
 	}
 
 	void writeHudSettings(FileStream& settings)
@@ -898,6 +900,11 @@ namespace TFE_Settings
 		{
 			s_graphicsSettings.colorMode = parseInt(value);
 		}
+		else if (strcasecmp("supersampling", key) == 0)
+		{
+			const s32 supersampling = parseInt(value);
+			s_graphicsSettings.supersampling = (supersampling == 2 || supersampling == 4) ? supersampling : 1;
+		}
 		else if (strcasecmp("skyMode", key) == 0)
 		{
 			s_graphicsSettings.skyMode = SkyMode(parseInt(value));
@@ -921,6 +928,10 @@ namespace TFE_Settings
 		else if (strcasecmp("hdHud", key) == 0)
 		{
 			s_enhancementsSettings.enableHdHud = parseBool(value);
+		}
+		else if (strcasecmp("hdCutscenes", key) == 0)
+		{
+			s_enhancementsSettings.enableHdCutscenes = parseBool(value);
 		}
 	}
 

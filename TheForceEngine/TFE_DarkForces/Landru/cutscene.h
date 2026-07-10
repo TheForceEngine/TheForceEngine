@@ -20,6 +20,10 @@ namespace TFE_DarkForces
 	JBool cutscene_update();
 	void  cutscene_enable(s32 enable);
 	s32   cutscene_isEnabled();
+	JBool cutscene_isPlaying();
+
+	// This is just to play any video adhoc video file for mods
+	JBool cutscene_playVideoFile(const char* videoName);
 
 	void cutscene_setSoundVolume(s32 volume);
 	void cutscene_setMusicVolume(s32 volume);

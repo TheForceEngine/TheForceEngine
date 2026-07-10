@@ -98,6 +98,8 @@ namespace TFE_RenderBackend
 
 	void setClearColor(const f32* color);
 	void swap(bool blitVirtualDisplay);
+	void setSkipDisplayAndClear(bool skip);
+	bool getSkipDisplayAndClear();
 	void queueScreenshot(const char* screenshotPath);
 	void startGifRecording(const char* path, bool skipCountdown = false);
 	void stopGifRecording();
@@ -136,6 +138,7 @@ namespace TFE_RenderBackend
 	u32 getVirtualDisplayHeight();
 	u32 getVirtualDisplayOffset2D();
 	u32 getVirtualDisplayOffset3D();
+	u32 getVirtualDisplaySupersampleFactor();
 
 	// core gpu functionality for UI and editor.
 	// Render target.

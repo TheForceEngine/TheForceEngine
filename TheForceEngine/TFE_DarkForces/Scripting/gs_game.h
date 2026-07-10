@@ -22,6 +22,7 @@ namespace TFE_DarkForces
 		f32 getGameTime();
 		s32 scriptRandom(s32 value);
 		void text(std::string msg);
+		int playCutscene(std::string cutsceneName);
 	};
 }
 

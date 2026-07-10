@@ -345,7 +345,7 @@ void ScreenCapture::drawGui()
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
 		if (TFE_Settings::getSystemSettings()->showGifPathConfirmation)
 		{
-			ImGui::TextWrapped(m_confirmationMessage.c_str());
+			ImGui::TextWrapped("%s", m_confirmationMessage.c_str());
 		}
 		else
 		{

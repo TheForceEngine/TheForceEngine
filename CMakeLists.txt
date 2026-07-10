@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 include(CheckCXXCompilerFlag)
+include(FetchContent)
 
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
@@ -15,7 +16,7 @@ project(TheForceEngine
 	LANGUAGES C CXX ASM
 	)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -51,9 +52,10 @@ include(GNUInstallDirs)
 
 ## Options
 option(ENABLE_TFE "Enable building “The Force Engine”" ON)
-option(ENABLE_SYSMIDI "Enable System-MIDI Output if RTMidi is available" ON)
+option(ENABLE_SYSMIDI "Enable System-MIDI Output through libremidi" ON)
 option(ENABLE_EDITOR "Enable TFE Editor" OFF)
-option(ENABLE_ADJUSTABLEHUD_MOD "Install the build‑in “AdjustableHud mod” with TFE" ON)
+option(ENABLE_OGV_CUTSCENES "Enable OGV (Ogg Theora) video cutscene support" OFF)
+option(ENABLE_ADJUSTABLEHUD_MOD "Install the build‑in 'AdjustableHud mod' with TFE" ON)
 
 if(ENABLE_TFE)
 	add_executable(tfe)
@@ -107,17 +109,28 @@ if(ENABLE_TFE)
 	endif()
 
 	if(ENABLE_SYSMIDI)
-		pkg_check_modules(RTMIDI rtmidi>=5.0.0)
-		if(RTMIDI_FOUND)
-			add_definitions("-DBUILD_SYSMIDI")
-			target_link_libraries(tfe PRIVATE ${RTMIDI_LIBRARIES})
-		else()
-			set(ENABLE_SYSMIDI 0)
-			message(STATUS "System MIDI Disabled")
-		endif()
+		FetchContent_Declare(
+			libremidi
+			GIT_REPOSITORY https://github.com/celtera/libremidi
+			GIT_TAG        master
+		)
+		FetchContent_MakeAvailable(libremidi)
+		add_definitions("-DBUILD_SYSMIDI")
+		target_link_libraries(tfe PRIVATE libremidi)
 	endif()
 	if(ENABLE_EDITOR)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_EDITOR")
+	endif()
+	if(ENABLE_OGV_CUTSCENES)
+		if(UNIX)
+			pkg_check_modules(THEORA REQUIRED theoradec)
+			pkg_check_modules(OGG REQUIRED ogg)
+			pkg_check_modules(VORBIS REQUIRED vorbis vorbisfile)
+			target_include_directories(tfe PRIVATE ${THEORA_INCLUDE_DIRS} ${OGG_INCLUDE_DIRS} ${VORBIS_INCLUDE_DIRS})
+			target_link_libraries(tfe PRIVATE ${THEORA_LIBRARIES} ${OGG_LIBRARIES} ${VORBIS_LIBRARIES})
+			target_link_directories(tfe PRIVATE ${THEORA_LIBRARY_DIRS} ${OGG_LIBRARY_DIRS} ${VORBIS_LIBRARY_DIRS})
+		endif()
+		add_definitions("-DENABLE_OGV_CUTSCENES")
 	endif()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_FORCE_SCRIPT")
 
