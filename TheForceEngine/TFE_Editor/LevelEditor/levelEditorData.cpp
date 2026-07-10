@@ -508,10 +508,7 @@ namespace LevelEditor
 	void levelClear()
 	{
 		// Clear the INF data.
-		s_levelInf.item.clear();
-		s_levelInf.elevator.clear();
-		s_levelInf.teleport.clear();
-		s_levelInf.trigger.clear();
+		editor_infDestroy();
 
 		// Clear selection state.
 		selection_clear();
@@ -530,10 +527,7 @@ namespace LevelEditor
 		FileUtil::stripExtension(asset->name.c_str(), slotName);
 
 		// Clear the INF data.
-		s_levelInf.item.clear();
-		s_levelInf.elevator.clear();
-		s_levelInf.teleport.clear();
-		s_levelInf.trigger.clear();
+		editor_infDestroy();
 
 		// Clear selection state.
 		selection_clear();

@@ -312,6 +312,7 @@ namespace LevelEditor
 
 	extern Editor_LevelInf s_levelInf;
 
+	void editor_infDestroy();
 	bool loadLevelInfFromAsset(const TFE_Editor::Asset* asset);
 	void editor_infEditBegin(const char* sectorName, s32 wallIndex = -1);
 	void editor_infEditEnd();
