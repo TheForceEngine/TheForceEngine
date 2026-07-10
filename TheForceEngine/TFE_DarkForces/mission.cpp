@@ -47,11 +47,11 @@ using namespace TFE_Input;
 namespace TFE_DarkForces
 {
 	// Show the loading screen for at least 1 second.
-#define MIN_LOAD_TIME 145
+	#define MIN_LOAD_TIME 145
 
-/////////////////////////////////////////////
-// Shared State
-/////////////////////////////////////////////
+	/////////////////////////////////////////////
+	// Shared State
+	/////////////////////////////////////////////
 	JBool s_gamePaused = JTRUE;
 	JBool s_canTeleport = JTRUE;
 	GameMissionMode s_missionMode = MISSION_MODE_MAIN;
@@ -110,7 +110,7 @@ namespace TFE_DarkForces
 	void setPalette(u8* pal);
 	void blitLoadingScreen();
 	void displayLoadingScreen();
-	u8* color_loadMap(FilePath* path, u8* lightRamp, u8** basePtr);
+	u8*  color_loadMap(FilePath* path, u8* lightRamp, u8** basePtr);
 
 	void setScreenBrightness(fixed16_16 brightness);
 	void setScreenFxLevels(s32 healthFx, s32 shieldFx, s32 flashFx);
@@ -965,12 +965,12 @@ namespace TFE_DarkForces
 
 		// TFE uses a dynamic multi-buffered texture for the palette. This doesn't work well when trying to set it only once.
 		// For this reason, it is easier to just set the palette every frame regardless of change.
-#if 0
+		#if 0
 		if (!s_luminanceMask[0] && !s_luminanceMask[1] && !s_luminanceMask[2] && !s_healthFxLevel && !s_shieldFxLevel && !s_flashFxLevel && s_screenBrightness == ONE_16)
 		{
 			s_palModified = JFALSE;
 		}
-#endif
+		#endif
 	}
 
 	void setCurrentColorMap(u8* colorMap, u8* lightRamp)
@@ -1162,155 +1162,155 @@ namespace TFE_DarkForces
 
 		switch (cheatID)
 		{
-		case CHEAT_LACDS:
-		{
-			cheat_revealMap();
-		} break;
-		case CHEAT_LANTFH:
-		{
-			automap_updateMapData(MAP_TELEPORT);
-			cheat_teleport();
-		} break;
-		case CHEAT_LAPOGO:
-		{
-			cheat_toggleHeightCheck();
-		} break;
-		case CHEAT_LARANDY:
-		{
-			cheat_supercharge();
-		} break;
-		case CHEAT_LAIMLAME:
-		{
-			cheat_godMode();
-		} break;
-		case CHEAT_LAPOSTAL:
-		{
-			cheat_postal();
-		} break;
-		case CHEAT_LADATA:
-		{
-			cheat_toggleData();
-		} break;
-		case CHEAT_LABUG:
-		{
-			cheat_bugMode();
-		} break;
-		case CHEAT_LAREDLITE:
-		{
-			cheat_pauseAI();
-		} break;
-		case CHEAT_LASECBASE:
-		{
-			cheat_gotoLevel(0);
-		} break;
-		case CHEAT_LATALAY:
-		{
-			cheat_gotoLevel(1);
-		} break;
-		case CHEAT_LASEWERS:
-		{
-			cheat_gotoLevel(2);
-		} break;
-		case CHEAT_LATESTBASE:
-		{
-			cheat_gotoLevel(3);
-		} break;
-		case CHEAT_LAGROMAS:
-		{
-			cheat_gotoLevel(4);
-		} break;
-		case CHEAT_LADTENTION:
-		{
-			cheat_gotoLevel(5);
-		} break;
-		case CHEAT_LARAMSHED:
-		{
-			cheat_gotoLevel(6);
-		} break;
-		case CHEAT_LAROBOTICS:
-		{
-			cheat_gotoLevel(7);
-		} break;
-		case CHEAT_LANARSHADA:
-		{
-			cheat_gotoLevel(8);
-		} break;
-		case CHEAT_LAJABSHIP:
-		{
-			cheat_gotoLevel(9);
-		} break;
-		case CHEAT_LAIMPCITY:
-		{
-			cheat_gotoLevel(10);
-		} break;
-		case CHEAT_LAFUELSTAT:
-		{
-			cheat_gotoLevel(11);
-		} break;
-		case CHEAT_LAEXECUTOR:
-		{
-			cheat_gotoLevel(12);
-		} break;
-		case CHEAT_LAARC:
-		{
-			cheat_gotoLevel(13);
-		} break;
-		case CHEAT_LASKIP:
-		{
-			cheat_levelSkip();
-		} break;
-		case CHEAT_LABRADY:
-		{
-			cheat_fullAmmo();
-		} break;
-		case CHEAT_LAUNLOCK:
-		{
-			cheat_unlock();
-		} break;
-		case CHEAT_LAMAXOUT:
-		{
-			cheat_maxout();
-		} break;
-		case CHEAT_LAFLY:
-		{
-			cheat_fly();
-		} break;
-		case CHEAT_LANOCLIP:
-		{
-			cheat_noclip();
-		} break;
-		case CHEAT_LATESTER:
-		{
-			cheat_tester();
-		} break;
-		case CHEAT_LAADDLIFE:
-		{
-			cheat_addLife();
-		} break;
-		case CHEAT_LASUBLIFE:
-		{
-			cheat_subLife();
-		} break;
-		case CHEAT_LACAT:
-		{
-			cheat_maxLives();
-		} break;
-		case CHEAT_LADIE:
-		{
-			cheat_die();
-		} break;
-		case CHEAT_LAIMDEATH:
-		{
-			cheat_oneHitKill();
-		} break;
-		case CHEAT_LAHARDCORE:
-		{
-			cheat_instaDeath();
-		} break;
-		case CHEAT_LABRIGHT:
-		{
-			cheat_toggleFullBright();
-		} break;
+			case CHEAT_LACDS:
+			{
+				cheat_revealMap();
+			} break;
+			case CHEAT_LANTFH:
+			{
+				automap_updateMapData(MAP_TELEPORT);
+				cheat_teleport();
+			} break;
+			case CHEAT_LAPOGO:
+			{
+				cheat_toggleHeightCheck();
+			} break;
+			case CHEAT_LARANDY:
+			{
+				cheat_supercharge();
+			} break;
+			case CHEAT_LAIMLAME:
+			{
+				cheat_godMode();
+			} break;
+			case CHEAT_LAPOSTAL:
+			{
+				cheat_postal();
+			} break;
+			case CHEAT_LADATA:
+			{
+				cheat_toggleData();
+			} break;
+			case CHEAT_LABUG:
+			{
+				cheat_bugMode();
+			} break;
+			case CHEAT_LAREDLITE:
+			{
+				cheat_pauseAI();
+			} break;
+			case CHEAT_LASECBASE:
+			{
+				cheat_gotoLevel(0);
+			} break;
+			case CHEAT_LATALAY:
+			{
+				cheat_gotoLevel(1);
+			} break;
+			case CHEAT_LASEWERS:
+			{
+				cheat_gotoLevel(2);
+			} break;
+			case CHEAT_LATESTBASE:
+			{
+				cheat_gotoLevel(3);
+			} break;
+			case CHEAT_LAGROMAS:
+			{
+				cheat_gotoLevel(4);
+			} break;
+			case CHEAT_LADTENTION:
+			{
+				cheat_gotoLevel(5);
+			} break;
+			case CHEAT_LARAMSHED:
+			{
+				cheat_gotoLevel(6);
+			} break;
+			case CHEAT_LAROBOTICS:
+			{
+				cheat_gotoLevel(7);
+			} break;
+			case CHEAT_LANARSHADA:
+			{
+				cheat_gotoLevel(8);
+			} break;
+			case CHEAT_LAJABSHIP:
+			{
+				cheat_gotoLevel(9);
+			} break;
+			case CHEAT_LAIMPCITY:
+			{
+				cheat_gotoLevel(10);
+			} break;
+			case CHEAT_LAFUELSTAT:
+			{
+				cheat_gotoLevel(11);
+			} break;
+			case CHEAT_LAEXECUTOR:
+			{
+				cheat_gotoLevel(12);
+			} break;
+			case CHEAT_LAARC:
+			{
+				cheat_gotoLevel(13);
+			} break;
+			case CHEAT_LASKIP:
+			{
+				cheat_levelSkip();
+			} break;
+			case CHEAT_LABRADY:
+			{
+				cheat_fullAmmo();
+			} break;
+			case CHEAT_LAUNLOCK:
+			{
+				cheat_unlock();
+			} break;
+			case CHEAT_LAMAXOUT:
+			{
+				cheat_maxout();
+			} break;
+			case CHEAT_LAFLY:
+			{
+				cheat_fly();
+			} break;
+			case CHEAT_LANOCLIP:
+			{
+				cheat_noclip();
+			} break;
+			case CHEAT_LATESTER:
+			{
+				cheat_tester();
+			} break;
+			case CHEAT_LAADDLIFE:
+			{
+				cheat_addLife();
+			} break;
+			case CHEAT_LASUBLIFE:
+			{
+				cheat_subLife();
+			} break;
+			case CHEAT_LACAT:
+			{
+				cheat_maxLives();
+			} break;
+			case CHEAT_LADIE:
+			{
+				cheat_die();
+			} break;
+			case CHEAT_LAIMDEATH:
+			{
+				cheat_oneHitKill();
+			} break;
+			case CHEAT_LAHARDCORE:
+			{
+				cheat_instaDeath();
+			} break;
+			case CHEAT_LABRIGHT:
+			{
+				cheat_toggleFullBright();
+			} break;
 		}
 	}
 
@@ -1582,7 +1582,7 @@ namespace TFE_DarkForces
 		}
 
 		// DEBUG - change music state.
-#if 0
+		#if 0
 		if (TFE_Input::keyPressed(KEY_F))
 		{
 			gameMusic_setState(MUS_STATE_FIGHT);
@@ -1591,7 +1591,7 @@ namespace TFE_DarkForces
 		{
 			gameMusic_setState(MUS_STATE_STALK);
 		}
-#endif
+		#endif
 	}
 
 	void updateScreensize()
