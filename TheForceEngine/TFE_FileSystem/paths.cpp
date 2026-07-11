@@ -52,10 +52,10 @@ namespace TFE_Paths
 #ifdef _WIN32
 		char path[TFE_MAX_PATH];
 		// Get path for each computer, non-user specific and non-roaming data.
-		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path)))
+		if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path)))
 		{
 			// Append product-specific path
-			PathAppend(path, append);
+			PathAppendA(path, append);
 
 			// Only setup the path if successful.
 			s_paths[PATH_PROGRAM_DATA] = path;
@@ -88,10 +88,10 @@ namespace TFE_Paths
 		// Otherwise attempt to use the Windows User "Documents/" directory.
 		char path[TFE_MAX_PATH];
 		// Get path for each computer, non-user specific and non-roaming data.
-		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_MYDOCUMENTS, NULL, 0, path)))
+		if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_MYDOCUMENTS, NULL, 0, path)))
 		{
 			// Append product-specific path
-			PathAppend(path, append);
+			PathAppendA(path, append);
 
 			// Only setup the path if successful.
 			s_paths[PATH_USER_DOCUMENTS] = path;
@@ -129,16 +129,16 @@ namespace TFE_Paths
 	#ifdef _WIN32
 		char path[TFE_MAX_PATH];
 		
-		if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_PROFILE, NULL, 0, path)))
+		if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path)))
 		{
 			// Append product-specific path
 			if (game == Game_Dark_Forces)
 			{
-				PathAppend(path, "Saved Games\\Nightdive Studios\\Dark Forces Remaster");
+				PathAppendA(path, "Saved Games\\Nightdive Studios\\Dark Forces Remaster");
 			}
 			else if (game == Game_Outlaws)
 			{
-				PathAppend(path, "Saved Games\\Nightdive Studios\\Outlaws Remaster");
+				PathAppendA(path, "Saved Games\\Nightdive Studios\\Outlaws Remaster");
 			}
 			else
 			{

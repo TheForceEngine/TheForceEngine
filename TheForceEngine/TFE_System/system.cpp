@@ -242,7 +242,7 @@ namespace TFE_System
 	{
 #ifdef _WIN32
 		// Prepare shellExecutInfo
-		SHELLEXECUTEINFO ShExecInfo = { 0 };
+		SHELLEXECUTEINFOA ShExecInfo = { 0 };
 		ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
 		ShExecInfo.fMask = waitForCompletion ? SEE_MASK_NOCLOSEPROCESS : 0;
 		ShExecInfo.hwnd = NULL;
@@ -254,7 +254,7 @@ namespace TFE_System
 		ShExecInfo.hInstApp = NULL;
 
 		// Execute the file with the parameters
-		if (!ShellExecuteEx(&ShExecInfo))
+		if (!ShellExecuteExA(&ShExecInfo))
 		{
 			return false;
 		}
