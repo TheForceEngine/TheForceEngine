@@ -329,6 +329,10 @@ namespace LevelEditor
 
 	void editor_infGetViewportControl(Editor_InfVpControl* ctrl);
 
+	s32 getClassIndex(Editor_InfItemClass classId, const void* classPtr);
+
+	bool compareLevelInfs(Editor_LevelInf& left, Editor_LevelInf& right);
+
 	const Editor_InfElevator* getElevFromClassData(const Editor_InfClass* data);
 	const Editor_InfTrigger* getTriggerFromClassData(const Editor_InfClass* data);
 	const Editor_InfTeleporter* getTeleporterFromClassData(const Editor_InfClass* data);

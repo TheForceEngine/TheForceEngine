@@ -559,6 +559,210 @@ namespace LevelEditor
 		client->targetSector = arg;
 	}
 
+	// Walk each member of two Editor_LevelInf structs testing for equality. Inf undo is scary.
+	bool compareLevelInfs(Editor_LevelInf& left, Editor_LevelInf& right)
+	{	
+		if (left.item.size() != right.item.size() ||
+			left.elevator.size() != right.elevator.size() ||
+			left.trigger.size() != right.trigger.size() ||
+			left.teleport.size() != right.teleport.size())
+		{
+			LE_WARNING("compareLevelInfs(): vec sizes don't match");
+			return false;
+		}
+
+		for (size_t i = 0; i < left.item.size(); i++)
+		{
+			if ((left.item[i].name != right.item[i].name) ||
+				(left.item[i].wallNum != right.item[i].wallNum))
+			{
+				LE_WARNING("compareLevelInfs(): item index %zu don't match", i);
+				return false;
+			}
+		}
+
+		for (size_t i = 0; i < left.elevator.size(); i++)
+		{
+			Editor_InfElevator* lElev = left.elevator[i];
+			Editor_InfElevator* rElev = right.elevator[i];
+
+			if (lElev->slaves.size() != rElev->slaves.size() ||
+				lElev->stops.size() != rElev->stops.size())
+			{
+				LE_WARNING("compareLevelInfs(): elev index %zu slave/stop count mismatch", i);
+				return false;
+			}
+
+
+			if (lElev->classId != rElev->classId ||
+				lElev->type != rElev->type ||
+				lElev->overrideSet != rElev->overrideSet ||
+				lElev->start != rElev->start ||
+				lElev->speed != rElev->speed ||
+				lElev->angle != rElev->angle ||
+				lElev->flags != rElev->flags ||
+				(lElev->key[0] != rElev->key[0] || lElev->key[1] != rElev->key[1]) ||
+				(lElev->center.x != rElev->center.x || lElev->center.z != rElev->center.z) ||
+				(lElev->sounds[0] != rElev->sounds[0] || lElev->sounds[1] != rElev->sounds[1] || lElev->sounds[2] != rElev->sounds[2]) ||
+				lElev->master != rElev->master ||
+				lElev->eventMask != rElev->eventMask ||
+				lElev->entityMask != rElev->entityMask)
+			{
+				LE_WARNING("compareLevelInfs(): elev index %zu don't match", i);
+				return false;
+			}
+
+			for (size_t j = 0; j < lElev->slaves.size(); j++)
+			{
+				if (lElev->slaves[j].name != rElev->slaves[j].name ||
+					lElev->slaves[j].angleOffset != rElev->slaves[j].angleOffset)
+				{
+					LE_WARNING("compareLevelInfs(): elev index %zu slave index %zu don't match", i, j);
+					return false;
+				}
+			}
+
+			for (size_t j = 0; j < lElev->stops.size(); j++)
+			{
+				Editor_InfStop* lStop = &lElev->stops[j];
+				Editor_InfStop* rStop = &rElev->stops[j];
+				if (lStop->adjoinCmd.size() != rStop->adjoinCmd.size() ||
+					lStop->textureCmd.size() != rStop->textureCmd.size() ||
+					lStop->msg.size() != rStop->msg.size() ||
+					lStop->scriptCall.size() != rStop->scriptCall.size())
+				{
+					LE_WARNING("compareLevelInfs(): elev index %zu stop index %zu cmd vecs dont match", i, j);
+					return false;
+				}
+				
+				if (lStop->overrideSet != rStop->overrideSet ||
+					lStop->relative != rStop->relative ||
+					lStop->value != rStop->value ||
+					lStop->fromSectorFloor != rStop->fromSectorFloor ||
+					lStop->delayType != rStop->delayType ||
+					lStop->delay != rStop->delay ||
+					lStop->page != rStop->page)
+				{
+					LE_WARNING("compareLevelInfs(): elev index %zu stop index %zu data dont match", i, j);
+					return false;
+				}
+
+				for (size_t k = 0; k < lStop->adjoinCmd.size(); k++)
+				{
+					Editor_InfAdjoinCmd* lAdj = &lStop->adjoinCmd[k];
+					Editor_InfAdjoinCmd* rAdj = &rStop->adjoinCmd[k];
+					if (lAdj->sector0 != rAdj->sector0 ||
+						lAdj->sector1 != rAdj->sector1 ||
+						lAdj->wallIndex0 != rAdj->wallIndex0 ||
+						lAdj->wallIndex1 != rAdj->wallIndex1)
+					{
+						LE_WARNING("compareLevelInfs(): elev index %zu stop index %zu adj index %zu data dont match", i, j, k);
+						return false;
+					}
+				}
+
+				for (size_t k = 0; k < lStop->textureCmd.size(); k++)
+				{
+					Editor_InfTextureCmd* lTex = &lStop->textureCmd[k];
+					Editor_InfTextureCmd* rTex = &rStop->textureCmd[k];
+					if (lTex->donorSector != rTex->donorSector ||
+						lTex->fromCeiling != rTex->fromCeiling)
+					{
+						LE_WARNING("compareLevelInfs(): elev index %zu stop index %zu tex index %zu data dont match", i, j, k);
+						return false;
+					}
+				}
+
+				for (size_t k = 0; k < lStop->msg.size(); k++)
+				{
+					Editor_InfMessage* lMsg = &lStop->msg[k];
+					Editor_InfMessage* rMsg = &rStop->msg[k];
+					if (lMsg->targetSector != rMsg->targetSector ||
+						lMsg->targetWall != rMsg->targetWall ||
+						lMsg->type != rMsg->type ||
+						lMsg->eventFlags != rMsg->eventFlags ||
+						(lMsg->arg[0] != rMsg->arg[0] || lMsg->arg[1] != rMsg->arg[1]))
+					{
+						LE_WARNING("compareLevelInfs(): elev index %zu stop index %zu msg index %zu data dont match", i, j, k);
+						return false;
+					}
+				}
+
+				for (size_t k = 0; k < lStop->scriptCall.size(); k++)
+				{
+					Editor_ScriptCall* lCall = &lStop->scriptCall[k];
+					Editor_ScriptCall* rCall = &rStop->scriptCall[k];
+					if (lCall->funcName != rCall->funcName ||
+						lCall->arg[0].value != rCall->arg[0].value ||
+						lCall->arg[1].value != rCall->arg[1].value ||
+						lCall->arg[2].value != rCall->arg[2].value ||
+						lCall->arg[3].value != rCall->arg[3].value)
+					{
+						LE_WARNING("compareLevelInfs(): elev index %zu stop index %zu script index %zu data dont match", i, j, k);
+						return false;
+					}
+				}
+			} // for elev stops
+		} // for elev
+
+		for (size_t i = 0; i < left.trigger.size(); i++)
+		{
+			Editor_InfTrigger* lTrig = left.trigger[i];
+			Editor_InfTrigger* rTrig = right.trigger[i];
+
+			if (lTrig->clients.size() != rTrig->clients.size())
+			{
+				LE_WARNING("compareLevelInfs(): trig index %zu client size not match", i);
+				return false;
+			}
+			if (lTrig->classId != rTrig->classId ||
+				lTrig->type != rTrig->type ||
+				lTrig->overrideSet != rTrig->overrideSet ||
+				lTrig->cmd != rTrig->cmd ||
+				(lTrig->arg[0] != rTrig->arg[0] || lTrig->arg[1] != rTrig->arg[1]) ||
+				lTrig->sound != rTrig->sound ||
+				lTrig->master != rTrig->master ||
+				lTrig->textId != rTrig->textId ||
+				lTrig->eventMask != rTrig->eventMask ||
+				lTrig->entityMask != rTrig->entityMask ||
+				lTrig->event != rTrig->event)
+			{
+				LE_WARNING("compareLevelInfs(): trig index %zu data not match", i);
+				return false;
+			}
+
+			for (size_t j = 0; j < lTrig->clients.size(); j++)
+			{
+				Editor_InfClient* lClient = &lTrig->clients[j];
+				Editor_InfClient* rClient = &rTrig->clients[j];
+				if (lClient->targetSector != rClient->targetSector ||
+					lClient->targetWall != rClient->targetWall ||
+					lClient->eventMask != rClient->eventMask)
+				{
+					LE_WARNING("compareLevelInfs(): trig index %zu client index %zu data not match", i, j);
+					return false;
+				}
+			}
+		} // for trig
+
+		for (size_t i = 0; i < left.teleport.size(); i++)
+		{
+			Editor_InfTeleporter* lTele = left.teleport[i];
+			Editor_InfTeleporter* rTele = right.teleport[i];
+			if (lTele->classId != rTele->classId ||
+				lTele->type != rTele->type ||
+				lTele->target != rTele->target ||
+				(lTele->dstPos.x != rTele->dstPos.x || lTele->dstPos.y != rTele->dstPos.y || lTele->dstPos.z != rTele->dstPos.z) ||
+				lTele->dstAngle != rTele->dstAngle)
+			{
+				LE_WARNING("compareLevelInfs(): tele index %zu data not match", i);
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	bool editor_parseElevatorCommand(s32 argCount, KEYWORD action, bool seqEnd, Editor_InfElevator* elev, s32& addon)
 	{
 		char* endPtr = nullptr;

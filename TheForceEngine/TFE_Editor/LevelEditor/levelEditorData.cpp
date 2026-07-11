@@ -98,6 +98,7 @@ namespace LevelEditor
 
 	static s32 s_curSnapshotId = -1;
 	static EditorLevel s_curSnapshot;
+	static Editor_LevelInf s_infSnapshot;
 
 	EditorLevel s_level = {};
 
@@ -5098,7 +5099,158 @@ namespace LevelEditor
 			sector->ceilTex = attrib.ceilTex;
 		}
 	}
-		
+
+	void clearInfData(Editor_LevelInf* levelInf)
+	{
+		for (size_t i = 0; i < levelInf->elevator.size(); i++)
+		{
+			delete levelInf->elevator[i];
+		}
+
+		for (size_t i = 0; i < levelInf->trigger.size(); i++)
+		{
+			delete levelInf->trigger[i];
+		}
+
+		for (size_t i = 0; i < levelInf->teleport.size(); i++)
+		{
+			delete levelInf->teleport[i];
+		}
+
+		levelInf->item.clear();
+		levelInf->elevator.clear();
+		levelInf->trigger.clear();
+		levelInf->teleport.clear();
+	}
+
+	// Reimplemention of getClassIndex() for the snapshot
+	s32 getClassIndexSnapshot(Editor_InfItemClass classId, const void* classPtr)
+	{
+		s32 index = -1;
+		if (classId == IIC_ELEVATOR)
+		{
+			const s32 count = (s32)s_infSnapshot.elevator.size();
+			const Editor_InfElevator* const* list = s_infSnapshot.elevator.data();
+			for (s32 i = 0; i < count; i++)
+			{
+				if (classPtr == list[i])
+				{
+					index = i;
+					break;
+				}
+			}
+		}
+		else if (classId == IIC_TRIGGER)
+		{
+			const s32 count = (s32)s_infSnapshot.trigger.size();
+			const Editor_InfTrigger* const* list = s_infSnapshot.trigger.data();
+			for (s32 i = 0; i < count; i++)
+			{
+				if (classPtr == list[i])
+				{
+					index = i;
+					break;
+				}
+			}
+		}
+		else if (classId == IIC_TELEPORTER)
+		{
+			const s32 count = (s32)s_infSnapshot.teleport.size();
+			const Editor_InfTeleporter* const* list = s_infSnapshot.teleport.data();
+			for (s32 i = 0; i < count; i++)
+			{
+				if (classPtr == list[i])
+				{
+					index = i;
+					break;
+				}
+			}
+		}
+		assert(index >= 0);
+		return index;
+	}
+
+	void copyInfData(Editor_LevelInf* infFrom, Editor_LevelInf* infTo)
+	{
+		clearInfData(infTo);
+
+		size_t elevCount = infFrom->elevator.size();
+		infTo->elevator.resize(elevCount);
+		Editor_InfElevator* elevFrom;
+		Editor_InfElevator* elevTo;
+		for (size_t i = 0; i < elevCount; i++)
+		{
+			// Create new object, assign the pointer then copy struct data
+			elevFrom = infFrom->elevator[i];
+			elevTo = new Editor_InfElevator();
+			infTo->elevator[i] = elevTo;
+			*elevTo = *elevFrom; // Copy the struct, not the pointer
+		}
+
+		size_t trigCount = infFrom->trigger.size();
+		infTo->trigger.resize(trigCount);
+		Editor_InfTrigger* trigFrom;
+		Editor_InfTrigger* trigTo;
+		for (size_t i = 0; i < trigCount; i++)
+		{
+			trigFrom = infFrom->trigger[i];
+			trigTo = new Editor_InfTrigger();
+			infTo->trigger[i] = trigTo;
+			*trigTo = *trigFrom;
+		}
+
+		size_t teleCount = infFrom->teleport.size();
+		infTo->teleport.resize(teleCount);
+		Editor_InfTeleporter* teleFrom;
+		Editor_InfTeleporter* teleTo;
+		for (size_t i = 0; i < teleCount; i++)
+		{
+			teleFrom = infFrom->teleport[i];
+			teleTo = new Editor_InfTeleporter();
+			infTo->teleport[i] = teleTo;
+			*teleTo = *teleFrom;
+		}
+
+		// If everything went correctly, the calculated indexes should be 
+		// the same for both source and destination
+		size_t itemCount = infFrom->item.size();
+		infTo->item.resize(itemCount);
+		for (size_t i = 0; i < itemCount; i++)
+		{
+			Editor_InfItem* itemTo = &infTo->item[i];
+			Editor_InfItem* itemFrom = &infFrom->item[i];			
+			itemTo->name = itemFrom->name;
+			itemTo->wallNum = itemFrom->wallNum;
+
+			size_t classCount = itemFrom->classData.size();
+			itemTo->classData.resize(classCount);
+			for (size_t j = 0; j < classCount; j++)
+			{
+				Editor_InfClass* infClass = itemFrom->classData[j];
+				Editor_InfItemClass classId = infClass->classId;
+				if (classId == IIC_ELEVATOR)
+				{
+					s32 index = getClassIndexSnapshot(classId, infClass);
+					itemTo->classData[j] = (Editor_InfClass*)infTo->elevator[index];
+				}
+				else if (classId == IIC_TRIGGER)
+				{
+					s32 index = getClassIndexSnapshot(classId, infClass);
+					itemTo->classData[j] = (Editor_InfClass*)infTo->trigger[index];
+				}
+				else if (classId == IIC_TELEPORTER)
+				{
+					s32 index = getClassIndexSnapshot(classId, infClass);
+					itemTo->classData[j] = (Editor_InfClass*)infTo->teleport[index];
+				}
+				else
+				{
+					assert(0);
+				}
+			}
+		}
+	}
+
 	void level_createSnapshot(SnapshotBuffer* buffer)
 	{
 		assert(buffer);
@@ -5121,6 +5273,7 @@ namespace LevelEditor
 		const u32 entityCount = (u32)s_level.entities.size();
 		const u32 levelNoteCount = (s32)s_level.notes.size();
 		const u32 guidelineCount = (s32)s_level.guidelines.size();
+
 		writeU32(texCount);
 		writeU32(sectorCount);
 		writeU32(entityCount);
@@ -5160,6 +5313,44 @@ namespace LevelEditor
 		for (u32 g = 0; g < guidelineCount; g++, guideline++)
 		{
 			writeGuidelineToSnapshot(guideline);
+		}
+
+		// Inf data.
+		const u32 infElevatorCount = (s32)s_levelInf.elevator.size();
+		const u32 infTriggerCount = (s32)s_levelInf.trigger.size();
+		const u32 infTeleporterCount = (s32)s_levelInf.teleport.size();
+		const u32 infItemCount = (s32)s_levelInf.item.size();
+		writeU32(infElevatorCount);
+		writeU32(infTriggerCount);
+		writeU32(infTeleporterCount);
+		writeU32(infItemCount);
+
+		// Inf Elevators
+		Editor_InfElevator** infElevator = s_levelInf.elevator.data();
+		for (u32 i = 0; i < infElevatorCount; i++, infElevator++)
+		{
+			writeInfElevatorToSnapshot(*infElevator);
+		}
+
+		// Inf Triggers
+		Editor_InfTrigger** infTrigger = s_levelInf.trigger.data();
+		for (u32 i = 0; i < infTriggerCount; i++, infTrigger++)
+		{
+			writeInfTriggerToSnapshot(*infTrigger);
+		}
+
+		// Inf Teleporters
+		Editor_InfTeleporter** infTeleporter = s_levelInf.teleport.data();
+		for (u32 i = 0; i < infTeleporterCount; i++, infTeleporter++)
+		{
+			writeInfTeleporterToSnapshot(*infTeleporter);
+		}
+
+		// Inf Items
+		const Editor_InfItem* infItem = s_levelInf.item.data();
+		for (u32 i = 0; i < infItemCount; i++, infItem++)
+		{
+			writeInfItemToSnapshot(infItem);
 		}
 	}
 
@@ -5237,9 +5428,80 @@ namespace LevelEditor
 			{
 				readGuidelineFromSnapshot(guideline);
 			}
+
+			// Restore Inf data
+			clearInfData(&s_infSnapshot);
+
+			const u32 infElevatorCount = readU32();
+			const u32 infTriggerCount = readU32();
+			const u32 infTeleporterCount = readU32();
+			const u32 infItemCount = readU32();
+
+			// Don't use existing alloc functions as those are tied to s_levelInf.
+			// elevators
+			for (u32 i = 0; i < infElevatorCount; i++)
+			{
+				Editor_InfElevator* elev = new Editor_InfElevator();
+				s_infSnapshot.elevator.push_back(elev);
+				elev->classId = IIC_ELEVATOR;
+				readInfElevatorFromSnapshot(elev);
+			}
+
+			// triggers
+			for (u32 i = 0; i < infTriggerCount; i++)
+			{
+				Editor_InfTrigger* trig = new Editor_InfTrigger();
+				s_infSnapshot.trigger.push_back(trig);
+				trig->classId = IIC_TRIGGER;
+				readInfTriggerFromSnapshot(trig);
+			}
+
+			// teleporters
+			for (u32 i = 0; i < infTeleporterCount; i++)
+			{
+				Editor_InfTeleporter* tele = new Editor_InfTeleporter();
+				s_infSnapshot.teleport.push_back(tele);
+				tele->classId = IIC_TELEPORTER;
+				readInfTeleporterFromSnapshot(tele);
+			}
+
+			// items
+			for (u32 i = 0; i < infItemCount; i++)
+			{
+				Editor_InfItem item;
+				readInfItemFromSnapshot(&item);
+				
+				// the rest of the classData are stored as indexes in the snapshot data.
+				// these need conversion to the memory address, recast as an Editor_InfClass*.
+				for (size_t i = 0; i < item.classData.size(); i++)
+				{
+					Editor_InfItemClass itemClass = (Editor_InfItemClass)readU32();
+					s32 itemIndex = readS32();
+					if (itemClass == IIC_ELEVATOR)
+					{
+						assert((s32)s_infSnapshot.elevator.size() > itemIndex);
+						item.classData[i] = ((Editor_InfClass*)s_infSnapshot.elevator[itemIndex]);
+					}
+					else if (itemClass == IIC_TRIGGER)
+					{
+						assert((s32)s_infSnapshot.trigger.size() > itemIndex);
+						item.classData[i] = ((Editor_InfClass*)s_infSnapshot.trigger[itemIndex]);
+					}
+					else if (itemClass == IIC_TELEPORTER)
+					{
+						assert((s32)s_infSnapshot.teleport.size() > itemIndex);
+						item.classData[i] = ((Editor_InfClass*)s_infSnapshot.teleport[itemIndex]);
+					}
+				}
+				s_infSnapshot.item.push_back(item);
+			}
 		}
+
 		// Then copy the snapshot to the level data itself. Its the new state.
 		s_level = s_curSnapshot;
+
+		// Repopulate the Inf struct
+		copyInfData(&s_infSnapshot, &s_levelInf);
 
 		// For now until the way snapshot memory is handled is refactored, to avoid duplicate code that will be removed later.
 		// TODO: Handle edit state properly here too.
