@@ -802,6 +802,9 @@
     <ClInclude Include="TFE_DarkForces\Landru\cutscene.h">
       <Filter>Source\TFE_DarkForces\Landru</Filter>
     </ClInclude>
+    <ClInclude Include="TFE_DarkForces\Landru\modcutscene.h">
+      <Filter>Source\TFE_DarkForces\Landru</Filter>
+    </ClInclude>	
     <ClInclude Include="TFE_DarkForces\Landru\cutscene_film.h">
       <Filter>Source\TFE_DarkForces\Landru</Filter>
     </ClInclude>
@@ -2019,6 +2022,9 @@
     <ClCompile Include="TFE_DarkForces\Landru\cutscene.cpp">
       <Filter>Source\TFE_DarkForces\Landru</Filter>
     </ClCompile>
+	<ClCompile Include="TFE_DarkForces\Landru\modcutscene.cpp">
+      <Filter>Source\TFE_DarkForces\Landru</Filter>
+    </ClCompile>	
     <ClCompile Include="TFE_DarkForces\Landru\cutscene_film.cpp">
       <Filter>Source\TFE_DarkForces\Landru</Filter>
     </ClCompile>

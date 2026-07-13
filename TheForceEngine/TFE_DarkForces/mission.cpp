@@ -556,7 +556,7 @@ namespace TFE_DarkForces
 			vfb_swap();
 		}
 	}
-				
+
 	void mission_mainTaskFunc(MessageType msg)
 	{
 		task_begin;
@@ -578,7 +578,7 @@ namespace TFE_DarkForces
 			// Grab the current framebuffer in case in changed.
 			s_framebuffer = vfb_getCpuBuffer();
 			TFE_Jedi::beginRender();
-						
+
 			// Handle delta time.
 			if (!TFE_Settings::getGraphicsSettings()->useSmoothDeltaTime)
 			{
@@ -595,7 +595,7 @@ namespace TFE_DarkForces
 			s_prevTick  = s_curTick;
 			s_prevTickFract = s_curTickFract;
 			s_playerTick = s_curTick;
-						
+
 			if (!escapeMenu_isOpen() && !pda_isOpen() && !cutscene_isPlaying())
 			{
 				player_setupCamera();
@@ -629,9 +629,16 @@ namespace TFE_DarkForces
 					// exactly where it left off.
 					mission_pause(JFALSE);
 					TFE_MidiPlayer::resume();
+
+					// TFE: If the cutscene was ended/skipped via the Escape key,
+					// the same key press was already latched this frame as the
+					// IADF_MENU_TOGGLE action (mapped to Escape by default).
+					// Clear it here so the escape menu doesn't immediately pop
+					// open right after the cutscene closes.
+					inputMapping_removeState(IADF_MENU_TOGGLE);
 				}
 			}
-						
+
 			if (!escapeMenu_isOpen() && !pda_isOpen() && !cutscene_isPlaying())
 			{
 				handleGeneralInput();
@@ -650,7 +657,7 @@ namespace TFE_DarkForces
 				Vec3f palFxGpu = { 0 };
 				TFE_Jedi::renderer_setPalFx(&lumMaskGpu, &palFxGpu);
 			}
-			
+
 			// Move this out of handleGeneralInput so that the HUD is properly copied.			
 			if (escapeMenu_isOpen() && !cutscene_isPlaying())
 			{
@@ -744,7 +751,7 @@ namespace TFE_DarkForces
 			sector_changeGlobalLightLevel();
 		}
 	}
-	
+
 	// Convert the palette to 32 bit color and then send to the render backend.
 	// This is functionally similar to loading the palette into VGA registers.
 	void setPalette(u8* pal)
@@ -759,7 +766,7 @@ namespace TFE_DarkForces
 		}
 		vfb_setPalette(palette);
 	}
-				
+
 	void blitLoadingScreen()
 	{
 		// Moddable loading screen
@@ -780,7 +787,7 @@ namespace TFE_DarkForces
 		{
 			s_loadScreen = s_defaultLoadScreen;
 		}
-		
+
 		if (!s_loadScreen) { return; }
 		blitTextureToScreen(s_loadScreen, (DrawRect*)vfb_getScreenRect(VFB_RECT_UI), 0/*x0*/, 0/*y0*/, s_framebuffer, JFALSE, JTRUE);
 	}
@@ -825,7 +832,7 @@ namespace TFE_DarkForces
 		s_cheatInputCount = 0;
 		s_queuedCheatID = CHEAT_NONE;
 	}
-		
+
 	void setScreenBrightness(fixed16_16 brightness)
 	{
 		if (brightness != s_screenBrightness)
@@ -856,7 +863,7 @@ namespace TFE_DarkForces
 			s_lumMaskChanged = JTRUE;
 		}
 	}
-		
+
 	void handlePaletteFx()
 	{
 		JBool useFramePal   = JFALSE;
@@ -1026,7 +1033,7 @@ namespace TFE_DarkForces
 		s_flatLighting = JFALSE;
 		s_visionFxEndCountdown = 3;
 	}
-		
+
 	void disableNightVision()
 	{
 		disableNightVisionInternal();
@@ -1066,7 +1073,7 @@ namespace TFE_DarkForces
 		s_wearingCleats = JTRUE;
 		hud_sendTextMessage(22);
 	}
-		
+
 	void disableMask()
 	{
 		if (!s_wearingGasmask)
@@ -1132,7 +1139,7 @@ namespace TFE_DarkForces
 		pickupSupercharge();
 		hud_sendTextMessage(701);
 	}
-	
+
 	void cheat_toggleData()
 	{
 		hud_toggleDataDisplay();
@@ -1306,7 +1313,7 @@ namespace TFE_DarkForces
 			} break;
 		}
 	}
-		
+
 	void handleBufferedInput()
 	{
 		const char* bufferedText = TFE_Input::getBufferedText();

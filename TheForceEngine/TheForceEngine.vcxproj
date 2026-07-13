@@ -414,6 +414,7 @@ echo ^)";
     <ClInclude Include="TFE_DarkForces\hud.h" />
     <ClInclude Include="TFE_DarkForces\item.h" />
     <ClInclude Include="TFE_DarkForces\Landru\cutscene.h" />
+	<ClInclude Include="TFE_DarkForces\Landru\modcutscene.h" />
     <ClInclude Include="TFE_DarkForces\Landru\cutsceneList.h" />
     <ClInclude Include="TFE_DarkForces\Landru\cutscene_film.h" />
     <ClInclude Include="TFE_DarkForces\Landru\cutscene_player.h" />
@@ -838,6 +839,7 @@ echo ^)";
     <ClCompile Include="TFE_DarkForces\hud.cpp" />
     <ClCompile Include="TFE_DarkForces\item.cpp" />
     <ClCompile Include="TFE_DarkForces\Landru\cutscene.cpp" />
+	<ClCompile Include="TFE_DarkForces\Landru\modcutscene.cpp" />
     <ClCompile Include="TFE_DarkForces\Landru\cutsceneList.cpp" />
     <ClCompile Include="TFE_DarkForces\Landru\cutscene_film.cpp" />
     <ClCompile Include="TFE_DarkForces\Landru\cutscene_player.cpp" />
