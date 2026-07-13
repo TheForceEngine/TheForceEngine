@@ -19,7 +19,7 @@
 #include <synchapi.h>
 #undef min
 #undef max
-#elif defined __linux__
+#elif defined __linux__ || defined __APPLE__
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/wait.h>
