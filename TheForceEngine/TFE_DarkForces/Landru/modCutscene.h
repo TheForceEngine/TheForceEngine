@@ -1,9 +1,9 @@
 #pragma once
 //////////////////////////////////////////////////////////////////////
-// Mod cutscene.txt override system
+// Mod cutscene.json override system
 //////////////////////////////////////////////////////////////////////
 //
-// A custom mod can ship a "cutscene.txt" file (JSON) at the root of its
+// A custom mod can ship a "cutscene.json" file at the root of its
 // zip to take full, explicit control of which OGV plays for the game's
 // intro/outro and for each mission's intro/outro - completely replacing
 // the stock cutscene.lst/scene-id driven system for those four slots.
@@ -31,7 +31,7 @@
 // "logo.ogv". Lookup order for each name: the mod zip first, then the
 // remaster's own movies/ directory as a fallback. If neither has it,
 // that slot plays nothing (it does NOT fall back to LFD/cutscene.lst -
-// once cutscene.txt is active, it's the sole source of truth for these
+// once cutscene.json is active, it's the sole source of truth for these
 // four slots). Likewise, a slot simply left out of the JSON (or the
 // whole "game" or mission object being absent) plays nothing.
 //
@@ -39,7 +39,7 @@
 
 namespace TFE_DarkForces
 {
-	// Parses "cutscene.txt" from the currently loaded mod, if any. Safe to
+	// Parses "cutscene.json" from the currently loaded mod, if any. Safe to
 	// call unconditionally (e.g. right after a mod's files are known) -
 	// it's a no-op, and modCutscene_isActive() stays false, if no mod is
 	// loaded or the mod didn't ship the file.
@@ -49,7 +49,7 @@ namespace TFE_DarkForces
 	// vanilla session) so a stale config can't leak into the next game.
 	void modCutscene_clear();
 
-	// True only when a loaded mod shipped a valid cutscene.txt. While
+	// True only when a loaded mod shipped a valid cutscene.json. While
 	// true, callers should use ONLY this system for the four slots below
 	// and must not fall back to cutscene.lst/scene ids for them.
 	bool modCutscene_isActive();

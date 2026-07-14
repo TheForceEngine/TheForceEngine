@@ -583,7 +583,7 @@ namespace TFE_DarkForces
 
 			if (s_runGameState.cutscenesEnabled && !s_runGameState.startLevel)
 			{
-				// If running a mod from cutscene.txt don't load LFD scenes
+				// If running a mod from cutscene.json don't load LFD scenes
 				// Just play the mod's intro video instead.
 				if (modCutscene_isActive())
 				{

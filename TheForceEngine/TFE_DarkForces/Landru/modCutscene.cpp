@@ -69,7 +69,7 @@ namespace TFE_DarkForces
 		if (!df_isCustomModLoaded()) { return; }
 
 		FilePath filePath;
-		if (!TFE_Paths::getFilePath("cutscene.txt", &filePath)) { return; }
+		if (!TFE_Paths::getFilePath("cutscene.json", &filePath)) { return; }
 
 		FileStream file;
 		if (!file.open(&filePath, FileStream::MODE_READ)) { return; }
@@ -78,7 +78,7 @@ namespace TFE_DarkForces
 		if (size == 0)
 		{
 			file.close();
-			TFE_System::logWrite(LOG_WARNING, "ModCutscene", "cutscene.txt is empty, ignoring.");
+			TFE_System::logWrite(LOG_WARNING, "ModCutscene", "cutscene.json is empty, ignoring.");
 			return;
 		}
 
@@ -98,7 +98,7 @@ namespace TFE_DarkForces
 		if (!root)
 		{
 			const char* err = cJSON_GetErrorPtr();
-			TFE_System::logWrite(LOG_ERROR, "ModCutscene", "Failed to parse cutscene.txt%s%s. Is the JSON valid? Check on jsonlint.com",
+			TFE_System::logWrite(LOG_ERROR, "ModCutscene", "Failed to parse cutscene.json %s%s. Is the JSON valid? Check on jsonlint.com",
 				err ? " near: " : "", err ? err : "");
 			return;
 		}
@@ -128,11 +128,11 @@ namespace TFE_DarkForces
 		cJSON_Delete(root);
 
 		// Active even if every slot turned out empty - an intentionally
-		// sparse or "no cutscenes" cutscene.txt should still fully
+		// sparse or "no cutscenes" cutscene.json should still fully
 		// override the stock system, not silently fall back to it.
 		s_active = true;
 
-		TFE_System::logWrite(LOG_MSG, "ModCutscene", "Loaded cutscene.txt (%d mission entr%s).",
+		TFE_System::logWrite(LOG_MSG, "ModCutscene", "Loaded cutscene.json (%d mission entr%s).",
 			missionCount, missionCount == 1 ? "y" : "ies");
 	}
 
