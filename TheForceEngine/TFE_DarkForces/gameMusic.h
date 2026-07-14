@@ -27,4 +27,5 @@ namespace TFE_DarkForces
 	void gameMusic_sustainFight();
 
 	MusicState gameMusic_getState();
+	void gameMusic_update();
 }  // TFE_DarkForces

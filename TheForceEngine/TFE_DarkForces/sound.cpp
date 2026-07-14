@@ -9,6 +9,7 @@
 #include <TFE_Asset/vocAsset.h>
 #include <TFE_Audio/audioSystem.h>
 #include <TFE_Audio/midiPlayer.h>
+#include <TFE_Audio/oggMusicPlayer.h>
 #include <TFE_Jedi/Math/core_math.h>
 #include <TFE_Jedi/IMuse/imuse.h>
 #include <TFE_Jedi/Memory/allocator.h>
@@ -39,9 +40,9 @@ namespace TFE_DarkForces
 		s32 soundLevelStart = -1;
 	};
 
-	#define MAX_LEVEL_SOUNDS 300
-	#define CUE_RING1 FIXED(30)
-	#define CUE_RING2 FIXED(150)
+#define MAX_LEVEL_SOUNDS 300
+#define CUE_RING1 FIXED(30)
+#define CUE_RING2 FIXED(150)
 
 	// SoundID is structed as:
 	// <- Higher .... Lower ->
@@ -50,7 +51,7 @@ namespace TFE_DarkForces
 	static const s64 c_soundInstanceShift = 48ll;
 	static const s32 c_soundInstanceMask = 0x7fff;
 	static const s32 s_tPan[32] = { 00,-06,-12,-18,-24,-30,-36,-42,-48,-42,-36,-30,-24,-18,-12,-06,00,06,12,18,24,30,36,42,48,42,36,30,24,18,12,06 };
-	
+
 	static SoundState sound_state = {};
 	s32 s_lastMaintainVolume;
 
@@ -67,7 +68,7 @@ namespace TFE_DarkForces
 		sound_state = {};
 		sound_state.gameSoundList = allocator_create(sizeof(GameSound), s_gameRegion);
 		ImInitialize(memRegion);
-		
+
 		TFE_Settings_Sound* sound = TFE_Settings::getSoundSettings();
 		if (sound->use16Channels)
 		{
@@ -89,6 +90,7 @@ namespace TFE_DarkForces
 		TFE_Settings_Sound* soundSettings = TFE_Settings::getSoundSettings();
 		TFE_Audio::setVolume(soundSettings->soundFxVolume * soundSettings->masterVolume);
 		TFE_MidiPlayer::setVolume(soundSettings->musicVolume * soundSettings->masterVolume);
+		TFE_OggMusicPlayer::setVolume(soundSettings->musicVolume * soundSettings->masterVolume);
 
 		ImSetResourceCallback(sound_getResource);
 		sound_state.instance = 1;
@@ -120,7 +122,7 @@ namespace TFE_DarkForces
 		}
 		return NULL_SOUND;
 	}
-		
+
 	void sound_setLevelStart()
 	{
 		sound_state.soundLevelStart = allocator_getCount(sound_state.gameSoundList);
@@ -305,8 +307,8 @@ namespace TFE_DarkForces
 	SoundEffectId sound_play(SoundSourceId id)
 	{
 		return sound_playPriority(id, -1, JTRUE);
-	}	
-	
+	}
+
 	// TFE
 	SoundEffectId sound_play_noCaptions(SoundSourceId id)
 	{
@@ -391,7 +393,7 @@ namespace TFE_DarkForces
 		}
 		return 0;
 	}
-		   
+
 	////////////////////////////////////////////////////////////////////
 	// Internal
 	////////////////////////////////////////////////////////////////////
@@ -430,7 +432,7 @@ namespace TFE_DarkForces
 			TFE_A11Y::onSoundPlay(sound->name, TFE_A11Y::CaptionEnv::CC_GAMEPLAY);
 		}
 	}
-		
+
 	SoundEffectId soundInstance(SoundSourceId soundId, s32 instance)
 	{
 		SoundEffectId id = soundId;

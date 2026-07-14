@@ -56,6 +56,8 @@
 #include <TFE_Jedi/Serialization/serialization.h>
 #include <TFE_ExternalData/weaponExternal.h>
 #include <TFE_ExternalData/pickupExternal.h>
+#include <TFE_ExternalData/musicExternal.h>
+#include <TFE_ExternalData/soundExternal.h>
 #include <assert.h>
 
 // Add texture callbacks.
@@ -86,6 +88,7 @@ namespace TFE_DarkForces
 	{
 		MAX_MOD_LFD = 16,
 		MAX_MOD_OGV = 32,
+		MAX_MOD_OGG = 32,
 	};
 
 	enum GameState
@@ -963,6 +966,9 @@ namespace TFE_DarkForces
 		s32 ogvIndex[MAX_MOD_OGV];
 		s32 ogvCount = 0;
 
+		s32 oggIndex[MAX_MOD_OGG];
+		s32 oggCount = 0;
+
 		strcpy(s_sharedState.customGobName, gobName);
 
 		if (TFE_Paths::getFilePath(gobName, &archivePath))
@@ -1011,6 +1017,10 @@ namespace TFE_DarkForces
 						{
 							ogvIndex[ogvCount++] = i;
 						}
+						else if (strcasecmp(zext, "ogg") == 0 && oggCount < MAX_MOD_OGG)
+						{
+							oggIndex[oggCount++] = i;
+						}
 						else if (strcasecmp(zext4, "json") == 0)
 						{
 							// Load external data overrides
@@ -1039,6 +1049,18 @@ namespace TFE_DarkForces
 							{
 								char* buffer = extractTextFileFromZip(*zipArchive, i);
 								TFE_ExternalData::parseExternalWeapons(buffer, true);
+								free(buffer);
+							}
+							else if (strcasecmp(fname, "music.json") == 0)
+							{
+								char* buffer = extractTextFileFromZip(*zipArchive, i);
+								TFE_ExternalData::parseExternalMusic(buffer, true);
+								free(buffer);
+							}
+							else if (strcasecmp(fname, "sounds.json") == 0)
+							{
+								char* buffer = extractTextFileFromZip(*zipArchive, i);
+								TFE_ExternalData::parseExternalSounds(buffer, true);
 								free(buffer);
 							}
 							else
@@ -1169,6 +1191,32 @@ namespace TFE_DarkForces
 						free(buffer);
 
 						TFE_Paths::addSingleFilePath(zipArchive->getFileName(ogvIndex[i]), ogvPath);
+					}
+
+					// Extract and copy any OGG music overrides. Registered
+					// under their original zip name (e.g. "music/fight-01.ogg")
+					// so TFE_Paths::getFilePath() finds them from the name
+					// recorded in music.json (see TFE_ExternalData/musicExternal.h) -
+					// same name-vs-disk-path split as the OGV case above.
+					for (s32 i = 0; i < oggCount; i++)
+					{
+						u32 bufferLen = (u32)zipArchive->getFileLength(oggIndex[i]);
+						u8* buffer = (u8*)malloc(bufferLen);
+						zipArchive->openFile(oggIndex[i]);
+						zipArchive->readFile(buffer, bufferLen);
+						zipArchive->closeFile();
+
+						char oggPath[TFE_MAX_PATH];
+						sprintf(oggPath, "%smusic%d.ogg", tempPath, i);
+						FileStream file;
+						if (file.open(oggPath, Stream::MODE_WRITE))
+						{
+							file.writeBuffer(buffer, bufferLen);
+							file.close();
+						}
+						free(buffer);
+
+						TFE_Paths::addSingleFilePath(zipArchive->getFileName(oggIndex[i]), oggPath);
 					}
 
 					// Add the ZIP archive itself.
@@ -1317,6 +1365,42 @@ namespace TFE_DarkForces
 							data[size] = 0;
 							file.close();
 							TFE_ExternalData::parseExternalWeapons(data, true);
+							free(data);
+						}
+					}
+
+					sprintf(jsonPath, "%s%s", modPath, "music.json");
+					if (FileUtil::exists(jsonPath))
+					{
+						FileStream file;
+						if (!file.open(jsonPath, FileStream::MODE_READ)) { return; }
+						const size_t size = file.getSize();
+						char* data = (char*)malloc(size + 1);
+
+						if (size > 0 && data)
+						{
+							file.readBuffer(data, (u32)size);
+							data[size] = 0;
+							file.close();
+							TFE_ExternalData::parseExternalMusic(data, true);
+							free(data);
+						}
+					}
+
+					sprintf(jsonPath, "%s%s", modPath, "sounds.json");
+					if (FileUtil::exists(jsonPath))
+					{
+						FileStream file;
+						if (!file.open(jsonPath, FileStream::MODE_READ)) { return; }
+						const size_t size = file.getSize();
+						char* data = (char*)malloc(size + 1);
+
+						if (size > 0 && data)
+						{
+							file.readBuffer(data, (u32)size);
+							data[size] = 0;
+							file.close();
+							TFE_ExternalData::parseExternalSounds(data, true);
 							free(data);
 						}
 					}
@@ -1491,6 +1575,10 @@ namespace TFE_DarkForces
 		{
 			TFE_System::logWrite(LOG_ERROR, "EXTERNAL_DATA", "Warning: Weapon data is incomplete. WEAPONS.JSON may have been altered. Weapons may not behave as expected.");
 		}
+
+		TFE_ExternalData::loadExternalMusic();
+
+		TFE_ExternalData::loadExternalSounds();
 
 		TFE_ExternalData::loadCustomLogics();
 

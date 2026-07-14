@@ -1,4 +1,5 @@
 #include <cstring>
+#include <cstdlib>
 
 #include "lsound.h"
 #include <TFE_A11y/accessibility.h>
@@ -7,6 +8,8 @@
 #include <TFE_FileSystem/paths.h>
 #include <TFE_FileSystem/filestream.h>
 #include <TFE_System/system.h>
+#include <TFE_Audio/oggDecode.h>
+#include <TFE_ExternalData/soundExternal.h>
 
 using namespace TFE_Jedi;
 
@@ -280,8 +283,78 @@ namespace TFE_DarkForces
 		}
 	}
 
+	static const s32 c_imuseDigitalSoundRate = 11000;
+
+	u8* wrapPcmAsVoc(const u8* pcm, u32 sampleCount, s32 sampleRate, u32* outSize)
+	{
+		static const u8 c_desc[20] = { 'C','r','e','a','t','i','v','e',' ','V','o','i','c','e',' ','F','i','l','e', 0x1A };
+		const u32 headerSize = 26;
+		const u32 blockHeaderSize = 6; // blocktype(1) + size(3) + sr(1) + pack(1)
+		const u32 totalSize = headerSize + blockHeaderSize + sampleCount + 1; // +1 terminator block
+
+		u8* voc = (u8*)game_alloc(totalSize);
+		if (!voc) { return nullptr; }
+
+		u8* w = voc;
+		memcpy(w, c_desc, 20); w += 20;
+
+		const u16 datablockOffset = (u16)headerSize;
+		const u16 version = 0x010A;
+		const u16 checksum = (u16)(~version + 0x1234);
+		memcpy(w, &datablockOffset, 2); w += 2;
+		memcpy(w, &version, 2); w += 2;
+		memcpy(w, &checksum, 2); w += 2;
+
+		*w++ = 1; // blocktype = VOC_SOUND_DATA
+		const u32 blockLen = 2 + sampleCount; // sr + pack bytes + pcm data
+		*w++ = (u8)(blockLen & 0xff);
+		*w++ = (u8)((blockLen >> 8) & 0xff);
+		*w++ = (u8)((blockLen >> 16) & 0xff);
+
+		s32 sr = 256 - (1000000 / sampleRate);
+		if (sr < 0) { sr = 0; }
+		if (sr > 255) { sr = 255; }
+		*w++ = (u8)sr;
+		*w++ = 0; // pack = CODEC_8BITS
+
+		memcpy(w, pcm, sampleCount); w += sampleCount;
+		*w++ = 0; // VOC_TERMINATOR
+
+		if (outSize) { *outSize = totalSize; }
+		return voc;
+	}
+
 	u8* readVocFileData(const char* name, u32* sizeOut)
 	{
+		// Does a mod want to replace this sound with a looping-free,
+		// one-shot Ogg Vorbis file? See TFE_ExternalData/soundExternal.h.
+		const char* oggOverride = TFE_ExternalData::getSoundOverride(name);
+		if (oggOverride)
+		{
+			FilePath oggPath;
+			if (TFE_Paths::getFilePath(oggOverride, &oggPath))
+			{
+				u32 sampleCount = 0;
+				u8* pcm = TFE_OggDecode::decodeToMono8(oggPath.path, c_imuseDigitalSoundRate, &sampleCount);
+				if (pcm)
+				{
+					u32 vocSize = 0;
+					u8* voc = wrapPcmAsVoc(pcm, sampleCount, c_imuseDigitalSoundRate, &vocSize);
+					free(pcm);
+					if (voc)
+					{
+						if (sizeOut) { *sizeOut = vocSize; }
+						return voc;
+					}
+				}
+				TFE_System::logWrite(LOG_ERROR, "Sound", "Failed to decode sound override '%s' for '%s' - falling back to the VOC.", oggOverride, name);
+			}
+			else
+			{
+				TFE_System::logWrite(LOG_ERROR, "Sound", "Cannot find sound override file '%s' for '%s' - falling back to the VOC.", oggOverride, name);
+			}
+		}
+
 		FilePath path;
 		if (strstr(name, ".voc") || strstr(name, ".VOC"))
 		{

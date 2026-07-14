@@ -6,7 +6,10 @@
 #include <TFE_Game/igame.h>
 #include <TFE_System/system.h>
 #include <TFE_FileSystem/filestream.h>
+#include <TFE_FileSystem/paths.h>
 #include <TFE_System/parser.h>
+#include <TFE_Audio/oggMusicPlayer.h>
+#include <TFE_ExternalData/musicExternal.h>
 #include <cstring>
 
 #define SHOW_GAME_MUSIC_MSG 0
@@ -158,6 +161,7 @@ namespace TFE_DarkForces
 	static u32 s_savedBeat = 0;
 	static Task* s_musicTask = nullptr;
 	static JBool s_desiredFightState = JFALSE;
+	static bool s_oggOverrideActive = false;
 	
 	s32  gameMusic_setLevel(s32 level);
 	s32  gameMusic_random(s32 low, s32 high);
@@ -182,6 +186,8 @@ namespace TFE_DarkForces
 	void gameMusic_stop()
 	{
 		gameMusic_setState(MUS_STATE_NULLSTATE);
+		TFE_OggMusicPlayer::stop();
+		s_oggOverrideActive = false;
 		s_musicTask = nullptr;
 		s_currentLevel = -1;
 	}
@@ -202,6 +208,8 @@ namespace TFE_DarkForces
 			{
 				ImStopAllSounds();
 				ImUnloadAll();
+				TFE_OggMusicPlayer::stop();
+				s_oggOverrideActive = false;
 				s_currentState = MUS_STATE_NULLSTATE;
 				if (s_currentLevel)
 				{
@@ -229,34 +237,71 @@ namespace TFE_DarkForces
 			{
 				s_currentState = state;
 				ImStopAllSounds();
-			}
-			else if (ImFindMidi(c_levelMusic[s_currentLevel-1][state-1]))
-			{
-				if (s_currentState)
-				{
-					// If there is no trigger set yet, set callback 1, otherwise we keep the current trigger.
-					if (!ImCheckTrigger(-1, -1, -1))
-					{
-						s_oldSong = ImFindMidi(c_levelMusic[s_currentLevel - 1][s_currentState - 1]);
-						ImSetTrigger(s_oldSong, 0, MUSIC_CALLBACK(iMuseCallback1));
-					}
-				}
-				else
-				{
-					// Start the sound from scratch since this is the initial state.
-					ImStartSound(ImFindMidi(c_levelMusic[s_currentLevel - 1][state - 1]), 64);
-				}
-
-				s_oldState = s_currentState;
-				s_currentState = state;
+				TFE_OggMusicPlayer::stop();
+				s_oggOverrideActive = false;
 			}
 			else
 			{
-				TFE_System::logWrite(LOG_ERROR, "Music", "Cannot start music.");
+				// Does this state have a mod-supplied looping Vorbis override?
+				// Keyed on the same track name iMuse would otherwise load
+				// (e.g. "fight-01") - see TFE_ExternalData/musicExternal.h.
+				const char* trackName = c_levelMusic[s_currentLevel - 1][state - 1];
+				const char* oggTrack = trackName[0] ? TFE_ExternalData::getMusicOverride(trackName) : nullptr;
+				FilePath resolvedOgg;
+				bool haveOggOverride = oggTrack && TFE_Paths::getFilePath(oggTrack, &resolvedOgg);
+
+				if (haveOggOverride)
+				{
+					// Halt iMuse audio.
+					ImStopAllSounds();
+					TFE_OggMusicPlayer::play(resolvedOgg.path, true);
+					s_oggOverrideActive = true;
+
+					s_oldState = s_currentState;
+					s_currentState = state;
+				}
+				else if (ImFindMidi(trackName))
+				{
+					if (s_oggOverrideActive)
+					{
+						// Coming from an override track - there's no iMuse
+						// transition state to resume from, so start the GMD
+						// track fresh, same as the initial-state case below.
+						TFE_OggMusicPlayer::stop();
+						s_oggOverrideActive = false;
+						ImStartSound(ImFindMidi(trackName), 64);
+					}
+					else if (s_currentState)
+					{
+						// If there is no trigger set yet, set callback 1, otherwise we keep the current trigger.
+						if (!ImCheckTrigger(-1, -1, -1))
+						{
+							s_oldSong = ImFindMidi(c_levelMusic[s_currentLevel - 1][s_currentState - 1]);
+							ImSetTrigger(s_oldSong, 0, MUSIC_CALLBACK(iMuseCallback1));
+						}
+					}
+					else
+					{
+						// Start the sound from scratch since this is the initial state.
+						ImStartSound(ImFindMidi(trackName), 64);
+					}
+
+					s_oldState = s_currentState;
+					s_currentState = state;
+				}
+				else
+				{
+					TFE_System::logWrite(LOG_ERROR, "Music", "Cannot start music.");
+				}
 			}
 		}
 
 		ImResume();
+	}
+
+	void gameMusic_update()
+	{
+		TFE_OggMusicPlayer::update();
 	}
 
 	MusicState gameMusic_getState()

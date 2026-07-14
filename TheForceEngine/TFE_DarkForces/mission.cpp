@@ -17,6 +17,7 @@
 #include <TFE_DarkForces/GameUI/pda.h>
 #include <TFE_DarkForces/Landru/cutscene.h>
 #include <TFE_Audio/midiPlayer.h>
+#include <TFE_Audio/oggMusicPlayer.h>
 #include <TFE_DarkForces/logic.h>
 #include <TFE_Game/igame.h>
 #include <TFE_Game/reticle.h>
@@ -573,7 +574,9 @@ namespace TFE_DarkForces
 			{
 				mission_pause(JTRUE);
 				TFE_MidiPlayer::pause();
+				TFE_OggMusicPlayer::pause();
 			}
+			gameMusic_update();
 
 			// Grab the current framebuffer in case in changed.
 			s_framebuffer = vfb_getCpuBuffer();
@@ -629,6 +632,7 @@ namespace TFE_DarkForces
 					// exactly where it left off.
 					mission_pause(JFALSE);
 					TFE_MidiPlayer::resume();
+					TFE_OggMusicPlayer::resume();
 
 					// TFE: If the cutscene was ended/skipped via the Escape key,
 					// the same key press was already latched this frame as the

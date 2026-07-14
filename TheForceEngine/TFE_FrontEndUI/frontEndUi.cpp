@@ -6,6 +6,7 @@
 #include <TFE_Audio/audioSystem.h>
 #include <TFE_Audio/midiPlayer.h>
 #include <TFE_Audio/midiDevice.h>
+#include <TFE_Audio/oggMusicPlayer.h>
 #include <TFE_Game/igame.h>
 #include <TFE_Game/reticle.h>
 #include <TFE_Game/saveSystem.h>
@@ -3483,6 +3484,7 @@ namespace TFE_FrontEndUI
 
 		TFE_Audio::setVolume(sound->soundFxVolume * sound->masterVolume);
 		TFE_MidiPlayer::setVolume(sound->musicVolume * sound->masterVolume);
+		TFE_OggMusicPlayer::setVolume(sound->musicVolume* sound->masterVolume);
 	}
 
 	void configSystem()
