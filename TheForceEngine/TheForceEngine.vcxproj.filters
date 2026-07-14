@@ -376,6 +376,12 @@
     <ClInclude Include="TFE_Audio\midiPlayer.h">
       <Filter>Source\TFE_Audio</Filter>
     </ClInclude>
+    <ClInclude Include="TFE_Audio\oggMusicPlayer.h">
+      <Filter>Source\TFE_Audio</Filter>
+    </ClInclude>
+	<ClInclude Include="TFE_Audio\oggDecode.h">
+      <Filter>Source\TFE_Audio</Filter>
+    </ClInclude>	
     <ClInclude Include="TFE_FrontEndUI\console.h">
       <Filter>Source\TFE_FrontEndUI</Filter>
     </ClInclude>
@@ -1432,6 +1438,12 @@
     <ClInclude Include="TFE_ExternalData\weaponExternal.h">
       <Filter>Source\TFE_ExternalData</Filter>
     </ClInclude>
+    <ClInclude Include="TFE_ExternalData\musicExternal.h">
+      <Filter>Source\TFE_ExternalData</Filter>
+    </ClInclude>	
+	<ClInclude Include="TFE_ExternalData\soundExternal.h">
+      <Filter>Source\TFE_ExternalData</Filter>
+    </ClInclude>	
     <ClInclude Include="TFE_DarkForces\Scripting\gameScripts.h">
       <Filter>Source\TFE_DarkForces\Scripting</Filter>
     </ClInclude>
@@ -1659,6 +1671,12 @@
     <ClCompile Include="TFE_Audio\midiPlayer.cpp">
       <Filter>Source\TFE_Audio</Filter>
     </ClCompile>
+    <ClCompile Include="TFE_Audio\oggMusicPlayer.cpp">
+      <Filter>Source\TFE_Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="TFE_Audio\oggDecode.cpp">
+      <Filter>Source\TFE_Audio</Filter>
+    </ClCompile>		
     <ClCompile Include="TFE_FrontEndUI\console.cpp">
       <Filter>Source\TFE_FrontEndUI</Filter>
     </ClCompile>
@@ -2577,6 +2595,12 @@
     <ClCompile Include="TFE_ExternalData\weaponExternal.cpp">
       <Filter>Source\TFE_ExternalData</Filter>
     </ClCompile>
+    <ClCompile Include="TFE_ExternalData\musicExternal.cpp">
+      <Filter>Source\TFE_ExternalData</Filter>
+    </ClCompile>
+	<ClCompile Include="TFE_ExternalData\soundExternal.cpp">
+      <Filter>Source\TFE_ExternalData</Filter>
+    </ClCompile>	
     <ClCompile Include="TFE_DarkForces\Scripting\gameScripts.cpp">
       <Filter>Source\TFE_DarkForces\Scripting</Filter>
     </ClCompile>
