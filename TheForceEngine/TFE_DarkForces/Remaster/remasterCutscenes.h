@@ -26,6 +26,7 @@
 // multiple scenes, so scene name is the right key.
 //
 #include <TFE_System/types.h>
+#include <string>
 
 struct CutsceneState;
 
@@ -42,6 +43,7 @@ namespace TFE_DarkForces
 	// Returns a pointer to a static buffer containing the path, or nullptr
 	// if the file doesn't exist. The buffer is reused across calls, so
 	// don't hold the pointer past the next lookup.
+	const char* remasterCutscenes_getVideoPathFromBasename(std::string baseName);
 	const char* remasterCutscenes_getVideoPath(const CutsceneState* scene);
 	const char* remasterCutscenes_getDcssPath(const CutsceneState* scene);
 	const char* remasterCutscenes_getSubtitlePath(const CutsceneState* scene);
