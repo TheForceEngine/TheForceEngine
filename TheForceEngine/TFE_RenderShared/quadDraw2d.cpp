@@ -21,6 +21,7 @@ namespace TFE_RenderShared
 		TextureGpu* texture;
 		s32 offset;
 		s32 count;
+		bool greyScale;
 	};
 	static const AttributeMapping c_quadAttrMapping[]=
 	{
@@ -33,6 +34,7 @@ namespace TFE_RenderShared
 	static s32 s_svScaleOffset = -1;
 
 	static Shader s_shader;
+	static Shader s_shaderGreyscale;
 	static VertexBuffer s_vertexBuffer;
 	static IndexBuffer  s_indexBuffer;
 
@@ -46,11 +48,16 @@ namespace TFE_RenderShared
 
 	bool quadInit()
 	{
-		if (!s_shader.load("Shaders/quad2d.vert", "Shaders/quad2d.frag"))
+		if (!s_shader.load("Shaders/quad2d.vert", "Shaders/quad2dColor.frag"))
+		{
+			return false;
+		}
+		if (!s_shaderGreyscale.load("Shaders/quad2d.vert", "Shaders/quad2dGreyscale.frag"))
 		{
 			return false;
 		}
 		s_shader.bindTextureNameToSlot("Image", 0);
+		s_shaderGreyscale.bindTextureNameToSlot("Image", 0);
 
 		s_svScaleOffset = s_shader.getVariableId("ScaleOffset");
 		if (s_svScaleOffset < 0)
@@ -100,13 +107,14 @@ namespace TFE_RenderShared
 		s_quadDrawCount = 0;
 	}
 
-	void quadDraw2d_add(u32 count, const Vec2f* quads, const u32* quadColors, f32 u0, f32 u1, TextureGpu* texture)
+	void quadDraw2d_add(u32 count, const Vec2f* quads, const u32* quadColors, f32 u0, f32 u1, TextureGpu* texture, bool greyScale)
 	{
 		if (!s_vertices) { return; }
 
 		s_quadDraw[s_quadDrawCount].texture = texture;
 		s_quadDraw[s_quadDrawCount].offset = s_quadCount;
 		s_quadDraw[s_quadDrawCount].count = count;
+		s_quadDraw[s_quadDrawCount].greyScale = greyScale;
 		s_quadDrawCount++;
 
 		QuadVertex* vert = &s_vertices[s_quadCount * 4];
@@ -149,14 +157,14 @@ namespace TFE_RenderShared
 		}
 	}
 
-	void quadDraw2d_add(const Vec2f* vertices, const u32* colors, TextureGpu* texture)
+	void quadDraw2d_add(const Vec2f* vertices, const u32* colors, TextureGpu* texture, bool greyScale)
 	{
-		quadDraw2d_add(1, vertices, colors, 0.0f, 1.0f, texture);
+		quadDraw2d_add(1, vertices, colors, 0.0f, 1.0f, texture, greyScale);
 	}
 
-	void quadDraw2d_add(const Vec2f* vertices, const u32* colors, f32 u0, f32 u1, TextureGpu* texture)
+	void quadDraw2d_add(const Vec2f* vertices, const u32* colors, f32 u0, f32 u1, TextureGpu* texture, bool greyScale)
 	{
-		quadDraw2d_add(1, vertices, colors, u0, u1, texture);
+		quadDraw2d_add(1, vertices, colors, u0, u1, texture, greyScale);
 	}
 
 	void quadDraw2d_draw()
@@ -164,6 +172,10 @@ namespace TFE_RenderShared
 		if (s_quadCount < 1 || s_quadDrawCount < 1) { return; }
 
 		s_vertexBuffer.update(s_vertices, s_quadCount * 4 * sizeof(QuadVertex));
+
+		// Bind vertex/index buffers and setup attributes for BlitVert
+		s_vertexBuffer.bind();
+		u32 indexSizeType = s_indexBuffer.bind();
 
 		const f32 scaleX = 2.0f / f32(s_width);
 		const f32 scaleY = 2.0f / f32(s_height);
@@ -176,24 +188,36 @@ namespace TFE_RenderShared
 		TFE_RenderState::setStateEnable(true, STATE_BLEND);
 		TFE_RenderState::setBlendMode(BLEND_ONE, BLEND_ONE_MINUS_SRC_ALPHA);
 
+		// 1. Draw coloured quads
 		s_shader.bind();
 		// Bind Uniforms & Textures.
 		const f32 scaleOffset[] = { scaleX, scaleY, offsetX, offsetY };
 		s_shader.setVariable(s_svScaleOffset, SVT_VEC4, scaleOffset);
 
-		// Bind vertex/index buffers and setup attributes for BlitVert
-		s_vertexBuffer.bind();
-		u32 indexSizeType = s_indexBuffer.bind();
+		for (u32 i = 0; i < s_quadDrawCount; i++)
+		{
+			QuadDraw* draw = &s_quadDraw[i];
+			if (draw->greyScale) { continue; }
+			s_quadDraw[i].texture->bind();
+			TFE_RenderBackend::drawIndexedTriangles(draw->count * 2, sizeof(u32), draw->offset * 6);
+		}
+		s_shader.unbind();
+
+		// 2. Draw greyscale quads
+		s_shaderGreyscale.bind();
+		// Bind Uniforms & Textures.
+		s_shaderGreyscale.setVariable(s_svScaleOffset, SVT_VEC4, scaleOffset);
 
 		for (u32 i = 0; i < s_quadDrawCount; i++)
 		{
 			QuadDraw* draw = &s_quadDraw[i];
+			if (!draw->greyScale) { continue; }
 			s_quadDraw[i].texture->bind();
 			TFE_RenderBackend::drawIndexedTriangles(draw->count * 2, sizeof(u32), draw->offset * 6);
 		}
+		s_shaderGreyscale.unbind();
 
 		// Cleanup.
-		s_shader.unbind();
 		s_vertexBuffer.unbind();
 		s_indexBuffer.unbind();
 
