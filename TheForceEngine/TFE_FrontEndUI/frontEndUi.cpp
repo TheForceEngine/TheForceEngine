@@ -43,6 +43,7 @@
 #include <TFE_DarkForces/config.h>
 #include <TFE_DarkForces/player.h>
 #include <TFE_DarkForces/hud.h>
+#include <TFE_DarkForces/GameUI/pda.h>
 #include <TFE_Jedi/Renderer/RClassic_Float/rlightingFloat.h>
 #include <TFE_DarkForces/darkForcesMain.h>
 #include <climits>
@@ -1513,7 +1514,7 @@ namespace TFE_FrontEndUI
 			if (enhanceLFDExists())
 			{
 				enhancements->enableHdPda = !useHdAssets;
-				if (enhancements->enableHdPda) { TFE_DarkForces::pda_resetState(); }
+				if (enhancements->enableHdPda) { TFE_DarkForces::pda_cleanup(); }	// reset the PDA so assets (including high res images) will be re-loaded when it re-starts
 			}
 
 			renderBackground(true);
@@ -1652,6 +1653,7 @@ namespace TFE_FrontEndUI
 		if (ImGui::Checkbox("Use HD PDA", &useHdPda))
 		{
 			enhancements->enableHdPda = useHdPda;
+			TFE_DarkForces::pda_cleanup();	// reset the PDA so assets (including high res images) will be re-loaded when it re-starts
 		}
 
 		if (!enhancedLfdExists || graphics->colorMode != COLORMODE_TRUE_COLOR)
