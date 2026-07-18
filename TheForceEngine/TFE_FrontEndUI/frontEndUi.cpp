@@ -42,6 +42,7 @@
 #include <TFE_DarkForces/config.h>
 #include <TFE_DarkForces/player.h>
 #include <TFE_DarkForces/hud.h>
+#include <TFE_DarkForces/GameUI/pda.h>
 #include <TFE_Jedi/Renderer/RClassic_Float/rlightingFloat.h>
 #include <TFE_DarkForces/darkForcesMain.h>
 #include <climits>
@@ -1651,6 +1652,7 @@ namespace TFE_FrontEndUI
 		if (ImGui::Checkbox("Use HD PDA", &useHdPda))
 		{
 			enhancements->enableHdPda = useHdPda;
+			TFE_DarkForces::pda_resetState();
 		}
 
 		if (!enhancedLfdExists || graphics->colorMode != COLORMODE_TRUE_COLOR)

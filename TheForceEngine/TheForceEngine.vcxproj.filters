@@ -1516,6 +1516,9 @@
     <ClInclude Include="TFE_ExternalData\customEffect.h">
       <Filter>Source\TFE_ExternalData</Filter>
     </ClInclude>
+    <ClInclude Include="TFE_DarkForces\Landru\highResActor.h">
+      <Filter>Source\TFE_DarkForces\Landru</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -2660,6 +2663,9 @@
     </ClCompile>
     <ClCompile Include="TFE_ExternalData\customEffect.cpp">
       <Filter>Source\TFE_ExternalData</Filter>
+    </ClCompile>
+    <ClCompile Include="TFE_DarkForces\Landru\highResActor.cpp">
+      <Filter>Source\TFE_DarkForces\Landru</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

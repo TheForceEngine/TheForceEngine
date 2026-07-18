@@ -170,6 +170,14 @@ namespace TFE_DarkForces
 		landru_free(actor);
 	}
 
+	// TFE
+	HighResActor* actorHighRes_alloc()
+	{
+		HighResActor* actor = (HighResActor*)landru_alloc(sizeof(HighResActor));
+		memset(actor, 0, sizeof(HighResActor));
+		return actor;
+	}
+
 	void lactor_freeList(LActor* actor)
 	{
 		while (actor)

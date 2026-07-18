@@ -2,12 +2,14 @@
 #include "pda.h"
 #include "menu.h"
 #include "missionBriefing.h"
+#include "uiDraw.h"
 #include <TFE_DarkForces/Landru/lactorDelt.h>
 #include <TFE_DarkForces/Landru/lactorAnim.h>
 #include <TFE_DarkForces/Landru/lpalette.h>
 #include <TFE_DarkForces/Landru/lcanvas.h>
 #include <TFE_DarkForces/Landru/ldraw.h>
 #include <TFE_DarkForces/Landru/lfont.h>
+#include <TFE_DarkForces/Landru/highResActor.h>
 #include <TFE_DarkForces/automap.h>
 #include <TFE_DarkForces/player.h>
 #include <TFE_DarkForces/hud.h>
@@ -23,14 +25,13 @@
 #include <TFE_Jedi/Math/core_math.h>
 #include <TFE_Jedi/Renderer/virtualFramebuffer.h>
 #include <TFE_Jedi/Renderer/screenDraw.h>
+#include <TFE_Jedi/Renderer/RClassic_GPU/screenDrawGPU.h>
 #include <TFE_Jedi/Level/levelData.h>
 #include <TFE_Jedi/Level/rtexture.h>
 #include <TFE_Jedi/Level/level.h>
 #include <TFE_Jedi/Level/rfont.h>
 #include <TFE_Jedi/Renderer/jediRenderer.h>
-#include <TFE_Settings/settings.h>
 #include <TFE_Input/replay.h>
-#include <TFE_Input/inputMapping.h>
 
 using namespace TFE_Jedi;
 using namespace TFE_Input;
@@ -89,6 +90,14 @@ namespace TFE_DarkForces
 	static LActor* s_goalsActor   = nullptr;
 	static LActor* s_weapons = nullptr;
 	static LActor* s_items   = nullptr;
+
+	// High res assets
+	static HighResActor* s_briefingHigh = nullptr;
+	static HighResActor* s_pdaArtHigh = nullptr;
+	static HighResActor* s_goalsHigh = nullptr;
+	static HighResActor* s_weaponsHigh = nullptr;
+	static HighResActor* s_itemsHigh = nullptr;
+
 	static LPalette* s_palette = nullptr;
 	static LRect s_pdaRect   = { 12, 15, 168, 305 };
 	static LRect s_viewBounds;
@@ -105,7 +114,12 @@ namespace TFE_DarkForces
 	static s16 s_briefY;
 	static s32 mouseOldPosX = 0, mouseOldPosZ = 0;
 	static bool mouseMoveReset = true;
-		
+
+	// High res PDA
+	static bool s_isGpuMode = false;
+	static TextureGpu* s_highResTex;
+	static u32 s_highResBuffer[640 * 400];
+
 	void pda_handleInput();
 	void pda_drawCommonButtons();
 	void pda_drawMapButtons();
@@ -113,6 +127,9 @@ namespace TFE_DarkForces
 	void pda_drawOverlay();
 	void pda_clearToBlack();
 	void pda_displayFontString(Font* font, s32 x, s32 y, char* msg);
+
+	void pda_loadHighResActors(const char* levelName);
+	void pda_drawHighRes(u32 outWidth, u32 outHeight);
 
 	extern void pauseLevelSound();
 	// From DarkForcesMain
@@ -129,6 +146,11 @@ namespace TFE_DarkForces
 		s_mouseAccum = { 0 };
 		mouseOldPosX = 0, mouseOldPosZ = 0;
 		pauseLevelSound();
+
+		bool highRes = TFE_Settings::getEnhancementsSettings()->enableHdPda &&
+			TFE_Settings::getGraphicsSettings()->colorMode == COLORMODE_TRUE_COLOR;
+		s_isGpuMode = TFE_Jedi::renderer_getType() == RENDERER_HARDWARE;
+
 		if (!s_pdaLoaded)
 		{
 			if (!menu_openResourceArchive("dfbrief.lfd"))
@@ -178,9 +200,20 @@ namespace TFE_DarkForces
 			
 			menu_closeResourceArchive();
 
+			if (highRes)
+			{
+				pda_loadHighResActors(levelName);
+				s_highResTex = TFE_RenderBackend::createTexture(640, 400, TEX_RGBA8);
+			}
+
 			s_pdaLoaded = JTRUE;
 		}
 		lpalette_setScreenPal(s_palette);
+
+		if (highRes)
+		{
+			TFE_Jedi::render_setResolution();
+		}
 
 		s_pdaOpen = JTRUE;
 		s_buttonPressed = -1;
@@ -228,6 +261,8 @@ namespace TFE_DarkForces
 		s_weapons    = nullptr;
 		s_items      = nullptr;
 		s_palette    = nullptr;
+
+		s_pdaArtHigh = nullptr;
 	}
 
 	JBool pda_isOpen()
@@ -290,12 +325,23 @@ namespace TFE_DarkForces
 		vfb_getResolution(&outWidth, &outHeight);
 		memset(vfb_getCpuBuffer(), 0, outWidth * outHeight);
 		
+		bool highRes = TFE_Settings::getEnhancementsSettings()->enableHdPda &&
+			TFE_Settings::getGraphicsSettings()->colorMode == COLORMODE_TRUE_COLOR;
+		if (highRes && s_isGpuMode)
+		{
+			memset(s_highResBuffer, 0, sizeof(s_highResBuffer));
+			pda_drawHighRes(outWidth, outHeight);
+			return;
+		}
+
+		// Original low res pathway
 		// Draw the overlay *behind* the main view - which means we must blit it to the view.
 		pda_drawOverlay();
 		
 		// Finally draw the PDA background and UI controls.
 		lcanvas_eraseRect(&s_viewBounds);
 		lactor_setState(s_pdaArt, 0, 0);
+
 		lactorAnim_draw(s_pdaArt, &s_viewBounds, &s_viewBounds, 0, 0, JTRUE);
 				
 		// Common buttons
@@ -926,5 +972,215 @@ namespace TFE_DarkForces
 			msg++;
 			c = *msg;
 		}
+	}
+
+	//////////////////////
+	// High res PDA
+	//////////////////////
+
+	void pda_loadHighResActors(const char* levelName)
+	{
+		s_briefingHigh = highResActor_loadFromPng("dfbrief", levelName, 1, /*anim*/false);
+		s_goalsHigh = highResActor_loadFromPng("dfbrief", levelName, s_goalsActor->arraySize);
+		s_pdaArtHigh = highResActor_loadFromPng("menu", "pda", s_pdaArt->arraySize);
+		s_itemsHigh = highResActor_loadFromPng("dfbrief", "items", s_items->arraySize);
+		s_weaponsHigh = highResActor_loadFromPng("dfbrief", "guns", s_weapons->arraySize);
+	}
+
+	// This is specifically for ANIMpda_0.PNG
+	void pda_copyHighResBackgroundToBuffer()
+	{
+		u32 width = s_pdaArt->w * 2;
+		u32 height = s_pdaArt->h * 2;
+		s16* deltData = (s16*)s_pdaArt->array[s_pdaArt->state];
+		s16 xOffset = deltData[0] * 2;
+		s16 yOffset = deltData[1] * 2;
+
+		// Define the content area which we don't want to block out. ANIMpda_0.PNG doesn't use transparency so we will rely on the original overlayRect.
+		LRect contentRect;
+		contentRect.left = (s16)(s_overlayRect.left * 2);
+		contentRect.right = (s16)(s_overlayRect.right * 2 - 1);
+		contentRect.top = (s16)(s_overlayRect.top * 2);
+		contentRect.bottom = (s16)(s_overlayRect.bottom * 2 - 1);
+
+		for (s32 y = 0; y < height; y++)
+		{
+			for (s32 x = 0; x < width; x++)
+			{
+				if ((x >= contentRect.left && x <= contentRect.right) && (y >= contentRect.top && y <= contentRect.bottom)) { continue; }	// skip pixels in the content rect
+				s_highResBuffer[(yOffset + y) * 640 + xOffset + x] = s_pdaArtHigh->array[s_pdaArt->state][y * width + x];
+			}
+		}
+	}
+
+	void pda_copyHighResImageToBuffer(LActor* lactor, HighResActor* hiResActor)
+	{
+		u32 width = lactor->w * 2;
+		u32 height = lactor->h * 2;
+		s16* deltData = (s16*)lactor->array[lactor->state];
+		s16 xOffset = deltData[0] * 2;
+		s16 yOffset = deltData[1] * 2;
+
+		for (s32 y = 0; y < height; y++)
+		{
+			for (s32 x = 0; x < width; x++)
+			{
+				u32 pixel = hiResActor->array[lactor->state][y * width + x];
+				if (pixel >> 24u == 0) { continue; }	// skip transparent pixels
+				s_highResBuffer[(yOffset + y) * 640 + xOffset + x] = pixel;
+			}
+		}
+
+		/*
+		// This code copies the entire image, ignoring alpha
+		for (s32 row = 0; row < height; row++)
+		{
+			memcpy(&s_highResBuffer[(row + yOffset) * 640 + xOffset], &hiResActor->array[lactor->state][row * width], width * 4);
+		}
+		*/
+	}
+
+	void pda_copyHighResBriefingToBuffer()
+	{
+		s32 origWidth = s_briefing->w + 1;	// We have to add 1 here to get the correct width, because DELT format saves width as width - 1
+		s32 margin = (s_overlayRect.right - s_overlayRect.left - origWidth) >> 1;
+		s32 xOffset = (margin + s_overlayRect.left) * 2;
+		s32 yOffset = s_overlayRect.top * 2;
+		s32 clipTop = s_briefY * 2;
+		s32 clipBot = min(s_overlayRect.bottom - s_overlayRect.top + s_briefY, s_briefing->h) * 2;
+		u32 width = origWidth * 2;
+
+		for (s32 y = clipTop; y < clipBot; y++)
+		{
+			for (s32 x = 0; x < width; x++)
+			{
+				u32 pixel = s_briefingHigh->array[0][y * width + x];
+				if (pixel >> 24u == 0) { continue; }	// skip transparent pixels
+				s_highResBuffer[(yOffset + y - clipTop) * 640 + xOffset + x] = pixel;
+			}
+		}
+	}
+
+	void pda_drawHighResButton(PdaButton id)
+	{
+		s32 pressed = 0;
+		if ((s_buttonHover && id == s_buttonPressed) || (id == (PdaButton)s_pdaMode))
+		{
+			pressed = 1;
+		}
+
+		lactor_setState(s_pdaArt, 2 * (1 + id) + (pressed ? 0 : 1), 0);
+		pda_copyHighResImageToBuffer(s_pdaArt, s_pdaArtHigh);
+	}
+
+	void pda_drawHighRes(u32 outWidth, u32 outHeight)
+	{
+		ScreenRect* uiRect = vfb_getScreenRect(VFB_RECT_UI);
+		fixed16_16 xScale = vfb_getXScale();
+		fixed16_16 yScale = vfb_getYScale();
+		s32 uiWidth = uiRect->right - uiRect->left + 1;
+		s32 virtualWidth = floor16(mul16(intToFixed16(320), xScale));
+		s32 xOffset = max(0, (uiWidth - virtualWidth) / 2);
+
+		// Overlay
+		if (s_pdaMode == PDA_MODE_MAP)
+		{
+			ScreenRect clipRect;
+			clipRect.left = xOffset + floor16(mul16(intToFixed16(s_pdaRect.left), xScale) + xScale);
+			clipRect.right = xOffset + floor16(mul16(intToFixed16(s_pdaRect.right), xScale) - xScale);
+			clipRect.top = floor16(mul16(intToFixed16(s_pdaRect.top), yScale) + yScale);
+			clipRect.bot = floor16(mul16(intToFixed16(s_pdaRect.bottom), yScale) - yScale);
+
+			vfb_setScreenRect(VFB_RECT_RENDER, &clipRect);
+			automap_draw(vfb_getCpuBuffer());
+			vfb_restoreScreenRect(VFB_RECT_RENDER);
+
+			// TODO - this is currently drawing in front of the rest of the PDA art - needs to be clipped to overlayRect
+		}
+		else if (s_pdaMode == PDA_MODE_WEAPONS && s_weapons && s_weaponsHigh)
+		{
+			for (s32 i = 0; i < s_weapons->arraySize; i++)
+			{
+				if (player_hasWeapon(i + 2))
+				{
+					lactor_setState(s_weapons, i, 0);
+					pda_copyHighResImageToBuffer(s_weapons, s_weaponsHigh);
+				}
+			}
+		}
+		else if (s_pdaMode == PDA_MODE_INV && s_items && s_itemsHigh)
+		{
+			for (s32 i = 0; i < s_items->arraySize; i++)
+			{
+				if (player_hasItem(i))
+				{
+					lactor_setState(s_items, i, 0);
+					pda_copyHighResImageToBuffer(s_items, s_itemsHigh);
+				}
+			}
+		}
+		else if (s_pdaMode == PDA_MODE_BRIEF && s_briefing && s_briefingHigh)
+		{
+			pda_copyHighResBriefingToBuffer();
+		}
+		else if (s_pdaMode == PDA_MODE_GOALS && s_goalsActor && s_goalsHigh)
+		{
+			lactor_setState(s_goalsActor, 0, 0);
+			pda_copyHighResImageToBuffer(s_goalsActor, s_goalsHigh);
+
+			s32 goalCount = s_goalsActor->arraySize - 1;
+			for (s32 i = 0; i < goalCount; i++)
+			{
+				if (level_isGoalComplete(i))
+				{
+					lactor_setState(s_goalsActor, i + 1, 0);
+					pda_copyHighResImageToBuffer(s_goalsActor, s_goalsHigh);
+				}
+			}
+
+			s32 secretPercentage = s_levelState.secretCount ? floor16(mul16(FIXED(100), div16(intToFixed16(s_secretsFound), intToFixed16(s_levelState.secretCount)))) : 0;
+			lactor_setState(s_pdaArt, 30, 0);
+			pda_copyHighResImageToBuffer(s_pdaArt, s_pdaArtHigh);
+
+			// TO DO - secret percentage / count
+		}
+
+		// PDA background
+		lactor_setState(s_pdaArt, 0, 0);
+		pda_copyHighResBackgroundToBuffer();
+		// ANIMpda_1 is not used by vanilla, but it does what we need here 
+		lactor_setState(s_pdaArt, 1, 0);
+		pda_copyHighResImageToBuffer(s_pdaArt, s_pdaArtHigh);
+
+		// Common buttons
+		for (s32 i = PDA_BTN_MAP; i <= PDA_BTN_EXIT; i++)
+		{
+			pda_drawHighResButton(PdaButton(i));
+		}
+
+		if (s_pdaMode == PDA_MODE_MAP)
+		{
+			// Map buttons
+			for (s32 i = PDA_BTN_PANUP; i <= PDA_BTN_LAYERDOWN; i++)
+			{
+				pda_drawHighResButton(PdaButton(i));
+			}
+
+			// Draw the floor number
+			// TODO
+		}
+		else if (s_pdaMode == PDA_MODE_BRIEF)
+		{
+			pda_drawHighResButton(PdaButton(PDA_BTN_PANUP));
+			pda_drawHighResButton(PdaButton(PDA_BTN_PANDOWN));
+		}
+
+		// Draw the image
+		s_highResTex->update(s_highResBuffer, sizeof(s_highResBuffer));
+		vfb_forceToBlack();
+		screenGPU_addImageQuad(xOffset, 0, xOffset + virtualWidth, outHeight, s_highResTex);
+
+		// Cursor (currently still the low res DELT)
+		screenGPU_blitTextureScaled(&s_cursor.texture, nullptr, mul16(intToFixed16(s_cursorPos.x), xScale) + intToFixed16(xOffset), mul16(intToFixed16(s_cursorPos.z), yScale), xScale, yScale, 31);
 	}
 }

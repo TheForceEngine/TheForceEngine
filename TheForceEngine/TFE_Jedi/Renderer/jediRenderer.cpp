@@ -1,4 +1,5 @@
 #include "jediRenderer.h"
+#include <TFE_DarkForces/GameUI/pda.h>
 #include <TFE_Jedi/Math/fixedPoint.h>
 #include <TFE_Jedi/Level/robject.h>
 #include <TFE_Jedi/Level/level.h>
@@ -265,8 +266,12 @@ namespace TFE_Jedi
 		// Make sure the adjustedWidth is divisible by 4.
 		width = 4 * ((width + 3) >> 2);
 
+		bool highRes = TFE_Settings::getEnhancementsSettings()->enableHdPda &&
+			TFE_Settings::getGraphicsSettings()->colorMode == COLORMODE_TRUE_COLOR;
+		bool inHighResPda = highRes && TFE_DarkForces::pda_isOpen();
+
 		TFE_SubRenderer subRenderer = s_rendererType == RENDERER_HARDWARE ? TSR_CLASSIC_GPU : (width == 320 && height == 200) ? TSR_CLASSIC_FIXED : TSR_CLASSIC_FLOAT;
-		vfb_setMode(subRenderer == TSR_CLASSIC_GPU ? VFB_RENDER_TRAGET : VFB_TEXTURE);
+		vfb_setMode(subRenderer == TSR_CLASSIC_GPU || inHighResPda ? VFB_RENDER_TRAGET : VFB_TEXTURE);
 		bool updateTexturePacking = forceTextureUpdate;
 		bool enableMips = s_trueColor && graphics->useMipmapping;
 		if (s_trueColor != (graphics->colorMode == COLORMODE_TRUE_COLOR))
