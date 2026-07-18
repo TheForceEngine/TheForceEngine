@@ -1753,7 +1753,7 @@ namespace TFE_DarkForces
 			s_playerYaw &= ANGLE_MASK;
 		}
 		// Pitch change
-		if (inputConfig->mouseMode == MMODE_LOOK)
+		if (inputConfig->mouseMode == MMODE_LOOK && !s_disablePlayerRotation )
 		{
 			f32 pitchDelta = f32(mdy * PLAYER_MOUSE_TURN_SPD) * inputMapping_getVertMouseSensitivity();
 			// Counteract the tan() call later in the delta in order to make the movement perceptually linear.
@@ -3117,11 +3117,11 @@ namespace TFE_DarkForces
 		case 6:
 			retval = s_playerInfo.itemFusion;
 			break;
-		case 7:
-			retval = s_playerInfo.ammoMine > 0 ? JTRUE : JFALSE;
-			break;
-		case 8:
+		case 7:	// WPN_MORTAR + 1 (The weapon indexes are backwards for mine & mortar in Weapon.h)
 			retval = s_playerInfo.itemMortar;
+			break;
+		case 8:	// WPN_MINE + 1
+			retval = s_playerInfo.ammoMine > 0 ? JTRUE : JFALSE;
 			break;
 		case 9:
 			retval = s_playerInfo.itemConcussion;

@@ -18,13 +18,14 @@ namespace TFE_Input
 		INPUT_ADD_DEADZONE  = 0x00020002,
 		INPUT_ADD_HIGH_DEF  = 0x00020003,
 		INPUT_DEMO_CONFIG   = 0x00020004,
-		INPUT_CUR_VERSION = INPUT_DEMO_CONFIG
+		INPUT_ADD_WPN_WHEEL = 0x00020005,
+		INPUT_CUR_VERSION = INPUT_ADD_WPN_WHEEL
 	};
 
 	static const char* c_inputRemappingName = "tfe_input_remapping.bin";
 	static const char  c_inputRemappingHdr[4] = { 'T', 'F', 'E', 0 };
 	static const u32   c_inputRemappingVersion = INPUT_CUR_VERSION;
-		
+
 	static InputBinding s_defaultKeyboardBinds[] =
 	{
 		// System
@@ -102,6 +103,9 @@ namespace TFE_Input
 		// DEMO handling
 		{ IADF_DEMO_SPEEDUP, ITYPE_KEYBOARD, KEY_KP_PLUS },
 		{ IADF_DEMO_SLOWDOWN, ITYPE_KEYBOARD, KEY_KP_MINUS },
+
+		// Weapon Wheel
+		{ IADF_WEAPON_WHEEL, ITYPE_KEYBOARD, KEY_Q },
 	};
 
 	static InputBinding s_defaultControllerBinds[] =
@@ -117,7 +121,7 @@ namespace TFE_Input
 
 		{ IADF_PRIMARY_FIRE,   ITYPE_CONTROLLER_AXIS, AXIS_RIGHT_TRIGGER },
 		{ IADF_SECONDARY_FIRE, ITYPE_CONTROLLER_AXIS, AXIS_LEFT_TRIGGER },
-		
+
 		{ IADF_HEAD_LAMP_TOGGLE, ITYPE_CONTROLLER, CONTROLLER_BUTTON_DPAD_RIGHT },
 		{ IADF_NIGHT_VISION_TOG, ITYPE_CONTROLLER, CONTROLLER_BUTTON_DPAD_LEFT },
 		{ IADF_AUTOMAP,          ITYPE_CONTROLLER, CONTROLLER_BUTTON_DPAD_UP },
@@ -125,6 +129,8 @@ namespace TFE_Input
 
 		{ IADF_CYCLEWPN_PREV, ITYPE_CONTROLLER, CONTROLLER_BUTTON_LEFTSHOULDER },
 		{ IADF_CYCLEWPN_NEXT, ITYPE_CONTROLLER, CONTROLLER_BUTTON_RIGHTSHOULDER },
+
+		{ IADF_WEAPON_WHEEL, ITYPE_CONTROLLER, CONTROLLER_BUTTON_LEFTSTICK },
 	};
 
 	static InputConfig s_inputConfig = { 0 };
@@ -134,9 +140,9 @@ namespace TFE_Input
 	vector <KeyboardCode> currentKeys;
 	vector <KeyboardCode> currentKeyPresses;
 	vector <MouseButton> currentMouse;
-		
+
 	void addDefaultControlBinds();
-			   
+
 	void inputMapping_startup()
 	{
 		// First try to restore from disk.
@@ -188,7 +194,7 @@ namespace TFE_Input
 		memset(s_actions, 0, sizeof(ActionState) * IA_COUNT);
 		addDefaultControlBinds();
 	}
-		
+
 	bool inputMapping_serialize()
 	{
 		const char* path = TFE_Paths::getPath(PATH_USER_DOCUMENTS);
@@ -300,6 +306,14 @@ namespace TFE_Input
 			inputMapping_addBinding(&s_defaultKeyboardBinds[IADF_DEMO_SLOWDOWN]);
 		}
 
+		// Weapon Wheel
+		if (version < INPUT_ADD_WPN_WHEEL)
+		{
+			inputMapping_addBinding(&s_defaultKeyboardBinds[IADF_WEAPON_WHEEL]);
+			InputBinding wheelController = { IADF_WEAPON_WHEEL, ITYPE_CONTROLLER, CONTROLLER_BUTTON_LEFTSTICK };
+			inputMapping_addBinding(&wheelController);
+		}
+
 		return true;
 	}
 
@@ -368,95 +382,95 @@ namespace TFE_Input
 	}
 
 	void inputMapping_updateInput()
-	{		
+	{
 
 		// For each bind record it if it is pressed or down.
 		for (u32 i = 0; i < s_inputConfig.bindCount; i++)
-		{				
+		{
 			InputBinding* bind = &s_inputConfig.binds[i];
 			switch (bind->type)
 			{
-				case ITYPE_KEYBOARD:
+			case ITYPE_KEYBOARD:
+			{
+				const bool keyIsMod = (s32)bind->keyMod == (s32)bind->keyCode || bind->keyMod == KEYMOD_NONE;
+				const bool keyIsAlt = bind->keyCode == KEY_LALT || bind->keyCode == KEY_RALT;
+				if (TFE_Input::keyModDown(bind->keyMod, inputMapping_isMovementAction(bind->action)) || (keyIsMod && keyIsAlt))
 				{
-					const bool keyIsMod = (s32)bind->keyMod == (s32)bind->keyCode || bind->keyMod == KEYMOD_NONE;
-					const bool keyIsAlt = bind->keyCode == KEY_LALT || bind->keyCode == KEY_RALT;
-					if (TFE_Input::keyModDown(bind->keyMod, inputMapping_isMovementAction(bind->action)) || (keyIsMod && keyIsAlt))
-					{
-						if (TFE_Input::keyPressed(bind->keyCode))
-						{
-							s_actions[bind->action] = STATE_PRESSED;
-							recordEvent(bind->action, bind->keyCode, true);
-						}
-						else if (TFE_Input::keyDown(bind->keyCode) && s_actions[bind->action] != STATE_PRESSED)
-						{
-							s_actions[bind->action] = STATE_DOWN;
-							recordEvent(bind->action, bind->keyCode, false);
-						}
-					}
-				} break;
-				case ITYPE_MOUSE:
-				{
-					if (TFE_Input::keyModDown(bind->keyMod, true))
-					{
-						if (TFE_Input::mousePressed(bind->mouseBtn))
-						{
-							s_actions[bind->action] = STATE_PRESSED;
-							recordEvent(bind->action, bind->keyCode, true);
-						}
-						else if (TFE_Input::mouseDown(bind->mouseBtn) && s_actions[bind->action] != STATE_PRESSED)
-						{
-							s_actions[bind->action] = STATE_DOWN;
-							recordEvent(bind->action, bind->keyCode, false);
-						}
-
-					}
-				} break;
-				case ITYPE_MOUSEWHEEL:
-				{
-					s32 dx, dy;
-					TFE_Input::getMouseWheel(&dx, &dy);
-
-					if ((bind->mouseWheel == MOUSEWHEEL_LEFT  && dx < 0) ||
-						(bind->mouseWheel == MOUSEWHEEL_RIGHT && dx > 0) ||
-						(bind->mouseWheel == MOUSEWHEEL_UP    && dy > 0) ||
-						(bind->mouseWheel == MOUSEWHEEL_DOWN  && dy < 0))
+					if (TFE_Input::keyPressed(bind->keyCode))
 					{
 						s_actions[bind->action] = STATE_PRESSED;
 						recordEvent(bind->action, bind->keyCode, true);
 					}
-				} break;
-				case ITYPE_CONTROLLER:
-				{
-					if (!(s_inputConfig.controllerFlags & CFLAG_ENABLE))
+					else if (TFE_Input::keyDown(bind->keyCode) && s_actions[bind->action] != STATE_PRESSED)
 					{
-						break;
+						s_actions[bind->action] = STATE_DOWN;
+						recordEvent(bind->action, bind->keyCode, false);
 					}
-
-					if (TFE_Input::buttonPressed(bind->ctrlBtn))
+				}
+			} break;
+			case ITYPE_MOUSE:
+			{
+				if (TFE_Input::keyModDown(bind->keyMod, true))
+				{
+					if (TFE_Input::mousePressed(bind->mouseBtn))
 					{
 						s_actions[bind->action] = STATE_PRESSED;
 						recordEvent(bind->action, bind->keyCode, true);
 					}
-					else if (TFE_Input::buttonDown(bind->ctrlBtn) && s_actions[bind->action] != STATE_PRESSED)
+					else if (TFE_Input::mouseDown(bind->mouseBtn) && s_actions[bind->action] != STATE_PRESSED)
 					{
 						s_actions[bind->action] = STATE_DOWN;
 						recordEvent(bind->action, bind->keyCode, false);
-					}
-				} break;
-				case ITYPE_CONTROLLER_AXIS:
-				{
-					if (!(s_inputConfig.controllerFlags & CFLAG_ENABLE))
-					{
-						break;
 					}
 
-					if (TFE_Input::getAxis(bind->axis) > 0.5f)
-					{
-						s_actions[bind->action] = STATE_DOWN;
-						recordEvent(bind->action, bind->keyCode, false);
-					}
-				} break;
-			}			
+				}
+			} break;
+			case ITYPE_MOUSEWHEEL:
+			{
+				s32 dx, dy;
+				TFE_Input::getMouseWheel(&dx, &dy);
+
+				if ((bind->mouseWheel == MOUSEWHEEL_LEFT  && dx < 0) ||
+					(bind->mouseWheel == MOUSEWHEEL_RIGHT && dx > 0) ||
+					(bind->mouseWheel == MOUSEWHEEL_UP    && dy > 0) ||
+					(bind->mouseWheel == MOUSEWHEEL_DOWN  && dy < 0))
+				{
+					s_actions[bind->action] = STATE_PRESSED;
+					recordEvent(bind->action, bind->keyCode, true);
+				}
+			} break;
+			case ITYPE_CONTROLLER:
+			{
+				if (!(s_inputConfig.controllerFlags & CFLAG_ENABLE))
+				{
+					break;
+				}
+
+				if (TFE_Input::buttonPressed(bind->ctrlBtn))
+				{
+					s_actions[bind->action] = STATE_PRESSED;
+					recordEvent(bind->action, bind->keyCode, true);
+				}
+				else if (TFE_Input::buttonDown(bind->ctrlBtn) && s_actions[bind->action] != STATE_PRESSED)
+				{
+					s_actions[bind->action] = STATE_DOWN;
+					recordEvent(bind->action, bind->keyCode, false);
+				}
+			} break;
+			case ITYPE_CONTROLLER_AXIS:
+			{
+				if (!(s_inputConfig.controllerFlags & CFLAG_ENABLE))
+				{
+					break;
+				}
+
+				if (TFE_Input::getAxis(bind->axis) > 0.5f)
+				{
+					s_actions[bind->action] = STATE_DOWN;
+					recordEvent(bind->action, bind->keyCode, false);
+				}
+			} break;
+			}
 		}
 	}
 
@@ -474,7 +488,7 @@ namespace TFE_Input
 	{
 		s_actions[action] = STATE_PRESSED;
 	}
-	
+
 	ActionState inputMapping_getActionState(InputAction action)
 	{
 		return s_actions[action];
@@ -602,7 +616,7 @@ namespace TFE_Input
 			{
 				if (binding->keyMod && !TFE_Input::keyModDown(binding->keyMod, true))
 				{
-					return false; 
+					return false;
 				}
 				return true;
 			}
@@ -627,7 +641,7 @@ namespace TFE_Input
 				TFE_Input::endRecording();
 			}
 		}
-		
+
 		// Load the mouse positional data
 		std::vector<s32> mousePos;
 		s32 mouseX, mouseY;
@@ -676,7 +690,7 @@ namespace TFE_Input
 				inputMapping_endFrame();
 
 				ReplayEvent event = TFE_Input::inputEvents[replayCounter - 1];
-				
+
 				// Load Mouse positional information
 				mousePos = event.mousePos;
 
@@ -717,7 +731,7 @@ namespace TFE_Input
 
 			// Store the mouse positions 
 			TFE_Input::inputEvents[replayCounter] = event;
-		}		
+		}
 		// Apply the mouse position data we either got from SDL or from the demo
 		TFE_Input::setRelativeMousePos(mouseX, mouseY);
 		TFE_Input::setMousePos(mouseAbsX, mouseAbsY);
@@ -734,11 +748,11 @@ namespace TFE_Input
 		}
 
 		// If you are replaying the demo and the game is paused, we should also halt all logic
-		bool skipUpdateCounter = isDemoPlayback() && isReplayPaused() && TFE_DarkForces::s_playerEye;		
+		bool skipUpdateCounter = isDemoPlayback() && isReplayPaused() && TFE_DarkForces::s_playerEye;
 
 		if (skipUpdateCounter)
 		{
-			return false; 
+			return false;
 		}
 		else
 		{
