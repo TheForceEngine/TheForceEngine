@@ -46,6 +46,12 @@ namespace TFE_RenderBackend
 	static TextureGpu* s_virtualRenderTexture = nullptr;
 	static TextureGpu* s_materialRenderTexture = nullptr;
 	static RenderTarget* s_virtualRenderTarget = nullptr;
+	static TextureGpu* s_resolvedRenderTexture = nullptr;
+	static TextureGpu* s_resolvedMaterialTexture = nullptr;
+	static RenderTarget* s_resolvedRenderTarget = nullptr;
+	static TextureGpu* s_downsampleRenderTexture = nullptr;
+	static TextureGpu* s_downsampleMaterialTexture = nullptr;
+	static RenderTarget* s_downsampleRenderTarget = nullptr;
 	static ScreenCapture*  s_screenCapture = nullptr;
 
 	static RenderTarget* s_copyTarget = nullptr;
@@ -53,6 +59,7 @@ namespace TFE_RenderBackend
 	static u32 s_virtualWidth, s_virtualHeight;
 	static u32 s_virtualWidthUi;
 	static u32 s_virtualWidth3d;
+	static u32 s_supersampleFactor = 1;
 
 	static bool s_widescreen = false;
 	static bool s_asyncFrameBuffer = true;
@@ -74,6 +81,9 @@ namespace TFE_RenderBackend
 
 	void drawVirtualDisplay();
 	void setupPostEffectChain(bool useDynamicTexture, bool useBloom);
+	void freeVirtualDisplayResources();
+	bool createVirtualRenderTargets(u32 factor);
+	RenderTarget* getPostProcessRenderTarget();
 
 	static GLuint s_globalVAO = 0;
 	static bool s_isMacOS = false;
@@ -287,16 +297,8 @@ namespace TFE_RenderBackend
 		TFE_PostProcess::destroy();
 		TFE_Ui::shutdown();
 
-		delete s_virtualDisplay;
-		delete s_virtualRenderTarget;
-		delete s_virtualRenderTexture;
-		delete s_materialRenderTexture;
+		freeVirtualDisplayResources();
 		SDL_DestroyWindow((SDL_Window*)m_window);
-
-		s_virtualDisplay = nullptr;
-		s_virtualRenderTarget = nullptr;
-		s_virtualRenderTexture = nullptr;
-		s_materialRenderTexture = nullptr;
 		m_window = nullptr;
 	}
 
@@ -565,48 +567,170 @@ namespace TFE_RenderBackend
 		displayInfo->refreshRate = (m_windowState.flags & WINFLAG_VSYNC) != 0 ? m_windowState.refreshRate : 0.0f;
 	}
 
-	bool recreateDisplay(bool setupPostFx)
+	u32 getRequestedSupersampleFactor()
 	{
-		if (s_virtualDisplay)
+		if (!s_useRenderTarget)
 		{
-			delete s_virtualDisplay;
+			return 1;
 		}
-		if (s_virtualRenderTarget)
+
+		const s32 supersampling = TFE_Settings::getGraphicsSettings()->supersampling;
+		return (supersampling == 2 || supersampling == 4) ? (u32)supersampling : 1u;
+	}
+
+	u32 getValidSupersampleFactor(u32 width, u32 height)
+	{
+		u32 factor = getRequestedSupersampleFactor();
+		if (factor <= 1)
 		{
-			delete s_virtualRenderTarget;
+			return 1;
 		}
-		// Sync issue?
-		if (s_virtualRenderTexture)
+
+		GLint maxTextureSize = 0;
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+		GLint maxRenderBufferSize = 0;
+		glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxRenderBufferSize);
+		GLint maxViewportDims[2] = { 0, 0 };
+		glGetIntegerv(GL_MAX_VIEWPORT_DIMS, maxViewportDims);
+		const u32 maxWidth = std::min((u32)maxTextureSize, std::min((u32)maxRenderBufferSize, (u32)maxViewportDims[0]));
+		const u32 maxHeight = std::min((u32)maxTextureSize, std::min((u32)maxRenderBufferSize, (u32)maxViewportDims[1]));
+
+		while (factor > 1 && (width * factor > maxWidth || height * factor > maxHeight))
 		{
-			delete s_virtualRenderTexture;
+			factor >>= 1;
 		}
-		if (s_materialRenderTexture)
+
+		if (factor != getRequestedSupersampleFactor())
 		{
-			delete s_materialRenderTexture;
+			TFE_System::logWrite(LOG_WARNING, "RenderBackend", "Supersampling reduced from %ux to %ux; requested render target exceeds OpenGL size limits.", getRequestedSupersampleFactor(), factor);
 		}
+		return factor;
+	}
+
+	RenderTarget* getPostProcessRenderTarget()
+	{
+		return s_resolvedRenderTarget ? s_resolvedRenderTarget : s_virtualRenderTarget;
+	}
+
+	void freeVirtualDisplayResources()
+	{
+		delete s_virtualDisplay;
+		delete s_virtualRenderTarget;
+		delete s_resolvedRenderTarget;
+		delete s_downsampleRenderTarget;
+		delete s_virtualRenderTexture;
+		delete s_materialRenderTexture;
+		delete s_resolvedRenderTexture;
+		delete s_resolvedMaterialTexture;
+		delete s_downsampleRenderTexture;
+		delete s_downsampleMaterialTexture;
+
 		s_virtualDisplay = nullptr;
 		s_virtualRenderTarget = nullptr;
+		s_resolvedRenderTarget = nullptr;
+		s_downsampleRenderTarget = nullptr;
 		s_virtualRenderTexture = nullptr;
 		s_materialRenderTexture = nullptr;
+		s_resolvedRenderTexture = nullptr;
+		s_resolvedMaterialTexture = nullptr;
+		s_downsampleRenderTexture = nullptr;
+		s_downsampleMaterialTexture = nullptr;
+	}
+
+	bool createVirtualRenderTargets(u32 factor)
+	{
+		const u32 renderWidth = s_virtualWidth * factor;
+		const u32 renderHeight = s_virtualHeight * factor;
+
+		s_virtualRenderTarget = new RenderTarget();
+		s_virtualRenderTexture = new TextureGpu();
+		bool result = s_virtualRenderTexture->create(renderWidth, renderHeight);
+
+		if (s_bloomEnable) // Output to two textures.
+		{
+			s_materialRenderTexture = new TextureGpu();
+			result &= s_materialRenderTexture->create(renderWidth, renderHeight);
+
+			TextureGpu* textures[] = { s_virtualRenderTexture, s_materialRenderTexture };
+			result &= s_virtualRenderTarget->create(2, textures, true);
+		}
+		else
+		{
+			result &= s_virtualRenderTarget->create(1, &s_virtualRenderTexture, true);
+		}
+
+		if (factor > 1)
+		{
+			if (factor == 4)
+			{
+				s_downsampleRenderTarget = new RenderTarget();
+				s_downsampleRenderTexture = new TextureGpu();
+				result &= s_downsampleRenderTexture->create(s_virtualWidth * 2, s_virtualHeight * 2);
+
+				if (s_bloomEnable)
+				{
+					s_downsampleMaterialTexture = new TextureGpu();
+					result &= s_downsampleMaterialTexture->create(s_virtualWidth * 2, s_virtualHeight * 2);
+
+					TextureGpu* textures[] = { s_downsampleRenderTexture, s_downsampleMaterialTexture };
+					result &= s_downsampleRenderTarget->create(2, textures, false);
+				}
+				else
+				{
+					result &= s_downsampleRenderTarget->create(1, &s_downsampleRenderTexture, false);
+				}
+			}
+
+			s_resolvedRenderTarget = new RenderTarget();
+			s_resolvedRenderTexture = new TextureGpu();
+			result &= s_resolvedRenderTexture->create(s_virtualWidth, s_virtualHeight);
+
+			if (s_bloomEnable)
+			{
+				s_resolvedMaterialTexture = new TextureGpu();
+				result &= s_resolvedMaterialTexture->create(s_virtualWidth, s_virtualHeight);
+
+				TextureGpu* textures[] = { s_resolvedRenderTexture, s_resolvedMaterialTexture };
+				result &= s_resolvedRenderTarget->create(2, textures, false);
+			}
+			else
+			{
+				result &= s_resolvedRenderTarget->create(1, &s_resolvedRenderTexture, false);
+			}
+		}
+
+		return result;
+	}
+
+	bool recreateDisplay(bool setupPostFx)
+	{
+		freeVirtualDisplayResources();
 
 		bool result = false;
 		if (s_useRenderTarget)
 		{
-			s_virtualRenderTarget = new RenderTarget();
-			s_virtualRenderTexture = new TextureGpu();
-			result = s_virtualRenderTexture->create(s_virtualWidth, s_virtualHeight);
-
-			if (s_bloomEnable) // Output to two textures.
+			const u32 requestedFactor = getValidSupersampleFactor(s_virtualWidth, s_virtualHeight);
+			for (u32 factor = requestedFactor; factor >= 1; factor >>= 1)
 			{
-				s_materialRenderTexture = new TextureGpu();
-				result &= s_materialRenderTexture->create(s_virtualWidth, s_virtualHeight);
+				s_supersampleFactor = factor;
+				result = createVirtualRenderTargets(s_supersampleFactor);
+				if (result)
+				{
+					break;
+				}
 
-				TextureGpu* textures[] = { s_virtualRenderTexture, s_materialRenderTexture };
-				result &= s_virtualRenderTarget->create(2, textures, true);
+				freeVirtualDisplayResources();
+				if (factor == 1)
+				{
+					TFE_System::logWrite(LOG_ERROR, "RenderBackend", "Failed to create virtual render target.");
+					break;
+				}
+				TFE_System::logWrite(LOG_WARNING, "RenderBackend", "Supersampling reduced from %ux to %ux after render target creation failed.", factor, factor >> 1);
 			}
-			else
+
+			if (!result)
 			{
-				result &= s_virtualRenderTarget->create(1, &s_virtualRenderTexture, true);
+				return false;
 			}
 
 			// The renderer will handle this instead.
@@ -623,6 +747,7 @@ namespace TFE_RenderBackend
 		}
 		else
 		{
+			s_supersampleFactor = 1;
 			s_virtualDisplay = new DynamicTexture();
 			if (s_gpuColorConvert)
 			{
@@ -682,6 +807,11 @@ namespace TFE_RenderBackend
 	{
 		if (s_virtualWidth <= s_virtualWidth3d) { return 0; }
 		return (s_virtualWidth - s_virtualWidth3d) >> 1;
+	}
+
+	u32 getVirtualDisplaySupersampleFactor()
+	{
+		return s_supersampleFactor;
 	}
 
 	void* getVirtualDisplayGpuPtr()
@@ -790,6 +920,19 @@ namespace TFE_RenderBackend
 	{
 		TFE_ZONE("Draw Virtual Display");
 		if (!s_virtualDisplay && !s_virtualRenderTarget) { return; }
+
+		if (s_resolvedRenderTarget)
+		{
+			if (s_downsampleRenderTarget)
+			{
+				RenderTarget::copy(s_downsampleRenderTarget, s_virtualRenderTarget, MAG_FILTER_LINEAR);
+				RenderTarget::copy(s_resolvedRenderTarget, s_downsampleRenderTarget, MAG_FILTER_LINEAR);
+			}
+			else
+			{
+				RenderTarget::copy(s_resolvedRenderTarget, s_virtualRenderTarget, MAG_FILTER_LINEAR);
+			}
+		}
 
 		// Only clear if (1) s_virtualDisplay == null or (2) s_displayMode != DMODE_STRETCH
 		if (s_displayMode != DMODE_STRETCH)
@@ -960,7 +1103,8 @@ namespace TFE_RenderBackend
 		s_bloomBufferCount = 0;
 
 		// Create new textures and stages.
-		const TextureGpu* baseTex = s_virtualRenderTarget->getTexture();
+		RenderTarget* postProcessTarget = getPostProcessRenderTarget();
+		const TextureGpu* baseTex = postProcessTarget->getTexture();
 		u32 width  = baseTex->getWidth()/2;
 		u32 height = baseTex->getHeight()/2;
 
@@ -975,8 +1119,8 @@ namespace TFE_RenderBackend
 
 		const PostEffectInput bloomTresholdInputs[] =
 		{
-			{ PTYPE_TEXTURE, (void*)s_virtualRenderTarget->getTexture(0) },
-			{ PTYPE_TEXTURE, (void*)s_virtualRenderTarget->getTexture(1) },
+			{ PTYPE_TEXTURE, (void*)postProcessTarget->getTexture(0) },
+			{ PTYPE_TEXTURE, (void*)postProcessTarget->getTexture(1) },
 		};
 		TFE_PostProcess::appendEffect(s_bloomTheshold, TFE_ARRAYSIZE(bloomTresholdInputs), bloomTresholdInputs, s_bloomTargets[index], 0, 0, width, height, true);
 
@@ -1078,11 +1222,12 @@ namespace TFE_RenderBackend
 		}
 		else if (useBloom)
 		{
+			RenderTarget* postProcessTarget = getPostProcessRenderTarget();
 			setupBloomStages();
 
 			const PostEffectInput blitInputs[] =
 			{
-				{ PTYPE_TEXTURE, (void*)s_virtualRenderTarget->getTexture(0) },
+				{ PTYPE_TEXTURE, (void*)postProcessTarget->getTexture(0) },
 				{ PTYPE_TEXTURE, (void*)s_bloomTextures[s_bloomBufferCount-1] },
 				{ PTYPE_DYNAMIC_TEX, s_palette }
 			};
@@ -1090,9 +1235,10 @@ namespace TFE_RenderBackend
 		}
 		else
 		{
+			RenderTarget* postProcessTarget = getPostProcessRenderTarget();
 			const PostEffectInput blitInputs[] =
 			{
-				{ PTYPE_TEXTURE, (void*)s_virtualRenderTarget->getTexture() },
+				{ PTYPE_TEXTURE, (void*)postProcessTarget->getTexture() },
 				{ PTYPE_DYNAMIC_TEX, s_palette }
 			};
 			TFE_PostProcess::appendEffect(s_postEffectBlit, TFE_ARRAYSIZE(blitInputs), blitInputs, nullptr, x, y, w, h);
