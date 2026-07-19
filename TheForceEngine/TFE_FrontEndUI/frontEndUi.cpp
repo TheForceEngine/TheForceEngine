@@ -1504,20 +1504,33 @@ namespace TFE_FrontEndUI
 		if (enhanceGOBExists())
 		{
 			TFE_Settings_Enhancements* enhancements = TFE_Settings::getEnhancementsSettings();
-			bool useHdAssets = enhancements->enableHdTextures && enhancements->enableHdSprites && enhancements->enableHdHud && enhancements->enableHdCutscenes && enhancements->enableHdHud;
-			enhancements->enableHdTextures = !useHdAssets;
-			enhancements->enableHdSprites = !useHdAssets;
-			enhancements->enableHdHud = !useHdAssets;
-			enhancements->enableHdCutscenes = !useHdAssets;
+			bool usingHdAssets = enhancements->enableHdTextures && enhancements->enableHdSprites && enhancements->enableHdHud && enhancements->enableHdCutscenes && enhancements->enableHdHud;
+
+			// Enhanced graphics cannot be turned on if not in True Color mode
+			if (!usingHdAssets && TFE_Settings::getGraphicsSettings()->colorMode != COLORMODE_TRUE_COLOR)
+			{
+				return false;
+			}
+
+			const char* msg = TFE_System::getMessage(TFE_MSG_HD);
+			if (msg)
+			{
+				TFE_DarkForces::hud_sendTextMessage(msg, 1);	// HD assets
+			}
+
+			enhancements->enableHdTextures = !usingHdAssets;
+			enhancements->enableHdSprites = !usingHdAssets;
+			enhancements->enableHdHud = !usingHdAssets;
+			enhancements->enableHdCutscenes = !usingHdAssets;
 
 			if (enhanceLFDExists())
 			{
-				enhancements->enableHdPda = !useHdAssets;
+				enhancements->enableHdPda = !usingHdAssets;
 				if (enhancements->enableHdPda) { TFE_DarkForces::pda_resetState(); }
 			}
 
 			renderBackground(true);
-			return useHdAssets;
+			return usingHdAssets;
 		}
 		return false;
 	}
