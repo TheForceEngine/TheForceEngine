@@ -72,4 +72,16 @@ namespace TFE_DarkForces
 		actor->arraySize = arraySize;
 		return actor;
 	}
+
+	void highResActor_free(HighResActor* actor)
+	{
+		if (!actor) { return; }
+
+		if (actor->array)
+		{
+			TFE_Memory::region_free(s_alloc, actor->array);
+		}
+
+		landru_free(actor);
+	}
 }

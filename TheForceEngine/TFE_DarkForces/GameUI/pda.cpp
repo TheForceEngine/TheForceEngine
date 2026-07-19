@@ -242,6 +242,13 @@ namespace TFE_DarkForces
 		lactor_free(s_items);
 		lpalette_free(s_palette);
 
+		// High res assets
+		highResActor_free(s_briefingHigh);
+		highResActor_free(s_pdaArtHigh);
+		highResActor_free(s_goalsHigh);
+		highResActor_free(s_weaponsHigh);
+		highResActor_free(s_itemsHigh);
+
 		pda_resetState();
 	}
 
@@ -262,7 +269,13 @@ namespace TFE_DarkForces
 		s_items      = nullptr;
 		s_palette    = nullptr;
 
+		// High res
+		s_highResTex = nullptr;
+		s_briefingHigh = nullptr;
 		s_pdaArtHigh = nullptr;
+		s_goalsHigh = nullptr;
+		s_weaponsHigh = nullptr;
+		s_itemsHigh = nullptr;
 	}
 
 	JBool pda_isOpen()
