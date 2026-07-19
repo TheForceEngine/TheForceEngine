@@ -93,8 +93,9 @@ namespace TFE_DarkForces
 	// TFE - support for DF Remaster hi res assets
 	struct HighResActor
 	{
-		u32** array;
-		u16 arraySize;
+		u32** array;		// holds the image data
+		u16 arraySize;		// number of images (should be 1 for a DELT, or match number of images in an ANIM)
+		u32 imageSizes[32];	// sizes of each image in pixels
 	};
 
 	struct LActorType

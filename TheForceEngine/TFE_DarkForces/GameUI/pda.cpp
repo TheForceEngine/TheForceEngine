@@ -990,6 +990,19 @@ namespace TFE_DarkForces
 	// This is specifically for ANIMpda_0.PNG
 	void pda_copyHighResBackgroundToBuffer()
 	{
+		// This may happen if the PNG failed to load
+		if (!s_pdaArtHigh || s_pdaArtHigh->arraySize <= s_pdaArt->state)
+		{
+			return;
+		}
+
+		// Check the hi res image is large enough (double the dimensions of the base image)
+		s32 expectedImageSize = s_pdaArt->w * s_pdaArt->h * 4;
+		if (s_pdaArtHigh->imageSizes[s_pdaArt->state] < expectedImageSize)
+		{
+			return;
+		}
+
 		u32 width = s_pdaArt->w * 2;
 		u32 height = s_pdaArt->h * 2;
 		s16* deltData = (s16*)s_pdaArt->array[s_pdaArt->state];
@@ -1015,9 +1028,24 @@ namespace TFE_DarkForces
 
 	void pda_copyHighResImageToBuffer(LActor* lactor, HighResActor* hiResActor)
 	{
+		s16 index = lactor->state;
+
+		// This may happen if any PNGs failed to load
+		if (!hiResActor || hiResActor->arraySize <= index)
+		{
+			return;
+		}
+
+		// Check the hi res image is large enough (double the dimensions of the base image)
+		s32 expectedImageSize = lactor->w * lactor->h * 4;
+		if (hiResActor->imageSizes[index] < expectedImageSize)
+		{
+			return;
+		}
+
 		u32 width = lactor->w * 2;
 		u32 height = lactor->h * 2;
-		s16* deltData = (s16*)lactor->array[lactor->state];
+		s16* deltData = (s16*)lactor->array[index];
 		s16 xOffset = deltData[0] * 2;
 		s16 yOffset = deltData[1] * 2;
 
@@ -1025,7 +1053,7 @@ namespace TFE_DarkForces
 		{
 			for (s32 x = 0; x < width; x++)
 			{
-				u32 pixel = hiResActor->array[lactor->state][y * width + x];
+				u32 pixel = hiResActor->array[index][y * width + x];
 				if (pixel >> 24u == 0) { continue; }	// skip transparent pixels
 				s_highResBuffer[(yOffset + y) * 640 + xOffset + x] = pixel;
 			}
@@ -1042,12 +1070,28 @@ namespace TFE_DarkForces
 
 	void pda_copyHighResBriefingToBuffer()
 	{
-		s32 origWidth = s_briefing->w + 1;	// We have to add 1 here to get the correct width, because DELT format saves width as width - 1
+		if (!s_briefingHigh || s_briefingHigh->arraySize < 1)
+		{
+			return;
+		}
+
+		// We have to add 1 here to get the correct dimensions, see the DELT format
+		s32 origWidth = s_briefing->w + 1;
+		s32 origHeight = s_briefing->h + 1;
+
+		// Check the hi res image is large enough - double the dimensions of the base image
+		// but tolerate 1 row less (eg. DELTsecbase.png is 951 pixels tall instead of 952)
+		s32 expectedImageSize = origWidth * s_briefing->h * 4;
+		if (s_briefingHigh->imageSizes[0] < expectedImageSize)
+		{
+			return;
+		}
+
 		s32 margin = (s_overlayRect.right - s_overlayRect.left - origWidth) >> 1;
 		s32 xOffset = (margin + s_overlayRect.left) * 2;
 		s32 yOffset = s_overlayRect.top * 2;
 		s32 clipTop = s_briefY * 2;
-		s32 clipBot = min(s_overlayRect.bottom - s_overlayRect.top + s_briefY, s_briefing->h) * 2;
+		s32 clipBot = min(s_overlayRect.bottom - s_overlayRect.top + s_briefY, origHeight) * 2;
 		u32 width = origWidth * 2;
 
 		for (s32 y = clipTop; y < clipBot; y++)
