@@ -4,6 +4,7 @@
 #include "lcanvas.h"
 #include "ldraw.h"
 #include <TFE_System/system.h>
+#include <TFE_System/utf8.h>
 #include <TFE_Asset/imageAsset.h>
 #include <TFE_Memory/memoryRegion.h>
 #include <TFE_FileSystem/fileutil.h>
@@ -19,7 +20,9 @@ namespace TFE_DarkForces
 			return nullptr;
 		}
 
-		return TFE_Image::get(filePath);
+		char utf8Path[TFE_MAX_PATH];
+		convertExtendedAsciiToUtf8(filePath, utf8Path);
+		return TFE_Image::get(utf8Path);
 	}
 
 	HighResActor* highResActor_loadFromPng(const char* lfdName, const char* actorName, u16 count, bool anim/*default true*/)
