@@ -1708,15 +1708,15 @@ namespace TFE_FrontEndUI
 	{
 		if (s_saveLoadSetupRequired)
 		{
-			configSaveLoadBegin(save); 
+			configSaveLoadBegin(save);
 		}
 
 		// Create the current display info to adjust menu sizes.
 		DisplayInfo displayInfo;
 		TFE_RenderBackend::getDisplayInfo(&displayInfo);
-				
-		f32 leftColumn = displayInfo.width < 1200 ? 196.0f*s_uiScale : 256.0f*s_uiScale;
-		f32 rightColumn = leftColumn + ((f32)TFE_SaveSystem::SAVE_IMAGE_WIDTH + 32.0f)*s_uiScale;
+
+		f32 leftColumn = displayInfo.width < 1200 ? 196.0f*s_uiScale : 228.0f*s_uiScale;
+		f32 rightColumn = leftColumn + ((f32)TFE_SaveSystem::SAVE_IMAGE_WIDTH + 64.0f)*s_uiScale;
 		const s32 listOffset = save ? 1 : 0;
 
 		string saveLoadText = save ? "Save" : "Load";
@@ -1724,20 +1724,12 @@ namespace TFE_FrontEndUI
 
 		// Wrap the color around the save/load menu.
 		ImGui::PushStyleColor(ImGuiCol_Border, color);
-		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 5.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 2.0f);
 
 		// Left Column
-		ImGui::SetNextWindowPos(ImVec2(leftColumn, floorf(displayInfo.height * 0.25f)));
+		ImGui::SetNextWindowPos(ImVec2(leftColumn, 64.0f * s_uiScale));
 		ImGui::BeginChild("##ImageAndInfo");
 		{
-			//ImGui::SetCursorPos(ImVec2(leftColumn, floorf(displayInfo.height * 0.20f)));
-			ImGui::PushFont(s_titleFont);
-			ImGui::PushStyleColor(ImGuiCol_Text, color);
-			ImGui::TextWrapped(saveLoadText.c_str());
-			ImGui::PopStyleColor();
-			ImGui::PopFont();
-			ImGui::Spacing();
-
 			// Image
 			ImVec2 size((f32)TFE_SaveSystem::SAVE_IMAGE_WIDTH, (f32)TFE_SaveSystem::SAVE_IMAGE_HEIGHT);
 			size.x *= s_uiScale;
