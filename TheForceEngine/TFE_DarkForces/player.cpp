@@ -199,6 +199,7 @@ namespace TFE_DarkForces
 	s32 s_baseAtten = 0;
 	fixed16_16 s_gravityAccel;
 
+	u32   s_playerDying = 0;
 	s32   s_invincibility = 0;
 	JBool s_weaponFiring = JFALSE;
 	JBool s_weaponFiringSec = JFALSE;
