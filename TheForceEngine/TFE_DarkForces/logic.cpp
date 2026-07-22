@@ -8,6 +8,7 @@
 #include "vueLogic.h"
 #include "projectile.h"
 #include <TFE_DarkForces/Actor/actorSerialization.h>
+#include <TFE_DarkForces/Actor/actorEnhanced.h>
 #include <TFE_Jedi/Level/robject.h>
 #include <TFE_Jedi/Level/robjData.h>
 #include <TFE_Jedi/Memory/allocator.h>
