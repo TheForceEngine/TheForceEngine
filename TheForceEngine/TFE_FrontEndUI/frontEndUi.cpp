@@ -1715,12 +1715,19 @@ namespace TFE_FrontEndUI
 		DisplayInfo displayInfo;
 		TFE_RenderBackend::getDisplayInfo(&displayInfo);
 
-		f32 leftColumn = displayInfo.width < 1200 ? 196.0f*s_uiScale : 256.0f*s_uiScale;
-		f32 rightColumn = leftColumn + ((f32)TFE_SaveSystem::SAVE_IMAGE_WIDTH + 32.0f)*s_uiScale;
+		f32 leftColumn = displayInfo.width < 1200 ? 196.0f*s_uiScale : 228.0f*s_uiScale;
+		f32 rightColumn = leftColumn + ((f32)TFE_SaveSystem::SAVE_IMAGE_WIDTH + 64.0f)*s_uiScale;
 		const s32 listOffset = save ? 1 : 0;
 
+		string saveLoadText = save ? "Save" : "Load";
+		ImVec4 color = save ? ImVec4(1.0f, 0.65f, 0.0f, 1.0f) : ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
+
+		// Wrap the color around the save/load menu.
+		ImGui::PushStyleColor(ImGuiCol_Border, color);
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 2.0f);
+
 		// Left Column
-		ImGui::SetNextWindowPos(ImVec2(leftColumn, floorf(displayInfo.height * 0.25f)));
+		ImGui::SetNextWindowPos(ImVec2(leftColumn, 64.0f * s_uiScale));
 		ImGui::BeginChild("##ImageAndInfo");
 		{
 			// Image
@@ -1764,6 +1771,8 @@ namespace TFE_FrontEndUI
 			ImGui::EndChild();
 		}
 		ImGui::EndChild();
+		ImGui::PopStyleVar();
+		ImGui::PopStyleColor();
 
 		// Right Column
 		f32 rwidth  = 1024.0f * s_uiScale;
