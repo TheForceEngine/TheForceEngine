@@ -13,6 +13,4 @@ namespace TFE_DarkForces
 	Logic* reeyees2_setup(SecObject* obj, LogicSetupFunc* setupFunc);
 	Logic* bossk_setup(SecObject* obj, LogicSetupFunc* setupFunc);
 	Logic* gamor_setup(SecObject* obj, LogicSetupFunc* setupFunc);
-
-	Logic* custom_actor_setup(SecObject* obj, TFE_ExternalData::CustomActorLogic* customEnemy, LogicSetupFunc* setupFunc);
 }  // namespace TFE_DarkForces

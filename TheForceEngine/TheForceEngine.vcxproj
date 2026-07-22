@@ -374,6 +374,7 @@ echo ^)";
     <ClInclude Include="TFE_Audio\RtMidi.h" />
     <ClInclude Include="TFE_Audio\systemMidiDevice.h" />
     <ClInclude Include="TFE_DarkForces\Actor\actor.h" />
+    <ClInclude Include="TFE_DarkForces\Actor\actorEnhanced.h" />
     <ClInclude Include="TFE_DarkForces\Actor\actorInternal.h" />
     <ClInclude Include="TFE_DarkForces\Actor\actorModule.h" />
     <ClInclude Include="TFE_DarkForces\Actor\actorSerialization.h" />
@@ -800,6 +801,7 @@ echo ^)";
     <ClCompile Include="TFE_Audio\RtMidi.cpp" />
     <ClCompile Include="TFE_Audio\systemMidiDevice.cpp" />
     <ClCompile Include="TFE_DarkForces\Actor\actor.cpp" />
+    <ClCompile Include="TFE_DarkForces\Actor\actorEnhanced.cpp" />
     <ClCompile Include="TFE_DarkForces\Actor\actorSerialization.cpp" />
     <ClCompile Include="TFE_DarkForces\Actor\animTables.cpp" />
     <ClCompile Include="TFE_DarkForces\Actor\bobaFett.cpp" />
