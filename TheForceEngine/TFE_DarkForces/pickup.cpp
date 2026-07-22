@@ -23,8 +23,6 @@ namespace TFE_DarkForces
 	//////////////////////////////////////////////////////////////
 	// Internal State
 	//////////////////////////////////////////////////////////////
-	u32 s_playerDying = 0;
-	// Pointer to memory where player inventory is saved.
 	Task* s_pickupTask = nullptr;
 	Task* s_superchargeTask = nullptr;
 	Task* s_invincibilityTask = nullptr;

@@ -76,6 +76,7 @@ namespace TFE_DarkForces
 	};
 
 	extern PlayerInfo s_playerInfo;
+	extern u32 s_playerDying;
 	extern fixed16_16 s_batteryPower;
 	extern s32 s_lifeCount;
 	extern s32 s_playerLight;
