@@ -305,14 +305,9 @@ namespace TFE_DarkForces
 		attackMod->meleeDmg = 0;
 		attackMod->meleeRate = FIXED(230);
 		attackMod->attackFlags = ATTFLAG_RANGED | ATTFLAG_LIT_RNG;
-		
+
 		// new to TFE - burstfire
 		attackMod->hasBurstFire = JFALSE;
-		attackMod->burstFire.burstNumber = 5;
-		attackMod->burstFire.variation = 2;
-		attackMod->burstFire.interval = 29;
-		attackMod->burstFire.shotCount = 5;
-		attackMod->burstFire.lastShot = 0;
 
 		// Why is this being returned? This function maybe should be a void? 
 		return attackMod->fireOffset.y;
@@ -326,7 +321,7 @@ namespace TFE_DarkForces
 		moveMod->collisionFlags |= ACTORCOL_GRAVITY;
 		// Added to disable auto-aim when dying.
 		logic->logic.obj->flags &= ~OBJ_FLAG_AIM;
-		
+
 		logic->flags |= ACTOR_DYING;   // added to stop burst fire when actor is dying
 	}
 
@@ -982,11 +977,6 @@ namespace TFE_DarkForces
 								// Do ranged attack (secondary)
 								attackMod->anim.state = STATE_ATTACK2;
 								attackMod->timing.delay = attackMod->timing.rangedDelay;
-
-								if (attackMod->hasBurstFire)
-								{
-									attackMod->anim.flags &= ~AFLAG_PLAYONCE;	// if logic has burst fire, allow attack anim to loop
-								}
 							}
 						}
 						else  // Actor does not have melee attack
@@ -998,15 +988,10 @@ namespace TFE_DarkForces
 								attackMod->anim.state = STATE_DELAY;
 								return attackMod->timing.delay;
 							}
-							
+
 							// Do ranged attack (primary)
 							attackMod->anim.state = STATE_ATTACK1;
 							attackMod->timing.delay = attackMod->timing.rangedDelay;
-
-							if (attackMod->hasBurstFire)
-							{ 
-								attackMod->anim.flags &= ~AFLAG_PLAYONCE;	// if logic has burst fire, allow attack anim to loop
-							}
 						}
 
 						if (obj->type == OBJ_TYPE_SPRITE)
@@ -1040,7 +1025,7 @@ namespace TFE_DarkForces
 			} break;
 			case STATE_ATTACK1:
 			{
-				if (!(attackMod->anim.flags & AFLAG_READY) && (!attackMod->hasBurstFire || attackMod->attackFlags & ATTFLAG_MELEE))
+				if (!(attackMod->anim.flags & AFLAG_READY))
 				{
 					break;
 				}
@@ -1069,50 +1054,10 @@ namespace TFE_DarkForces
 					obj->flags |= OBJ_FLAG_FULLBRIGHT;
 				}
 
-				// Burst fire option - set via custom logics
-				if (attackMod->hasBurstFire)
-				{
-					if (s_curTick < attackMod->burstFire.lastShot + attackMod->burstFire.interval)
-					{
-						break;
-					}
-
-					if (logic->flags & ACTOR_DYING) { break; }
-
-					if (attackMod->burstFire.shotCount <= 1)
-					{
-						// Burst is finished, end the looping & reset the shot count
-						attackMod->anim.state = STATE_ANIMATE1;
-						attackMod->anim.flags |= AFLAG_PLAYONCE;
-						
-						s32 var = random(attackMod->burstFire.variation * 2);
-						s32 nextBurstNumber = attackMod->burstFire.burstNumber - attackMod->burstFire.variation + var;
-						attackMod->burstFire.shotCount = max(nextBurstNumber, 2);
-					}
-					else
-					{
-						// Reorient towards the player
-						attackMod->target.yaw = vec2ToAngle(s_playerObject->posWS.x - obj->posWS.x, s_playerObject->posWS.z - obj->posWS.z);
-
-						// Fire the next shot in the burst
-						attackMod->burstFire.lastShot = s_curTick;
-						attackMod->burstFire.shotCount--;
-					}
-				}
-				else
-				{
-					// No burst fire -- vanilla logic
-					attackMod->anim.state = STATE_ANIMATE1;
-				}
-				
-				vec3_fixed fireOffset = {};
-
-				// Calculate the X,Z fire offsets based on where the enemy is facing. It doesn't matter for Y. 
-				transformFireOffsets(obj->yaw, &attackMod->fireOffset, &fireOffset);
-
-				ProjectileLogic* proj = (ProjectileLogic*)createProjectile(attackMod->projType, obj->sector, fireOffset.x + obj->posWS.x, fireOffset.y + obj->posWS.y, fireOffset.z + obj->posWS.z, obj);
+				attackMod->anim.state = STATE_ANIMATE1;
+				ProjectileLogic* proj = (ProjectileLogic*)createProjectile(attackMod->projType, obj->sector, obj->posWS.x, attackMod->fireOffset.y + obj->posWS.y, obj->posWS.z, obj);
 				sound_playCued(attackMod->attackPrimSndSrc, obj->posWS);
-				
+
 				proj->prevColObj = obj;
 				proj->prevObj = obj;
 				proj->excludeObj = obj;
@@ -1121,7 +1066,7 @@ namespace TFE_DarkForces
 				projObj->yaw = obj->yaw;
 				
 				// Vanilla DF did not handle arcing projectiles with STATE_ATTACK1; this has been added
-				if (proj->updateFunc == arcingProjectileUpdateFunc)
+				if (attackMod->projType == PROJ_THERMAL_DET || attackMod->projType == PROJ_MORTAR)
 				{
 					// TDs are lobbed at an angle that depends on distance from target
 					proj->bounceCnt = 0;
@@ -1129,25 +1074,22 @@ namespace TFE_DarkForces
 					vec3_fixed target = { s_playerObject->posWS.x, s_eyePos.y + ONE_16, s_playerObject->posWS.z };
 					proj_aimArcing(proj, target, proj->speed);
 
-					// This code was never hit in original DF because x and z fire offsets were always 0
-					// It causes strange collision effects to happen, so commenting out.
-					//if (fireOffset.x | fireOffset.z)
-					//{
-					//	proj->delta.x = fireOffset.x;
-					//	proj->delta.z = fireOffset.z;
-					//	proj_handleMovement(proj);
-					//}
+					if (attackMod->fireOffset.x | attackMod->fireOffset.z)
+					{
+						proj->delta.x = attackMod->fireOffset.x;
+						proj->delta.z = attackMod->fireOffset.z;
+						proj_handleMovement(proj);
+					}
 				}
 				else
 				{
 					// Handle x and z fire offset.
-					// Commenting out - see note above
-					//if (fireOffset.x | fireOffset.z)
-					//{
-					//	proj->delta.x = fireOffset.x;
-					//	proj->delta.z = fireOffset.z;
-					//	proj_handleMovement(proj);
-					//}
+					if (attackMod->fireOffset.x | attackMod->fireOffset.z)
+					{
+						proj->delta.x = attackMod->fireOffset.x;
+						proj->delta.z = attackMod->fireOffset.z;
+						proj_handleMovement(proj);
+					}
 
 					// Aim at the target.
 					vec3_fixed target = { s_eyePos.x, s_eyePos.y + ONE_16, s_eyePos.z };
@@ -1170,7 +1112,7 @@ namespace TFE_DarkForces
 			} break;
 			case STATE_ATTACK2:
 			{
-				if (!(attackMod->anim.flags & AFLAG_READY) && !attackMod->hasBurstFire)
+				if (!(attackMod->anim.flags & AFLAG_READY))
 				{
 					break;
 				}
@@ -1179,80 +1121,38 @@ namespace TFE_DarkForces
 					obj->flags |= OBJ_FLAG_FULLBRIGHT;
 				}
 
-				// Burst fire option - set via custom logics
-				if (attackMod->hasBurstFire)
-				{
-					if (s_curTick < attackMod->burstFire.lastShot + attackMod->burstFire.interval)
-					{
-						break;
-					}
-
-					if (logic->flags & ACTOR_DYING) { break; }
-
-					if (attackMod->burstFire.shotCount <= 1)
-					{
-						// Burst is finished, end the looping & reset the shot count
-						attackMod->anim.state = STATE_ANIMATE2;
-						attackMod->anim.flags |= AFLAG_PLAYONCE;
-
-						s32 var = random(attackMod->burstFire.variation * 2);
-						s32 nextBurstNumber = attackMod->burstFire.burstNumber - attackMod->burstFire.variation + var;
-						attackMod->burstFire.shotCount = max(nextBurstNumber, 2);
-					}
-					else
-					{
-						// Reorient towards the player
-						attackMod->target.yaw = vec2ToAngle(s_playerObject->posWS.x - obj->posWS.x, s_playerObject->posWS.z - obj->posWS.z);
-
-						// Fire the next shot in the burst
-						attackMod->burstFire.lastShot = s_curTick;
-						attackMod->burstFire.shotCount--;
-					}
-				}
-				else
-				{
-					// No burst fire -- vanilla logic
-					attackMod->anim.state = STATE_ANIMATE2;
-				}
-
-				vec3_fixed fireOffset = {};
-				
-				// Calculate the fire offsets based on where the enemy is facing. It doesn't matter for Y. 
-				transformFireOffsets(obj->yaw, &attackMod->fireOffset, &fireOffset);
-
-				ProjectileLogic* proj = (ProjectileLogic*)createProjectile(attackMod->projType, obj->sector, fireOffset.x + obj->posWS.x, fireOffset.y + obj->posWS.y, fireOffset.z + obj->posWS.z, obj);
+				attackMod->anim.state = STATE_ANIMATE2;
+				ProjectileLogic* proj = (ProjectileLogic*)createProjectile(attackMod->projType, obj->sector, obj->posWS.x, attackMod->fireOffset.y + obj->posWS.y, obj->posWS.z, obj);
 				sound_playCued(attackMod->attackPrimSndSrc, obj->posWS);
 				proj->prevColObj = obj;
 				proj->excludeObj = obj;
 
 				SecObject* projObj = proj->logic.obj;
 				projObj->yaw = obj->yaw;
-				
-				// The original test here was projType == PROJ_THERMAL_DET. In TFE we want to generalise it to all arcing projectiles.
-				if (proj->updateFunc == arcingProjectileUpdateFunc)
+
+				// Support for PROJ_MORTAR added to TFE
+				if (attackMod->projType == PROJ_THERMAL_DET || attackMod->projType == PROJ_MORTAR)
 				{
 					proj->bounceCnt = 0;
 					proj->duration = 0xffffffff;
 					vec3_fixed target = { s_playerObject->posWS.x, s_eyePos.y + ONE_16, s_playerObject->posWS.z };
 					proj_aimArcing(proj, target, proj->speed);
 
-					// Commenting out - see note above
-					//if (fireOffset.x | fireOffset.z)
-					//{
-					//	proj->delta.x = fireOffset.x;
-					//	proj->delta.z = fireOffset.z;
-					//	proj_handleMovement(proj);
-					//}
+					if (attackMod->fireOffset.x | attackMod->fireOffset.z)
+					{
+						proj->delta.x = attackMod->fireOffset.x;
+						proj->delta.z = attackMod->fireOffset.z;
+						proj_handleMovement(proj);
+					}
 				}
 				else
 				{
-					// Commenting out - see note above
-					//if (fireOffset.x | fireOffset.z)
-					//{
-					//	proj->delta.x = fireOffset.x;
-					//	proj->delta.z = fireOffset.z;
-					//	proj_handleMovement(proj);
-					//}
+					if (attackMod->fireOffset.x | attackMod->fireOffset.z)
+					{
+						proj->delta.x = attackMod->fireOffset.x;
+						proj->delta.z = attackMod->fireOffset.z;
+						proj_handleMovement(proj);
+					}
 					vec3_fixed target = { s_eyePos.x, s_eyePos.y + ONE_16, s_eyePos.z };
 					proj_aimAtTarget(proj, target);
 					if (attackMod->fireSpread)
