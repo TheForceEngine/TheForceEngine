@@ -46,8 +46,8 @@ namespace TFE_SaveSystem
 
 	// Two alternating quicksave slots (Quicksave 1 / Quicksave 2), so a
 	// bad quicksave never overwrites your only recent save.
-	static const char* c_quickSaveSlotNames[2] = { "quicksave1.tfe", "quicksave2.tfe" };
-	static const char* c_quickSaveSlotLabels[2] = { "Quicksave 1", "Quicksave 2" };
+	static const char* c_quickSaveSlotNames[2] = { "quicksave.tfe", "quicksave2.tfe" };
+	static const char* c_quickSaveSlotLabels[2] = { "Quicksave", "Quicksave 2" };
 
 	// Get the Quicksave index slot. Alternate them based on timestamps
 	// Or just get the latest one when you are loading. 
