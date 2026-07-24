@@ -90,6 +90,9 @@ namespace TFE_Input
 		IADF_DEMO_SPEEDUP,
 		IADF_DEMO_SLOWDOWN,
 
+		// Weapon Wheel
+		IADF_WEAPON_WHEEL,
+
 		IA_COUNT,
 		IAS_COUNT = IAS_SYSTEM_MENU + 1,
 	};

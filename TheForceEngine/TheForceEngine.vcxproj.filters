@@ -613,6 +613,9 @@
     <ClInclude Include="TFE_DarkForces\weapon.h">
       <Filter>Source\TFE_DarkForces</Filter>
     </ClInclude>
+	<ClInclude Include="TFE_DarkForces\weaponWheel.h">
+      <Filter>Source\TFE_DarkForces</Filter>
+    </ClInclude>
     <ClInclude Include="TFE_DarkForces\agent.h">
       <Filter>Source\TFE_DarkForces</Filter>
     </ClInclude>
@@ -1432,6 +1435,9 @@
     <ClInclude Include="TFE_ExternalData\weaponExternal.h">
       <Filter>Source\TFE_ExternalData</Filter>
     </ClInclude>
+	<ClInclude Include="TFE_ExternalData\weaponWheelExternal.h">
+      <Filter>Source\TFE_ExternalData</Filter>
+    </ClInclude>
     <ClInclude Include="TFE_DarkForces\Scripting\gameScripts.h">
       <Filter>Source\TFE_DarkForces\Scripting</Filter>
     </ClInclude>
@@ -1843,6 +1849,9 @@
       <Filter>Source\TFE_Jedi\Level</Filter>
     </ClCompile>
     <ClCompile Include="TFE_DarkForces\weapon.cpp">
+      <Filter>Source\TFE_DarkForces</Filter>
+    </ClCompile>
+	<ClCompile Include="TFE_DarkForces\weaponWheel.cpp">
       <Filter>Source\TFE_DarkForces</Filter>
     </ClCompile>
     <ClCompile Include="TFE_DarkForces\agent.cpp">
@@ -2575,6 +2584,9 @@
       <Filter>Source\TFE_ExternalData</Filter>
     </ClCompile>
     <ClCompile Include="TFE_ExternalData\weaponExternal.cpp">
+      <Filter>Source\TFE_ExternalData</Filter>
+    </ClCompile>
+	<ClCompile Include="TFE_ExternalData\weaponWheelExternal.cpp">
       <Filter>Source\TFE_ExternalData</Filter>
     </ClCompile>
     <ClCompile Include="TFE_DarkForces\Scripting\gameScripts.cpp">

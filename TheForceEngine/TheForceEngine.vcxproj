@@ -459,6 +459,7 @@ echo ^)";
     <ClInclude Include="TFE_DarkForces\util.h" />
     <ClInclude Include="TFE_DarkForces\vueLogic.h" />
     <ClInclude Include="TFE_DarkForces\weapon.h" />
+	<ClInclude Include="TFE_DarkForces\weaponWheel.h" />
     <ClInclude Include="TFE_DarkForces\weaponFireFunc.h" />
     <ClInclude Include="TFE_Editor\AssetBrowser\assetBrowser.h" />
     <ClInclude Include="TFE_Editor\editor.h" />
@@ -731,6 +732,7 @@ echo ^)";
     <ClInclude Include="TFE_ExternalData\dfLogics.h" />
     <ClInclude Include="TFE_ExternalData\logicTables.h" />
     <ClInclude Include="TFE_ExternalData\weaponExternal.h" />
+	<ClInclude Include="TFE_ExternalData\weaponWheelExternal.h" />
     <ClInclude Include="TFE_Settings\windows\registry.h" />
     <ClInclude Include="TFE_System\cJSON.h" />
     <ClInclude Include="TFE_System\CrashHandler\crashHandler.h" />
@@ -882,6 +884,7 @@ echo ^)";
     <ClCompile Include="TFE_DarkForces\util.cpp" />
     <ClCompile Include="TFE_DarkForces\vueLogic.cpp" />
     <ClCompile Include="TFE_DarkForces\weapon.cpp" />
+	<ClCompile Include="TFE_DarkForces\weaponWheel.cpp" />
     <ClCompile Include="TFE_DarkForces\weaponFireFunc.cpp" />
     <ClCompile Include="TFE_Editor\AssetBrowser\assetBrowser.cpp" />
     <ClCompile Include="TFE_Editor\editor.cpp" />
@@ -1120,6 +1123,7 @@ echo ^)";
     <ClCompile Include="TFE_ExternalData\dfLogics.cpp" />
     <ClCompile Include="TFE_ExternalData\logicTables.cpp" />
     <ClCompile Include="TFE_ExternalData\weaponExternal.cpp" />
+	<ClCompile Include="TFE_ExternalData\weaponWheelExternal.cpp" />	
     <ClCompile Include="TFE_Settings\windows\registry.cpp" />
     <ClCompile Include="TFE_System\cJSON.c" />
     <ClCompile Include="TFE_System\CrashHandler\crashHandlerWin32.cpp" />
