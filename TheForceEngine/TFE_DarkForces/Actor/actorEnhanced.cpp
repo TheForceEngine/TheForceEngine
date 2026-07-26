@@ -13,12 +13,6 @@
 
 namespace TFE_DarkForces
 {
-	///////////////////////////////////////////
-	// Forward Declarations
-	///////////////////////////////////////////
-	Tick enhancedAttackFunc(ActorModule* module, MovementModule* moveMod);
-
-
 	void actor_initBurstFireDefaults(AttackModule* attackMod, Logic* logic)
 	{
 		attackMod->hasBurstFire = JFALSE;
