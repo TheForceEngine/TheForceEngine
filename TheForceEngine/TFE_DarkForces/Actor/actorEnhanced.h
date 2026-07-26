@@ -1,6 +1,14 @@
 #pragma once
-#include "actorModule.h"
+//////////////////////////////////////////////////////////////////////
+// Enhanced Actor (TFE)
+// --------------------
+// This is where new actor functionality will reside.
+// The aim is to keep new functionality as separate as possible from
+// vanilla code.
+//
+//////////////////////////////////////////////////////////////////////
 
+#include "actorModule.h"
 
 namespace TFE_DarkForces
 {
