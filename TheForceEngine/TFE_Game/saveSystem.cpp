@@ -70,14 +70,14 @@ namespace TFE_SaveSystem
 		// When you are saving you want to overwrite the oldest but 
 		// when you are loading you want to get the latest, that's why
 		// we are doing all these comparisons
-		bool oldest = FileUtil::getModifiedTime(path[0]) < FileUtil::getModifiedTime(path[1]);
+		bool slot0IsOlder = FileUtil::getModifiedTime(path[0]) < FileUtil::getModifiedTime(path[1]);
 		if (getLatest)
 		{
-			return oldest ? 1 : 0;
+			return slot0IsOlder ? 1 : 0;
 		}
 		else
 		{
-			return oldest ? 0 : 1;
+			return slot0IsOlder ? 0 : 1;
 		}
 	}
 
