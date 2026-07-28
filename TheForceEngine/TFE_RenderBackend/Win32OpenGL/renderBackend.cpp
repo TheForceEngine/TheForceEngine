@@ -120,8 +120,7 @@ namespace TFE_RenderBackend
 
 		// List of keywords that indicate integrated graphics.
 		// This is not an exhaustive list , but covers the most common integrated graphics.
-		const std::vector<std::string> integratedKeywords = { 
-			"nvidia",
+		const std::vector<std::string> integratedKeywords = { 			
 			"intel(r) uhd",
 			"intel(r) hd",
 			"intel(r) iris",
