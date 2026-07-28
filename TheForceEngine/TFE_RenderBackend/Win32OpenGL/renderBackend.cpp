@@ -79,8 +79,13 @@ namespace TFE_RenderBackend
 	static bool s_isMacOS = false;
 
 
-	static bool showGpuWarningDialog(const char* rendererName)
+
+	static void showGpuWarningDialog(const char* rendererName)
 	{
+		// Don't show the warning if muted - this is a permanent change unless settings are wiped. 
+		TFE_Settings_Graphics* graphicsSettings = TFE_Settings::getGraphicsSettings();
+		if (graphicsSettings->suppressGPUWarnings) return;
+
 		char msg[512];
 		snprintf(msg, sizeof(msg),
 			"Integrated GPU detected: %s\n\nThis engine is optimized for discrete GPUs. "
@@ -90,27 +95,38 @@ namespace TFE_RenderBackend
 		const SDL_MessageBoxButtonData buttons[] =
 		{
 			{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "Continue" },
-			{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "Quit" },
+			{ 0,                                       1, "Always Ignore" },
+			{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 2, "Quit" },
 		};
 
 		const SDL_MessageBoxData data =
 		{
 			SDL_MESSAGEBOX_WARNING,
-			nullptr,        
+			nullptr,
 			"Graphics Warning",
 			msg,
 			SDL_arraysize(buttons),
 			buttons,
-			nullptr         // color scheme, nullptr = system default
+			nullptr
 		};
 
-		int buttonId = -1;
+		int buttonId = 0;
 		if (SDL_ShowMessageBox(&data, &buttonId) < 0)
 		{
 			TFE_System::logWrite(LOG_ERROR, "RenderBackend", "SDL_ShowMessageBox failed: %s", SDL_GetError());
-			return true; // fail open, don't block the user on a broken dialog
+			return;
 		}
-		return buttonId == 0; // true = continue, false = quit
+
+		if (buttonId == 1)
+		{
+			TFE_System::logWrite(LOG_MSG, "RenderBackend", "User chose to always ignore warnings due to integrated GPU.");
+			graphicsSettings->suppressGPUWarnings = true;			
+		}
+		else if (buttonId == 2)
+		{
+			TFE_System::logWrite(LOG_ERROR, "RenderBackend", "User chose to quit due to integrated GPU.");
+			exit(1);
+		}
 	}
 
 	static bool isIntegratedgraphics(string renderer)
@@ -120,7 +136,7 @@ namespace TFE_RenderBackend
 
 		// List of keywords that indicate integrated graphics.
 		// This is not an exhaustive list , but covers the most common integrated graphics.
-		const std::vector<std::string> integratedKeywords = { 			
+		const std::vector<std::string> integratedKeywords = { 
 			"intel(r) uhd",
 			"intel(r) hd",
 			"intel(r) iris",
@@ -155,13 +171,8 @@ namespace TFE_RenderBackend
 
 		if (isIntegratedgraphics(gl_ren))
 		{
-			if (!showGpuWarningDialog(gl_ren))
-			{
-				TFE_System::logWrite(LOG_ERROR, "RenderBackend", "User chose to quit due to integrated GPU.");
-				exit(1);
-			}
+			showGpuWarningDialog(gl_ren);
 		}
-
 	}
 
 	bool isWindowMinimized()

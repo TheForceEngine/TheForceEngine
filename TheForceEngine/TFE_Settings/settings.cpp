@@ -444,6 +444,7 @@ namespace TFE_Settings
 		writeKeyValue_Bool(settings, "ignore3doLimits", s_graphicsSettings.ignore3doLimits);
 		writeKeyValue_Bool(settings, "ditheredBilinear", s_graphicsSettings.ditheredBilinear);
 		writeKeyValue_Bool(settings, "useSmoothDeltaTime", s_graphicsSettings.useSmoothDeltaTime);
+		writeKeyValue_Bool(settings, "suppressGPUWarnings", s_graphicsSettings.suppressGPUWarnings);
 
 		writeKeyValue_Bool(settings, "useBilinear", s_graphicsSettings.useBilinear);
 		writeKeyValue_Bool(settings, "useMipmapping", s_graphicsSettings.useMipmapping);
@@ -822,6 +823,10 @@ namespace TFE_Settings
 		else if (strcasecmp("useSmoothDeltaTime", key) == 0)
 		{
 			s_graphicsSettings.useSmoothDeltaTime = parseBool(value);
+		}
+		else if (strcasecmp("suppressGPUWarnings", key) == 0)
+		{
+			s_graphicsSettings.suppressGPUWarnings = parseBool(value);
 		}
 		else if (strcasecmp("bilinearSharpness", key) == 0)
 		{
