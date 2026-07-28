@@ -35,7 +35,7 @@ namespace TFE_System
 	static u64 s_syncCheckDelay;
 	static f64 s_freq;
 	static f64 s_refreshRate;
-	
+
 	static f64 s_dt = 1.0 / 60.0;		// This is just to handle the first frame, so any reasonable value will work.
 	static f64 s_dtRaw = 1.0 / 60.0;
 	static const f64 c_maxDt = 0.05;	// 20 fps
@@ -131,7 +131,7 @@ namespace TFE_System
 	{
 		return SDL_GetPerformanceCounter();
 	}
-	
+
 	void update()
 	{
 		// This assumes that SDL_GetPerformanceCounter() is monotonic.
@@ -203,7 +203,7 @@ namespace TFE_System
 		const u64 uDt = s_time - s_startTime;
 		return f64(uDt) * s_freq;
 	}
-	
+
 	u64 getCurrentTimeInTicks()
 	{
 		return SDL_GetPerformanceCounter() - s_startTime;
@@ -236,6 +236,34 @@ namespace TFE_System
 		time_t _tm = time(NULL);
 		struct tm* curtime = localtime(&_tm);
 		strftime(output, 16, "%m-%d-%Y-%H-%M", curtime);
+	}
+
+	bool parseDateTimeString(const char* str, s64* outKey)
+	{
+		static const char* months[] = { "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec" };
+		char wday[8] = { 0 };
+		char mon[8] = { 0 };
+		s32 day = 0, hour = 0, min = 0, sec = 0, year = 0;
+
+		*outKey = 0;
+		if (!str || sscanf(str, "%7s %7s %d %d:%d:%d %d", wday, mon, &day, &hour, &min, &sec, &year) != 7)
+		{
+			return false;
+		}
+
+		s32 monthIndex = -1;
+		for (s32 i = 0; i < 12; i++)
+		{
+			if (strncmp(mon, months[i], 3) == 0) { monthIndex = i; break; }
+		}
+		if (monthIndex < 0)
+		{
+			return false;
+		}
+
+		*outKey = (s64)year * 10000000000LL + (s64)(monthIndex + 1) * 100000000LL +
+			(s64)day * 1000000LL + (s64)hour * 10000LL + (s64)min * 100LL + (s64)sec;
+		return true;
 	}
 
 	bool osShellExecute(const char* pathToExe, const char* exeDir, const char* param, bool waitForCompletion)
@@ -305,7 +333,7 @@ namespace TFE_System
 	{
 		s_quitMessagePosted = true;
 	}
-		
+
 	void postSystemUiRequest()
 	{
 		s_systemUiRequestPosted = true;
