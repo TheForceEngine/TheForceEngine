@@ -105,8 +105,8 @@ namespace TFE_SaveSystem
 		if (png)
 		{
 			pngSize = (u32)TFE_Image::writeImageToMemory(png, displayInfo.width, displayInfo.height,
-				SAVE_IMAGE_WIDTH, SAVE_IMAGE_HEIGHT,
-				s_imageBuffer[0]);
+								 SAVE_IMAGE_WIDTH, SAVE_IMAGE_HEIGHT,
+								 s_imageBuffer[0]);
 		}
 		else
 		{
@@ -147,7 +147,7 @@ namespace TFE_SaveSystem
 		stream->writeBuffer(levelId, len);
 
 		// For Replays - Counter ID
-		int counter = inputMapping_getCounter();
+		int counter = inputMapping_getCounter();		
 		len = sizeof(counter);
 		stream->write(&len);
 		stream->writeBuffer(&counter, len);
@@ -290,7 +290,7 @@ namespace TFE_SaveSystem
 		{
 			SaveHeader header;
 			loadHeader(&stream, &header, filename);
-
+			
 			// Clear out custom logics and external data before loading
 			TFE_ExternalData::getExternalLogics()->actorLogics.clear();
 			TFE_ExternalData::clearExternalWeapons();
@@ -322,7 +322,7 @@ namespace TFE_SaveSystem
 		}
 		return ret;
 	}
-
+		
 	void postLoadRequest(const char* filename)
 	{
 		s_req = SF_REQ_LOAD;
@@ -388,7 +388,7 @@ namespace TFE_SaveSystem
 			FileUtil::makeDirectory(s_gameSavePath);
 		}
 	}
-
+		
 	void setCurrentGame(IGame* game)
 	{
 		s_game = game;
@@ -449,7 +449,7 @@ namespace TFE_SaveSystem
 		char saveFilePath[TFE_MAX_PATH];
 		TFE_SaveSystem::getSaveFilenameFromIndex(index, filename);
 		sprintf(saveFilePath, "%s%s", s_gameSavePath, filename);
-
+		
 		// If the file doesn't exist or we are overwriting, use the saveFilePath - ex: save015.tfe
 		if (!FileUtil::exists(saveFilePath))
 		{
@@ -474,6 +474,6 @@ namespace TFE_SaveSystem
 		}
 
 		TFE_System::logWrite(LOG_MSG, "SaveSystem", "Unable to create a save file after %d attempts", TFE_MAX_SAVES);
-		assert(0);
+		assert(0);				
 	}
 }
