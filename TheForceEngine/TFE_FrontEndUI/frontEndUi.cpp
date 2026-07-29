@@ -28,7 +28,6 @@
 #include <TFE_Asset/imageAsset.h>
 #include <TFE_Ui/ui.h>
 #include <TFE_Ui/markdown.h>
-#include <TFE_System/system.h>
 #include <TFE_System/tfeMessage.h>
 #include <TFE_System/utf8.h>
 #include <TFE_ExternalData/dfLogics.h>
@@ -69,7 +68,7 @@ namespace TFE_FrontEndUI
 		FEUI_MODS,
 		FEUI_COUNT
 	};
-
+	
 	enum ConfigTab
 	{
 		CONFIG_ABOUT = 0,
@@ -379,7 +378,7 @@ namespace TFE_FrontEndUI
 		{
 			TFE_System::logWrite(LOG_ERROR, "SystemUI", "Cannot load title screen button images.");
 		}
-
+				
 		// Setup menu item callbacks
 		s_menuItemselected[0] = menuItem_Start;
 		s_menuItemselected[1] = menuItem_Load;
@@ -578,7 +577,7 @@ namespace TFE_FrontEndUI
 		ImGui::End();
 		ImGui::PopFont();
 	}
-
+		
 	void setCurrentGame(IGame* game)
 	{
 		s_game = game;
@@ -705,7 +704,7 @@ namespace TFE_FrontEndUI
 				s_inputConfig = inputMapping_get();
 				TFE_Settings_Game* gameSettings = TFE_Settings::getGameSettings();
 				TFE_Settings_Graphics* graphicsSettings = TFE_Settings::getGraphicsSettings();
-
+								
 				ImGui::SetCursorPosX(1280.0f * s_uiScale * 0.5f - 128.0f*s_uiScale);
 				if (ImGui::Button("Modern"))
 				{
@@ -743,7 +742,7 @@ namespace TFE_FrontEndUI
 				ImVec2 textSize = ImVec2(f32(textWidth), f32(textHeight));
 				for (s32 i = 0; i < s_menuItemCount; i++)
 				{
-#if ENABLE_EDITOR == 0
+				#if ENABLE_EDITOR == 0
 					// Disable the editor for now when not running on Windows.
 					if (s_menuItemselected[i] == menuItem_Editor)
 					{
@@ -751,11 +750,11 @@ namespace TFE_FrontEndUI
 							ImVec2(0, 0), ImVec2(1, 1), ImVec2(0, 0), ImVec2(1, 1), ImVec4(0, 0, 0, 0), ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
 					}
 					else
-#endif
-						if (ImGui::ImageAnimButton(s_buttonNormal[i].image, s_buttonSelected[i].image, textSize))
-						{
-							s_menuItemselected[i]();
-						}
+				#endif
+					if (ImGui::ImageAnimButton(s_buttonNormal[i].image, s_buttonSelected[i].image, textSize))
+					{
+						s_menuItemselected[i]();
+					}
 				}
 
 				ImGui::End();
@@ -1094,14 +1093,14 @@ namespace TFE_FrontEndUI
 
 		if (s_aboutDisplayStr) { TFE_Markdown::draw(s_aboutDisplayStr); }
 	}
-
+	
 	void configGame()
 	{
 		TFE_GameHeader* darkForces = TFE_Settings::getGameHeader("Dark Forces");
 		TFE_GameHeader* outlaws = TFE_Settings::getGameHeader("Outlaws");
 
 		s32 browseWinOpen = -1;
-
+		
 		//////////////////////////////////////////////////////
 		// Source Game Data
 		//////////////////////////////////////////////////////
@@ -1255,7 +1254,7 @@ namespace TFE_FrontEndUI
 
 		ImGui::PushFont(s_versionFont);
 		ImGui::LabelText("##ConfigLabel", "Engine Settings");
-		ImGui::PopFont();
+		ImGui::PopFont(); 
 
 		if (ImGui::TreeNodeEx("Expand Engine Settings", ImGuiTreeNodeFlags_None))
 		{
@@ -1309,7 +1308,7 @@ namespace TFE_FrontEndUI
 					sprintf(testFile, "%sDARK.GOB", filePath);
 					if (FileUtil::exists(testFile))
 					{
-						strcpy(darkForces->sourcePath, filePath);
+						strcpy(darkForces->sourcePath, filePath);		
 						TFE_System::logWrite(LOG_MSG, "Settings", "Updating Game Path to %s", filePath);
 						TFE_Paths::setPath(PATH_SOURCE_DATA, filePath);
 					}
@@ -1405,7 +1404,7 @@ namespace TFE_FrontEndUI
 		{
 			TFE_DarkForces::cheat_fly();
 		}
-
+			
 		bool fullBright = TFE_Jedi::s_fullBright;
 		if (ImGui::Checkbox("Full-Bright (LABRIGHT)", &fullBright))
 		{
@@ -1526,9 +1525,9 @@ namespace TFE_FrontEndUI
 
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.25f, 1.0f));
 		ImGui::TextWrapped("Note: HD Assets are only used if 'True Color' is enabled\n"
-			"in the Graphics panel. To enable True Color select \n"
-			"'GPU / OpenGL' as the Renderer, and 'True Color' as the\n"
-			"Color Mode.");
+						   "in the Graphics panel. To enable True Color select \n"
+						   "'GPU / OpenGL' as the Renderer, and 'True Color' as the\n"
+						   "Color Mode.");
 		ImGui::PopStyleColor();
 		ImGui::Spacing();
 
@@ -1582,11 +1581,11 @@ namespace TFE_FrontEndUI
 			ImGui::PopStyleVar();
 		}
 
-#ifdef ENABLE_OGV_CUTSCENES
+		#ifdef ENABLE_OGV_CUTSCENES
 		ImGui::Spacing();
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.25f, 1.0f));
 		ImGui::TextWrapped("HD cutscenes can be used if remaster assets exist. True\n"
-			"Color is not required.");
+			               "Color is not required.");
 		ImGui::PopStyleColor();
 
 		// Special case for HD cutscenes
@@ -1596,7 +1595,7 @@ namespace TFE_FrontEndUI
 			enhancements->enableHdCutscenes = useHdCutscenes;
 			forceTextureUpdate = true;
 		}
-#endif
+        #endif
 
 		return forceTextureUpdate;
 	}
@@ -1620,6 +1619,7 @@ namespace TFE_FrontEndUI
 	{
 		SAVE_SORT_NAME = 0,
 		SAVE_SORT_TIME,
+		SAVE_SORT_FILENAME,
 		SAVE_SORT_COUNT
 	};
 	static s32  s_saveSortMode = SAVE_SORT_NAME;
@@ -1637,17 +1637,22 @@ namespace TFE_FrontEndUI
 
 		std::sort(s_saveDir.begin() + startIndex, s_saveDir.end(),
 			[](const TFE_SaveSystem::SaveHeader& a, const TFE_SaveSystem::SaveHeader& b) -> bool
-		{
-			if (s_saveSortMode == SAVE_SORT_TIME)
 			{
-				s64 keyA = 0, keyB = 0;
-				TFE_System::parseDateTimeString(a.dateTime, &keyA);
-				TFE_System::parseDateTimeString(b.dateTime, &keyB);
-				return s_saveSortReverse ? keyA < keyB : keyB < keyA;
-			}
-			s32 cmp = strcasecmp(a.saveName, b.saveName);
-			return s_saveSortReverse ? cmp > 0 : cmp < 0;
-		});
+				if (s_saveSortMode == SAVE_SORT_TIME)
+				{
+					s64 keyA = 0, keyB = 0;
+					TFE_System::parseDateTimeString(a.dateTime, &keyA);
+					TFE_System::parseDateTimeString(b.dateTime, &keyB);
+					return s_saveSortReverse ? keyA < keyB : keyB < keyA;
+				}
+				else if (s_saveSortMode == SAVE_SORT_FILENAME)
+				{
+					s32 cmp = strcasecmp(a.fileName, b.fileName);
+					return s_saveSortReverse ? cmp > 0 : cmp < 0;
+				}
+				s32 cmp = strcasecmp(a.saveName, b.saveName);
+				return s_saveSortReverse ? cmp > 0 : cmp < 0;
+			});
 	}
 
 	void clearSaveImage()
@@ -1740,7 +1745,7 @@ namespace TFE_FrontEndUI
 		s_saveLoadSetupRequired = false;
 		s_popupSetFocus = false;
 	}
-
+		
 	void saveLoadDialog(bool save)
 	{
 		if (s_saveLoadSetupRequired)
@@ -1837,6 +1842,8 @@ namespace TFE_FrontEndUI
 				if (ImGui::RadioButton("Name", s_saveSortMode == SAVE_SORT_NAME)) { s_saveSortMode = SAVE_SORT_NAME; }
 				ImGui::SameLine();
 				if (ImGui::RadioButton("Time", s_saveSortMode == SAVE_SORT_TIME)) { s_saveSortMode = SAVE_SORT_TIME; }
+				ImGui::SameLine();
+				if (ImGui::RadioButton("Filename", s_saveSortMode == SAVE_SORT_FILENAME)) { s_saveSortMode = SAVE_SORT_FILENAME; }
 				ImGui::SameLine(0.0f, 32.0f * s_uiScale);
 				ImGui::Checkbox("Reverse Order", &s_saveSortReverse);
 				ImGui::Separator();
@@ -1844,8 +1851,6 @@ namespace TFE_FrontEndUI
 				if (s_saveSortMode != prevSortMode || s_saveSortReverse != prevSortReverse)
 				{
 					sortSaveDir();
-
-					// Switch to first item in the list 
 					s_selectedSave = 0;
 					updateSaveImage(s_selectedSave);
 				}
@@ -2002,7 +2007,7 @@ namespace TFE_FrontEndUI
 		saveLoadDialog(false);
 	}
 
-
+	
 
 	///////////////////////////////////////////////////////////////////////////////
 	// Replay  UI
@@ -2198,11 +2203,11 @@ namespace TFE_FrontEndUI
 			}
 
 			size.x = 420 * s_uiScale;
-#ifdef _WIN32
+			#ifdef _WIN32
 			size.y = 85 * s_uiScale;
-#else
+			#else
 			size.y = 100 * s_uiScale;
-#endif		
+			#endif		
 
 			ImGui::BeginChild("##InfoWithBorderRecord", size, true);
 			{
@@ -2258,11 +2263,11 @@ namespace TFE_FrontEndUI
 			ImGui::PopStyleColor();
 			ImGui::PopFont();
 
-#ifdef _WIN32
+			#ifdef _WIN32
 			size.y = 100 * s_uiScale;
-#else
+			#else
 			size.y = 120 * s_uiScale;
-#endif		
+			#endif		
 
 			ImGui::BeginChild("##InfoWithBorderPlayBack", size, true);
 			{
@@ -2287,7 +2292,7 @@ namespace TFE_FrontEndUI
 					TFE_System::logWrite(LOG_ERROR, "frontEndUi", "Failed to open the directory: '%s'", s_replayDir);
 				}
 			}
-			ImGui::SameLine(0.0f);
+			ImGui::SameLine(0.0f);	
 
 			if (ImGui::Button("Refresh Demo Folder"))
 			{
@@ -2457,7 +2462,7 @@ namespace TFE_FrontEndUI
 	}
 
 	// INPUT HANDLING
-
+		
 	void getBindingString(InputBinding* binding, char* inputName)
 	{
 		if (binding->type == ITYPE_KEYBOARD)
