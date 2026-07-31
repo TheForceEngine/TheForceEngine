@@ -3,7 +3,11 @@
 #include <SDL_mutex.h>
 #include "midiDevice.h"
 
-class RtMidiOut;
+namespace libremidi
+{
+	class midi_out;
+	class observer;
+}
 
 namespace TFE_Audio
 {
@@ -35,12 +39,13 @@ namespace TFE_Audio
 		s32  getActiveOutput(void) override;
 
 	private:
-		RtMidiOut* m_midiout;
+		libremidi::midi_out* m_midiout;
+		libremidi::observer* m_observer;
 
 		// serialize access to the physical MIDI port, to at least
 		// prevent a buffer overrun in the Linux ALSA MIDI parser.
 		SDL_mutex* portLock = nullptr;
-		
+
 		s32  m_outputId;
 		FileList m_outputs;
 	};

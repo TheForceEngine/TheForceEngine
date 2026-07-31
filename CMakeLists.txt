@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 include(CheckCXXCompilerFlag)
+include(FetchContent)
 
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
@@ -15,7 +16,7 @@ project(TheForceEngine
 	LANGUAGES C CXX ASM
 	)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -29,6 +30,11 @@ endif()
 # disable Clangs excessive warnings about unhandled switch values
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-switch")
+endif()
+
+# fixes a TON of build failures.
+if (MSVC)
+	add_compile_definitions(-D_HAS_STD_BYTE=0)
 endif()
 
 if (UNIX AND NOT APPLE)
@@ -51,7 +57,7 @@ include(GNUInstallDirs)
 
 ## Options
 option(ENABLE_TFE "Enable building “The Force Engine”" ON)
-option(ENABLE_SYSMIDI "Enable System-MIDI Output if RTMidi is available" ON)
+option(ENABLE_SYSMIDI "Enable System-MIDI Output through libremidi" ON)
 option(ENABLE_EDITOR "Enable TFE Editor" OFF)
 option(ENABLE_OGV_CUTSCENES "Enable OGV (Ogg Theora) video cutscene support" OFF)
 option(ENABLE_ADJUSTABLEHUD_MOD "Install the build‑in 'AdjustableHud mod' with TFE" ON)
@@ -66,25 +72,90 @@ if(ENABLE_TFE)
 		set_target_properties(tfe PROPERTIES OUTPUT_NAME "theforceengine")
 	endif()
 
-	if(UNIX)
-		set(THREADS_PREFER_PTHREAD_FLAG ON)
-		find_package(Threads REQUIRED)
-		find_package(PkgConfig REQUIRED)
-		pkg_check_modules(SDL2 REQUIRED sdl2)
-		pkg_check_modules(SDL2_IMAGE REQUIRED SDL2_image)
+	set(THREADS_PREFER_PTHREAD_FLAG ON)
+	find_package(Threads REQUIRED)
+	FetchContent_Declare(
+		SDL2
+		GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+		GIT_TAG        release-2.32.10
+		FIND_PACKAGE_ARGS NAMES SDL2
+	)
 
-		target_include_directories(tfe PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+	FetchContent_Declare(
+		SDL2Image
+		GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
+		GIT_TAG        release-2.8.12
+		FIND_PACKAGE_ARGS NAMES SDL2_image
+	)
+	# omit further unneded dependencies
+	set(SDL2IMAGE_WEBP OFF CACHE BOOL "" FORCE)
+	set(SDL2IMAGE_AVIF OFF CACHE BOOL "" FORCE)
 
-		target_include_directories(tfe PRIVATE ${SDL2_INCLUDE_DIRS})
-		target_include_directories(tfe PRIVATE ${SDL2_IMAGE_INCLUDE_DIRS})
-		target_link_libraries(tfe PRIVATE ${SDL2_LIBRARIES}
-					${SDL2_IMAGE_LIBRARIES}
-					${CMAKE_DL_LIBS}
-					Threads::Threads
+	FetchContent_MakeAvailable(SDL2)
+	FetchContent_MakeAvailable(SDL2Image)
+
+	target_include_directories(tfe PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+	target_link_libraries(tfe PRIVATE SDL2::SDL2main SDL2::SDL2 SDL2_image::SDL2_image Threads::Threads)
+
+	if(ENABLE_SYSMIDI)
+		FetchContent_Declare(
+			libremidi
+			GIT_REPOSITORY https://github.com/celtera/libremidi
+			GIT_TAG        master
 		)
-		
-		target_link_directories(tfe PRIVATE ${SDL2_LIBRARY_DIRS} ${SDL2_IMAGE_LIBRARY_DIRS})		
+		FetchContent_MakeAvailable(libremidi)
+		add_definitions("-DBUILD_SYSMIDI")
+		target_link_libraries(tfe PRIVATE libremidi)
+	endif()
 
+	if(COMPILER_ENABLE_AUTOZERO)
+		message(STATUS "enabled -ftrivial-auto-var-init=zero")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftrivial-auto-var-init=zero")
+	endif()
+
+	if(ENABLE_EDITOR)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_EDITOR")
+	endif()
+	if(ENABLE_OGV_CUTSCENES)
+		FetchContent_Declare(
+			Ogg
+			GIT_REPOSITORY https://github.com/xiph/ogg
+			GIT_TAG        master
+			FIND_PACKAGE_ARGS NAMES ogg
+		)
+		FetchContent_Declare(
+			Vorbis
+			GIT_REPOSITORY https://github.com/xiph/vorbis
+			GIT_TAG        master
+			FIND_PACKAGE_ARGS NAMES vorbis
+		)
+
+		FetchContent_MakeAvailable(Ogg)
+		FetchContent_MakeAvailable(Vorbis)
+		target_link_libraries(tfe PRIVATE Ogg::ogg Vorbis::vorbis ${THEORA_LIBRARIES})
+		target_link_directories(tfe PRIVATE ${THEORA_LIBRARY_DIRS})
+		# unlike Ogg/Vorbis, theora does **NOT** have CMake support.
+		# On windows, use vcpkg to fetch and build the lib.
+		if (WIN32)
+			find_package(unofficial-libtheora CONFIG REQUIRED)
+			target_link_libraries(tfe PRIVATE unofficial::libtheora::theoradec)
+		else()
+			# FIXME: needs host libtheora. Find a way to build it
+			# on Linux/OSX.
+			find_package(PkgConfig REQUIRED)
+			pkg_check_modules(THEORA REQUIRED theoradec)
+			target_link_directories(tfe PRIVATE ${THEORA_LIBRARY_DIRS})
+			target_link_libraries(tfe PRIVATE ${THEORA_LIBRARIES})
+		endif()
+		add_definitions("-DENABLE_OGV_CUTSCENES")
+	endif()
+
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_FORCE_SCRIPT")
+	target_include_directories(tfe PRIVATE "TheForceEngine/TFE_ForceScript/Angelscript/angelscript/include")
+	target_include_directories(tfe PRIVATE "TheForceEngine/TFE_ForceScript/Angelscript/add_on")
+	target_include_directories(tfe PRIVATE TheForceEngine)
+
+	if(UNIX)
 		# set up build directory to be able to run TFE immediately: symlink
 		# the necessary support file directories into the build env.
 		execute_process(COMMAND ln -sf ${CMAKE_SOURCE_DIR}/TheForceEngine/Captions)
@@ -99,45 +170,9 @@ if(ENABLE_TFE)
 		execute_process(COMMAND ln -sf ${CMAKE_SOURCE_DIR}/TheForceEngine/EditorDef)
 		execute_process(COMMAND ln -sf ${CMAKE_SOURCE_DIR}/TheForceEngine/Tests)
 		include(CreateGitVersionH.cmake)
-		create_git_version_h()
+		
 	endif()
-
-	if(COMPILER_ENABLE_AUTOZERO)
-		message(STATUS "enabled -ftrivial-auto-var-init=zero")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftrivial-auto-var-init=zero")
-	endif()
-
-	if(ENABLE_SYSMIDI)
-		pkg_check_modules(RTMIDI rtmidi>=5.0.0)
-		if(RTMIDI_FOUND)
-			add_definitions("-DBUILD_SYSMIDI")
-			target_link_libraries(tfe PRIVATE ${RTMIDI_LIBRARIES})
-		else()
-			set(ENABLE_SYSMIDI 0)
-			message(STATUS "System MIDI Disabled")
-		endif()
-	endif()
-	if(ENABLE_EDITOR)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_EDITOR")
-	endif()
-	if(ENABLE_OGV_CUTSCENES)
-		if(UNIX)
-			pkg_check_modules(THEORA REQUIRED theoradec)
-			pkg_check_modules(OGG REQUIRED ogg)
-			pkg_check_modules(VORBIS REQUIRED vorbis vorbisfile)
-			target_include_directories(tfe PRIVATE ${THEORA_INCLUDE_DIRS} ${OGG_INCLUDE_DIRS} ${VORBIS_INCLUDE_DIRS})
-			target_link_libraries(tfe PRIVATE ${THEORA_LIBRARIES} ${OGG_LIBRARIES} ${VORBIS_LIBRARIES})
-			target_link_directories(tfe PRIVATE ${THEORA_LIBRARY_DIRS} ${OGG_LIBRARY_DIRS} ${VORBIS_LIBRARY_DIRS})
-		endif()
-		add_definitions("-DENABLE_OGV_CUTSCENES")
-	endif()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_FORCE_SCRIPT")
-
-
-	target_include_directories(tfe PRIVATE "TheForceEngine/TFE_ForceScript/Angelscript/angelscript/include")
-	target_include_directories(tfe PRIVATE "TheForceEngine/TFE_ForceScript/Angelscript/add_on")
-	target_include_directories(tfe PRIVATE TheForceEngine)
-
+	create_git_version_h()
 	add_subdirectory(TheForceEngine/)
 endif()
 

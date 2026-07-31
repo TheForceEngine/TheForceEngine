@@ -83,7 +83,7 @@ namespace TFE_Markdown
 		}
 
 	#ifdef _WIN32
-		ShellExecute(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+		ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 	#endif
 	}
 

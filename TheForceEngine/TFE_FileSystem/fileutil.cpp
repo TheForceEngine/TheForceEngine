@@ -213,12 +213,12 @@ namespace FileUtil
 
 	void copyFile(const char* srcFile, const char* dstFile)
 	{
-		CopyFile(srcFile, dstFile, FALSE);
+		CopyFileA(srcFile, dstFile, FALSE);
 	}
 
 	void deleteFile(const char* srcFile)
 	{
-		DeleteFile(srcFile);
+		DeleteFileA(srcFile);
 	}
 
 	bool directoryExists(const char* path, char* outPath)
