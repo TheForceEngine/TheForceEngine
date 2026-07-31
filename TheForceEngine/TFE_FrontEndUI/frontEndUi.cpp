@@ -42,6 +42,7 @@
 #include <TFE_DarkForces/config.h>
 #include <TFE_DarkForces/player.h>
 #include <TFE_DarkForces/hud.h>
+#include <TFE_DarkForces/weaponWheel.h>
 #include <TFE_Jedi/Renderer/RClassic_Float/rlightingFloat.h>
 #include <TFE_DarkForces/darkForcesMain.h>
 #include <climits>
@@ -51,12 +52,6 @@ using namespace TFE_Audio;
 
 namespace TFE_FrontEndUI
 {
-	struct UiImage
-	{
-		void* image;
-		u32 width;
-		u32 height;
-	};
 
 	enum SubUI
 	{
@@ -623,6 +618,7 @@ namespace TFE_FrontEndUI
 		if (!drawFrontEnd)
 		{
 			if (showFps) { drawFps(w); }
+			TFE_DarkForces::weaponWheel_update();
 			return;
 		}
 
@@ -2780,6 +2776,7 @@ namespace TFE_FrontEndUI
 				inputMapping("Mortar Gun",        IADF_WEAPON_8);
 				inputMapping("Concussion Rifle",  IADF_WEAPON_9);
 				inputMapping("Assault Cannon",    IADF_WEAPON_10);
+				inputMapping("Weapon Wheel",      IADF_WEAPON_WHEEL);
 								
 				if (ImGui::BeginPopupModal("##ChangeBinding", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 				{
@@ -3786,8 +3783,8 @@ namespace TFE_FrontEndUI
 	}
 
 	////////////////////////////////////////////////////////////////
-  // Developer controls
-  ////////////////////////////////////////////////////////////////
+    // Developer controls
+    ////////////////////////////////////////////////////////////////
 	void drawLightControls(s32 index)
 
 	{

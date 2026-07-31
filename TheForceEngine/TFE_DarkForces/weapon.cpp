@@ -817,6 +817,20 @@ namespace TFE_DarkForces
 		}
 	}
 
+	s32 weapon_getAmmoCount(s32 wpnId)
+	{
+		if (wpnId < 0 || wpnId >= WPN_COUNT) { return -1; }
+		s32* ammo = s_playerWeaponList[wpnId].ammo;
+		return ammo ? *ammo : -1;
+	}
+
+	s32 weapon_getSecondaryAmmoCount(s32 wpnId)
+	{
+		if (wpnId < 0 || wpnId >= WPN_COUNT) { return -1; }
+		s32* ammo = s_playerWeaponList[wpnId].secondaryAmmo;
+		return ammo ? *ammo : -1;
+	}
+
 	void weapon_playerWeaponTaskFunc(MessageType msg)
 	{
 		struct LocalContext
