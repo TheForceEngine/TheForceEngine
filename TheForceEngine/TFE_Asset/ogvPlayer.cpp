@@ -324,6 +324,7 @@ namespace TFE_OgvPlayer
 			gotFrame = true;
 		}
 
+		// Decode audio after video so vorbis gets pages that video demuxing pulled in.
 		if (s_hasVorbis)
 		{
 			decodeAudioPackets();
@@ -349,6 +350,18 @@ namespace TFE_OgvPlayer
 		return TFE_System::getTime() - s_playbackStart;
 	}
 
+	// Intrinsic video time. s_videoTime is maintained by update() as
+	// "time of the next frame we need to decode" - it advances by
+	// fps_denom/fps_numer (i.e. one frame) every time we actually decode
+	// and present a frame.
+	//
+	// Since s_videoTime has already been incremented past the frame we
+	// just presented, we subtract one frame to get "time of the frame
+	// currently on screen." That's what a cue dispatcher wants.
+	//
+	// Returns 0 right at playback start before
+	// any frame has been decoded, which is harmless - no cue should be
+	// firing at negative time.
 	f64 getVideoTime()
 	{
 		f64 frameDuration = (f64)s_theoraInfo.fps_denominator / (f64)s_theoraInfo.fps_numerator;

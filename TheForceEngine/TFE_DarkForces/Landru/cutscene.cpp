@@ -63,9 +63,21 @@ using namespace TFE_Jedi;
 
 namespace TFE_DarkForces
 {
+	// ----------------------------------------------------------------------
+	// Shared state (both paths)
+	// ----------------------------------------------------------------------
+
+	// True while *either* path has an active cutscene. Drives the dispatch
+	// in cutscene_update().
 	static JBool s_playing = JFALSE;
 
+	// The scene catalog from cutscene.lst. Non-owning; loaded at Dark Forces
+	// game init and handed to us via cutscene_init.
 	CutsceneState* s_playSeq = nullptr;
+
+	// These four are preserved from the original code. s_enabled lets higher
+	// layers disable cutscenes entirely (e.g. during demo playback), while
+	// the volume globals are deprecated shadows of the settings system.
 	s32 s_soundVolume = 0;
 	s32 s_musicVolume = 0;
 	s32 s_enabled = 1;
@@ -99,10 +111,18 @@ namespace TFE_DarkForces
 	// Dedicated fonts baked specifically at the credits' display sizes.
 	static ImFont* s_creditsBodyFont  = nullptr;  // baked for normalSize
 	static ImFont* s_creditsTitleFont = nullptr;  // baked for subtitleSize
+
+	// True while an OGV is actively playing. When this is true, cutscene_
+	// update() dispatches to ogvCutscene_update() instead of the LFD player.
 	static bool s_ogvPlaying = false;
+
+	// Parsed subtitles for the current cutscene. Empty if the user has
+	// captions off, or if no SRT was found for this scene.
 	static vector<TFE_Subtitles::SrtEntry> s_ogvSubtitles;
 
-	// DCSS cue script stuff
+	// DCSS cue script for the current cutscene. Entries are sorted by
+	// timeMs; s_ogvNextCueIdx is the index of the next-to-fire entry.
+	// Dispatch walks forward only; we never rewind.
 	static DcssScript s_ogvScript;
 	static size_t s_ogvNextCueIdx = 0;
 
@@ -723,6 +743,9 @@ namespace TFE_DarkForces
 	// as cutscenePlayer_update(): true = keep playing, false = we're done.
 	static JBool ogvCutscene_update()
 	{
+		// Skip check comes first so the user's "get me out of here" press
+		// is responsive even if the decoder is busy. We special-case
+		// Alt+Enter (fullscreen toggle) so it doesn't double as a skip.
 		if (TFE_Input::keyPressed(KEY_ESCAPE) ||
 			(TFE_Input::keyPressed(KEY_RETURN) && !TFE_Input::keyDown(KEY_LALT) && !TFE_Input::keyDown(KEY_RALT)) ||
 			TFE_Input::keyPressed(KEY_SPACE))
@@ -798,14 +821,21 @@ namespace TFE_DarkForces
 		// (i.e. high resolution support).
 		lcanvas_init(320, 200);
 
+
+		// Kick off the LFD path. Future cutscene_update() calls will
+		// route through cutscenePlayer_update() based on s_ogvPlaying
+		// being false.
+
 		// The original code then starts the cutscene loop here, and then returns when done.
 		// Instead we set a bool and then the calling code will call 'update' until it returns false.
-
 		s_playing = JTRUE;
 		cutscenePlayer_start(sceneId);
 		return JTRUE;
 	}
 
+	// Per-frame update. Returns true while a cutscene is still playing.
+	// The outer game loop calls this every frame until it returns false,
+	// at which point control returns to the next game mode.
 	JBool cutscene_update()
 	{
 		if (!s_playing) { return JFALSE; }
