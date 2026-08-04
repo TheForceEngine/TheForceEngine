@@ -39,6 +39,12 @@ namespace TFE_Jedi
 	bool s_showWireframe = false;
 	TFE_Sectors* s_sectorRenderer = nullptr;
 	RendererType s_rendererType = RENDERER_SOFTWARE;
+	bool s_drawQuadsFirst = true;
+	bool s_clipLinesToRect = false;
+	s32 s_clipX;
+	s32 s_clipY;
+	s32 s_clipW;
+	s32 s_clipH;
 
 	/////////////////////////////////////////////
 	// Forward Declarations
@@ -497,8 +503,28 @@ namespace TFE_Jedi
 	{
 		if (s_subRenderer == TSR_CLASSIC_GPU)
 		{
-			screenDraw_endQuads();
+			if (s_drawQuadsFirst)
+			{
+				screenDraw_endQuads();
+			}
+
+			if (s_clipLinesToRect)
+			{
+				TFE_RenderBackend::setScissorRect(true, s_clipX, s_clipY, s_clipW, s_clipH);
+			}
+
 			screenDraw_endLines();
+
+			if (s_clipLinesToRect)
+			{
+				TFE_RenderBackend::setScissorRect(false);
+			}
+
+			if (!s_drawQuadsFirst)
+			{
+				screenDraw_endQuads();
+			}
+
 			vfb_unbindRenderTarget();
 		}
 	}

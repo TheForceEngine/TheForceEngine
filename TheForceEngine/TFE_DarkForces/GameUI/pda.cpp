@@ -213,6 +213,8 @@ namespace TFE_DarkForces
 		if (highRes)
 		{
 			TFE_Jedi::render_setResolution();
+			TFE_Jedi::s_drawQuadsFirst = false;		// in the PDA we draw lines before quads, so the automap is drawn behind the PDA graphics
+			TFE_Jedi::s_clipLinesToRect = true;		// PDA map needs to be clipped in widescreen mode
 		}
 
 		s_pdaOpen = JTRUE;
@@ -303,6 +305,8 @@ namespace TFE_DarkForces
 			TFE_Jedi::renderer_setLimits();
 		}
 
+		TFE_Jedi::s_drawQuadsFirst = true;
+		TFE_Jedi::s_clipLinesToRect = false;
 	}
 			
 	void pda_update()
@@ -1132,12 +1136,25 @@ namespace TFE_DarkForces
 
 	void pda_drawHighRes(u32 outWidth, u32 outHeight)
 	{
+		ScreenRect* uiRect = vfb_getScreenRect(VFB_RECT_UI);
+		fixed16_16 xScale = vfb_getXScale();
+		fixed16_16 yScale = vfb_getYScale();
+		s32 uiWidth = uiRect->right - uiRect->left + 1;
+		s32 virtualWidth = floor16(mul16(intToFixed16(320), xScale));
+		s32 virtualHeight = floor16(mul16(intToFixed16(200), yScale));
+		s32 xOffset = max(0, (uiWidth - virtualWidth) / 2);
+
 		// Overlay
 		if (s_pdaMode == PDA_MODE_MAP)
 		{
 			// Note we are in GPU mode so the vfb is not where the map is actually being drawn 
 			automap_draw(vfb_getCpuBuffer());
-			// TODO - this is currently drawing in front of the rest of the PDA art - needs to be clipped to overlayRect
+
+			// Set the clip area
+			TFE_Jedi::s_clipX = xOffset;
+			TFE_Jedi::s_clipY = 0;
+			TFE_Jedi::s_clipW = virtualWidth;
+			TFE_Jedi::s_clipH = virtualHeight;
 		}
 		else if (s_pdaMode == PDA_MODE_WEAPONS && s_weapons && s_weaponsHigh)
 		{
@@ -1216,13 +1233,6 @@ namespace TFE_DarkForces
 			pda_drawHighResButton(PdaButton(PDA_BTN_PANUP));
 			pda_drawHighResButton(PdaButton(PDA_BTN_PANDOWN));
 		}
-
-		ScreenRect* uiRect = vfb_getScreenRect(VFB_RECT_UI);
-		fixed16_16 xScale = vfb_getXScale();
-		fixed16_16 yScale = vfb_getYScale();
-		s32 uiWidth = uiRect->right - uiRect->left + 1;
-		s32 virtualWidth = floor16(mul16(intToFixed16(320), xScale));
-		s32 xOffset = max(0, (uiWidth - virtualWidth) / 2);
 
 		// Draw the bitmap
 		s_highResTex->update(s_highResBitmap, sizeof(s_highResBitmap));
