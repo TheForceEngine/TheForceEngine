@@ -32,6 +32,8 @@
 #include <TFE_Jedi/Level/rfont.h>
 #include <TFE_Jedi/Renderer/jediRenderer.h>
 #include <TFE_Input/replay.h>
+#include <TFE_Ui/ui.h>
+#include <TFE_Ui/imGUI/imgui.h>
 
 using namespace TFE_Jedi;
 using namespace TFE_Input;
@@ -119,6 +121,10 @@ namespace TFE_DarkForces
 	static bool s_isGpuMode = false;
 	static TextureGpu* s_highResTex;
 	static u32 s_highResBitmap[640 * 400];
+	static ImFont* s_mapFont = nullptr;
+	static ImFont* s_secretFont = nullptr;
+	static u8* s_fontTex;
+	static s32 s_fontTexWidth, s_fontTexHeight;
 
 	void pda_handleInput();
 	void pda_drawCommonButtons();
@@ -139,6 +145,18 @@ namespace TFE_DarkForces
 	///////////////////////////////////////////
 	// API Implementation
 	///////////////////////////////////////////
+
+	// Init font to use in high res mode
+	void pda_initHighResFont()
+	{
+		char fontpath[TFE_MAX_PATH];
+		sprintf(fontpath, "%s", "Fonts/BD_NumFont.ttf");
+		TFE_Paths::mapSystemPath(fontpath);
+		ImGuiIO& io = ImGui::GetIO();
+		s_mapFont = io.Fonts->AddFontFromFileTTF(fontpath, floorf(20.0f));
+		s_secretFont = io.Fonts->AddFontFromFileTTF(fontpath, floorf(24.0f));
+	}
+
 	void pda_start(const char* levelName)
 	{
 		// TFE
@@ -204,6 +222,10 @@ namespace TFE_DarkForces
 			{
 				pda_loadHighResActors(levelName);
 				s_highResTex = TFE_RenderBackend::createTexture(640, 400, TEX_RGBA8);
+
+				// Font texture
+				ImGuiIO& io = ImGui::GetIO();
+				io.Fonts->GetTexDataAsRGBA32(&s_fontTex, &s_fontTexWidth, &s_fontTexHeight);
 			}
 
 			s_pdaLoaded = JTRUE;
@@ -1134,6 +1156,68 @@ namespace TFE_DarkForces
 		pda_copyHighResImageToBitmap(s_pdaArt, s_pdaArtHigh);
 	}
 
+	void pda_drawHighResText(s32 xCoord, s32 yCoord, ImFont* font, const char* text, s32 mask)
+	{
+		if (!font) { return; }
+
+		// *2 for high-res
+		xCoord <<= 1;
+		yCoord <<= 1;
+
+		// Extract and draw each character's glyph
+		for (u8 chr = *text; chr != 0;)
+		{
+			const ImFontGlyph* glyph = font->FindGlyph((ImWchar)chr);
+			if (!glyph) { continue; }
+
+			s32 x0 = (s32)(glyph->U0 * s_fontTexWidth);
+			s32 y0 = (s32)(glyph->V0 * s_fontTexHeight);
+			s32 x1 = (s32)(glyph->U1 * s_fontTexWidth);
+			s32 y1 = (s32)(glyph->V1 * s_fontTexHeight);
+			s32 width = x1 - x0;
+			s32 height = y1 - y0;
+
+			s32* pixelData = (s32*)s_fontTex;
+			for (s32 y = 0; y < height; y++)
+			{
+				for (s32 x = 0; x < width; x++)
+				{
+					s32 pxl = pixelData[(y0 + y) * s_fontTexWidth + x0 + x];
+					pxl &= mask;
+					s_highResBitmap[(yCoord + y) * 640 + xCoord + x] = pxl;
+				}
+			}
+
+			text++;
+			chr = *text;
+			xCoord += width;
+		}
+	}
+
+	s32 pda_getImFontStringWidth(ImFont* font, const char* str)
+	{
+		if (!font) { return 0; }
+
+		s32 totalWidth = 0;
+
+		for (u8 chr = *str; chr != 0;)
+		{
+			const ImFontGlyph* glyph = font->FindGlyph((ImWchar)chr);
+			if (!glyph) { continue; }
+
+			s32 x0 = (s32)(glyph->U0 * s_fontTexWidth);
+			s32 x1 = (s32)(glyph->U1 * s_fontTexWidth);
+			s32 width = x1 - x0;
+
+			totalWidth += width;
+
+			str++;
+			chr = *str;
+		}
+
+		return totalWidth;
+	}
+
 	void pda_drawHighRes(u32 outWidth, u32 outHeight)
 	{
 		ScreenRect* uiRect = vfb_getScreenRect(VFB_RECT_UI);
@@ -1197,11 +1281,27 @@ namespace TFE_DarkForces
 				}
 			}
 
+			// Secrets percentage / count
 			s32 secretPercentage = s_levelState.secretCount ? floor16(mul16(FIXED(100), div16(intToFixed16(s_secretsFound), intToFixed16(s_levelState.secretCount)))) : 0;
 			lactor_setState(s_pdaArt, 30, 0);
 			pda_copyHighResImageToBitmap(s_pdaArt, s_pdaArtHigh);
 
-			// TO DO - secret percentage / count
+			char secretStr[32];
+			LRect rect;
+
+			bool showCount = TFE_Settings::getGameSettings()->df_showSecretCount;
+			if (showCount)
+			{
+				sprintf(secretStr, "%d/%d", s_secretsFound, s_levelState.secretCount);
+			}
+			else
+			{
+				sprintf(secretStr, "%2d%%", secretPercentage);
+			}
+
+			lactor_setState(s_pdaArt, 31, 0);
+			lactorAnim_getFrame(s_pdaArt, &rect);
+			pda_drawHighResText(rect.left, rect.top, s_secretFont, secretStr, 0xFF63E3FB);
 		}
 
 		// PDA background
@@ -1225,8 +1325,14 @@ namespace TFE_DarkForces
 				pda_drawHighResButton(PdaButton(i));
 			}
 
-			// Draw the floor number
-			// TODO
+			// Floor number
+			char str[10];
+			memset(str, 0, 10);	// just to be safe
+			snprintf(str, 10, "%d", automap_getLayer());
+			if (str[0] == '-') { str[0] = 'S'; }
+			s32 leftAdj = pda_getImFontStringWidth(s_mapFont, str) >> 2;		// halve the leftAdj, because the coordinates will be doubled for high-res; but the font is already sized for high-res
+
+			pda_drawHighResText(275 - leftAdj, 127, s_mapFont, str, 0xFF50D2F9);
 		}
 		else if (s_pdaMode == PDA_MODE_BRIEF)
 		{
