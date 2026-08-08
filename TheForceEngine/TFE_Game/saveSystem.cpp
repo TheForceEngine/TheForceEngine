@@ -227,17 +227,27 @@ namespace TFE_SaveSystem
 
 	bool saveGame(const char* filename, const char* saveName)
 	{
+		// We first write the new save to a temporary file, then rename the temporary file.
+		// This way, if we are saving into an existing slot and something goes wrong during
+		// the save process, we won't overwrite a valid save with a corrupted save.
+
+		char tempFilePath[TFE_MAX_PATH];
 		char filePath[TFE_MAX_PATH];
+		string tempFilename = string(filename) + ".tmp";
+		sprintf(tempFilePath, "%s%s", s_gameSavePath, tempFilename.c_str());
 		sprintf(filePath, "%s%s", s_gameSavePath, filename);
 
 		bool ret = false;
 		FileStream stream;
-		if (stream.open(filePath, Stream::MODE_WRITE))
+		if (stream.open(tempFilePath, Stream::MODE_WRITE))
 		{
 			saveHeader(&stream, saveName);
 			ret = s_game->serializeGameState(&stream, filename, true);
 			stream.close();
 		}
+
+		stream.renameFile(tempFilePath, filePath);
+
 		return ret;
 	}
 
