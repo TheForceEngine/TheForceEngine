@@ -5500,6 +5500,12 @@ namespace LevelEditor
 		// Then copy the snapshot to the level data itself. Its the new state.
 		s_level = s_curSnapshot;
 
+		// ACAC: test
+		//if (!compareLevelInfs(s_infSnapshot, s_levelInf))
+		//{
+		//	LE_WARNING("INF NO MATCH");
+		//}
+
 		// Repopulate the Inf struct
 		copyInfData(&s_infSnapshot, &s_levelInf);
 
