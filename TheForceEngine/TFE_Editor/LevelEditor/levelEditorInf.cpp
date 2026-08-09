@@ -244,8 +244,11 @@ namespace LevelEditor
 		ITRIGGER_SINGLE
 	};
 
+	//static Editor_LevelInf s_levelInfTemp = {}; // Copy of state prior to editing
+	static Editor_InfItemHistory s_infItemTemp = {};
 	static InfEditor s_infEditor = {};
 	static InfEditorState s_infEditorState;
+	InfModified s_infModified = {};
 
 	static ImVec2 s_popupPos;
 	static s32 s_restorePos = 0;
@@ -380,6 +383,22 @@ namespace LevelEditor
 			s_levelInf.teleport[i] = s_levelInf.teleport[i + 1];
 		}
 		s_levelInf.teleport.pop_back();
+	}
+
+	void freeInfClass(Editor_InfClass* infClass)
+	{
+		if (infClass->classId == IIC_ELEVATOR)
+		{
+			freeElevator((Editor_InfElevator*)infClass);
+		}
+		else if (infClass->classId == IIC_TRIGGER)
+		{
+			freeTrigger((Editor_InfTrigger*)infClass);
+		}
+		else if (infClass->classId == IIC_TELEPORTER)
+		{
+			freeTeleporter((Editor_InfTeleporter*)infClass);
+		}
 	}
 		
 	Editor_InfElevator* getElevFromClassData(Editor_InfClass* data)
@@ -559,6 +578,203 @@ namespace LevelEditor
 		client->targetSector = arg;
 	}
 
+	bool isInfElevatorEqual(Editor_InfElevator* lElev, Editor_InfElevator* rElev)
+	{
+		if (lElev->slaves.size() != rElev->slaves.size() ||
+			lElev->stops.size() != rElev->stops.size())
+		{
+			LE_WARNING("elev slave/stop count mismatch");
+			return false;
+		}
+
+		if (lElev->classId != rElev->classId ||
+			lElev->type != rElev->type ||
+			lElev->overrideSet != rElev->overrideSet ||
+			lElev->start != rElev->start ||
+			lElev->speed != rElev->speed ||
+			lElev->angle != rElev->angle ||
+			lElev->flags != rElev->flags ||
+			(lElev->key[0] != rElev->key[0] || lElev->key[1] != rElev->key[1]) ||
+			(lElev->center.x != rElev->center.x || lElev->center.z != rElev->center.z) ||
+			(lElev->sounds[0] != rElev->sounds[0] || lElev->sounds[1] != rElev->sounds[1] || lElev->sounds[2] != rElev->sounds[2]) ||
+			lElev->master != rElev->master ||
+			lElev->eventMask != rElev->eventMask ||
+			lElev->entityMask != rElev->entityMask)
+		{
+			LE_WARNING("elevs don't match");
+			return false;
+		}
+
+		for (size_t j = 0; j < lElev->slaves.size(); j++)
+		{
+			if (lElev->slaves[j].name != rElev->slaves[j].name ||
+				lElev->slaves[j].angleOffset != rElev->slaves[j].angleOffset)
+			{
+				LE_WARNING("elev slave index %zu don't match", j);
+				return false;
+			}
+		}
+
+		for (size_t j = 0; j < lElev->stops.size(); j++)
+		{
+			Editor_InfStop* lStop = &lElev->stops[j];
+			Editor_InfStop* rStop = &rElev->stops[j];
+			if (lStop->adjoinCmd.size() != rStop->adjoinCmd.size() ||
+				lStop->textureCmd.size() != rStop->textureCmd.size() ||
+				lStop->msg.size() != rStop->msg.size() ||
+				lStop->scriptCall.size() != rStop->scriptCall.size())
+			{
+				LE_WARNING("elev stop index %zu cmd vecs dont match", j);
+				return false;
+			}
+
+			if (lStop->overrideSet != rStop->overrideSet ||
+				lStop->relative != rStop->relative ||
+				lStop->value != rStop->value ||
+				lStop->fromSectorFloor != rStop->fromSectorFloor ||
+				lStop->delayType != rStop->delayType ||
+				lStop->delay != rStop->delay ||
+				lStop->page != rStop->page)
+			{
+				LE_WARNING("elev stop index %zu data dont match", j);
+				return false;
+			}
+
+			for (size_t k = 0; k < lStop->adjoinCmd.size(); k++)
+			{
+				Editor_InfAdjoinCmd* lAdj = &lStop->adjoinCmd[k];
+				Editor_InfAdjoinCmd* rAdj = &rStop->adjoinCmd[k];
+				if (lAdj->sector0 != rAdj->sector0 ||
+					lAdj->sector1 != rAdj->sector1 ||
+					lAdj->wallIndex0 != rAdj->wallIndex0 ||
+					lAdj->wallIndex1 != rAdj->wallIndex1)
+				{
+					LE_WARNING("elev stop index %zu adj index %zu data dont match", j, k);
+					return false;
+				}
+			}
+
+			for (size_t k = 0; k < lStop->textureCmd.size(); k++)
+			{
+				Editor_InfTextureCmd* lTex = &lStop->textureCmd[k];
+				Editor_InfTextureCmd* rTex = &rStop->textureCmd[k];
+				if (lTex->donorSector != rTex->donorSector ||
+					lTex->fromCeiling != rTex->fromCeiling)
+				{
+					LE_WARNING("elev stop index %zu tex index %zu data dont match", j, k);
+					return false;
+				}
+			}
+
+			for (size_t k = 0; k < lStop->msg.size(); k++)
+			{
+				Editor_InfMessage* lMsg = &lStop->msg[k];
+				Editor_InfMessage* rMsg = &rStop->msg[k];
+				if (lMsg->targetSector != rMsg->targetSector ||
+					lMsg->targetWall != rMsg->targetWall ||
+					lMsg->type != rMsg->type ||
+					lMsg->eventFlags != rMsg->eventFlags ||
+					(lMsg->arg[0] != rMsg->arg[0] || lMsg->arg[1] != rMsg->arg[1]))
+				{
+					LE_WARNING("elev index %zu stop index %zu msg index %zu data dont match", j, k);
+					return false;
+				}
+			}
+
+			for (size_t k = 0; k < lStop->scriptCall.size(); k++)
+			{
+				Editor_ScriptCall* lCall = &lStop->scriptCall[k];
+				Editor_ScriptCall* rCall = &rStop->scriptCall[k];
+				if (lCall->funcName != rCall->funcName ||
+					lCall->arg[0].value != rCall->arg[0].value ||
+					lCall->arg[1].value != rCall->arg[1].value ||
+					lCall->arg[2].value != rCall->arg[2].value ||
+					lCall->arg[3].value != rCall->arg[3].value)
+				{
+					LE_WARNING("elev stop index %zu script index %zu data dont match", j, k);
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	bool isInfTriggerEqual(Editor_InfTrigger* lTrig, Editor_InfTrigger* rTrig)
+	{
+		if (lTrig->clients.size() != rTrig->clients.size())
+		{
+			LE_WARNING("trig client size not match");
+			return false;
+		}
+		if (lTrig->classId != rTrig->classId ||
+			lTrig->type != rTrig->type ||
+			lTrig->overrideSet != rTrig->overrideSet ||
+			lTrig->cmd != rTrig->cmd ||
+			(lTrig->arg[0] != rTrig->arg[0] || lTrig->arg[1] != rTrig->arg[1]) ||
+			lTrig->sound != rTrig->sound ||
+			lTrig->master != rTrig->master ||
+			lTrig->textId != rTrig->textId ||
+			lTrig->eventMask != rTrig->eventMask ||
+			lTrig->entityMask != rTrig->entityMask ||
+			lTrig->event != rTrig->event)
+		{
+			LE_WARNING("trig data not match");
+			return false;
+		}
+
+		for (size_t j = 0; j < lTrig->clients.size(); j++)
+		{
+			Editor_InfClient* lClient = &lTrig->clients[j];
+			Editor_InfClient* rClient = &rTrig->clients[j];
+			if (lClient->targetSector != rClient->targetSector ||
+				lClient->targetWall != rClient->targetWall ||
+				lClient->eventMask != rClient->eventMask)
+			{
+				LE_WARNING("trig client index %zu data not match", j);
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	bool isInfTeleporterEqual(Editor_InfTeleporter* lTele, Editor_InfTeleporter* rTele)
+	{
+		if (lTele->classId != rTele->classId ||
+			lTele->type != rTele->type ||
+			lTele->target != rTele->target ||
+			(lTele->dstPos.x != rTele->dstPos.x || lTele->dstPos.y != rTele->dstPos.y || lTele->dstPos.z != rTele->dstPos.z) ||
+			lTele->dstAngle != rTele->dstAngle)
+		{
+			LE_WARNING("tele data not match");
+			return false;
+		}
+
+		return true;
+	}
+
+	bool isInfClassEqual(Editor_InfClass* lClass, Editor_InfClass* rClass)
+	{
+		if (lClass->classId == rClass->classId)
+		{
+			if (lClass->classId == IIC_ELEVATOR)
+			{
+				return isInfElevatorEqual((Editor_InfElevator*)lClass, (Editor_InfElevator*)rClass);
+			}
+			else if (lClass->classId == IIC_TRIGGER)
+			{
+				return isInfTriggerEqual((Editor_InfTrigger*)lClass, (Editor_InfTrigger*)rClass);
+			}
+			else if (lClass->classId == IIC_TELEPORTER)
+			{
+				return isInfTeleporterEqual((Editor_InfTeleporter*)lClass, (Editor_InfTeleporter*)rClass);
+			}
+		}
+		assert(0); // Hard fail to catch mismatched class types. Something has gone wrong.
+		return false;
+	}
+
 	// Walk each member of two Editor_LevelInf structs testing for equality. Inf undo is scary.
 	bool compareLevelInfs(Editor_LevelInf& left, Editor_LevelInf& right)
 	{	
@@ -586,176 +802,33 @@ namespace LevelEditor
 			Editor_InfElevator* lElev = left.elevator[i];
 			Editor_InfElevator* rElev = right.elevator[i];
 
-			if (lElev->slaves.size() != rElev->slaves.size() ||
-				lElev->stops.size() != rElev->stops.size())
+			if (!isInfElevatorEqual(lElev, rElev))
 			{
-				LE_WARNING("compareLevelInfs(): elev index %zu slave/stop count mismatch", i);
+				LE_WARNING("Elev index: %zu", i);
 				return false;
 			}
-
-
-			if (lElev->classId != rElev->classId ||
-				lElev->type != rElev->type ||
-				lElev->overrideSet != rElev->overrideSet ||
-				lElev->start != rElev->start ||
-				lElev->speed != rElev->speed ||
-				lElev->angle != rElev->angle ||
-				lElev->flags != rElev->flags ||
-				(lElev->key[0] != rElev->key[0] || lElev->key[1] != rElev->key[1]) ||
-				(lElev->center.x != rElev->center.x || lElev->center.z != rElev->center.z) ||
-				(lElev->sounds[0] != rElev->sounds[0] || lElev->sounds[1] != rElev->sounds[1] || lElev->sounds[2] != rElev->sounds[2]) ||
-				lElev->master != rElev->master ||
-				lElev->eventMask != rElev->eventMask ||
-				lElev->entityMask != rElev->entityMask)
-			{
-				LE_WARNING("compareLevelInfs(): elev index %zu don't match", i);
-				return false;
-			}
-
-			for (size_t j = 0; j < lElev->slaves.size(); j++)
-			{
-				if (lElev->slaves[j].name != rElev->slaves[j].name ||
-					lElev->slaves[j].angleOffset != rElev->slaves[j].angleOffset)
-				{
-					LE_WARNING("compareLevelInfs(): elev index %zu slave index %zu don't match", i, j);
-					return false;
-				}
-			}
-
-			for (size_t j = 0; j < lElev->stops.size(); j++)
-			{
-				Editor_InfStop* lStop = &lElev->stops[j];
-				Editor_InfStop* rStop = &rElev->stops[j];
-				if (lStop->adjoinCmd.size() != rStop->adjoinCmd.size() ||
-					lStop->textureCmd.size() != rStop->textureCmd.size() ||
-					lStop->msg.size() != rStop->msg.size() ||
-					lStop->scriptCall.size() != rStop->scriptCall.size())
-				{
-					LE_WARNING("compareLevelInfs(): elev index %zu stop index %zu cmd vecs dont match", i, j);
-					return false;
-				}
-				
-				if (lStop->overrideSet != rStop->overrideSet ||
-					lStop->relative != rStop->relative ||
-					lStop->value != rStop->value ||
-					lStop->fromSectorFloor != rStop->fromSectorFloor ||
-					lStop->delayType != rStop->delayType ||
-					lStop->delay != rStop->delay ||
-					lStop->page != rStop->page)
-				{
-					LE_WARNING("compareLevelInfs(): elev index %zu stop index %zu data dont match", i, j);
-					return false;
-				}
-
-				for (size_t k = 0; k < lStop->adjoinCmd.size(); k++)
-				{
-					Editor_InfAdjoinCmd* lAdj = &lStop->adjoinCmd[k];
-					Editor_InfAdjoinCmd* rAdj = &rStop->adjoinCmd[k];
-					if (lAdj->sector0 != rAdj->sector0 ||
-						lAdj->sector1 != rAdj->sector1 ||
-						lAdj->wallIndex0 != rAdj->wallIndex0 ||
-						lAdj->wallIndex1 != rAdj->wallIndex1)
-					{
-						LE_WARNING("compareLevelInfs(): elev index %zu stop index %zu adj index %zu data dont match", i, j, k);
-						return false;
-					}
-				}
-
-				for (size_t k = 0; k < lStop->textureCmd.size(); k++)
-				{
-					Editor_InfTextureCmd* lTex = &lStop->textureCmd[k];
-					Editor_InfTextureCmd* rTex = &rStop->textureCmd[k];
-					if (lTex->donorSector != rTex->donorSector ||
-						lTex->fromCeiling != rTex->fromCeiling)
-					{
-						LE_WARNING("compareLevelInfs(): elev index %zu stop index %zu tex index %zu data dont match", i, j, k);
-						return false;
-					}
-				}
-
-				for (size_t k = 0; k < lStop->msg.size(); k++)
-				{
-					Editor_InfMessage* lMsg = &lStop->msg[k];
-					Editor_InfMessage* rMsg = &rStop->msg[k];
-					if (lMsg->targetSector != rMsg->targetSector ||
-						lMsg->targetWall != rMsg->targetWall ||
-						lMsg->type != rMsg->type ||
-						lMsg->eventFlags != rMsg->eventFlags ||
-						(lMsg->arg[0] != rMsg->arg[0] || lMsg->arg[1] != rMsg->arg[1]))
-					{
-						LE_WARNING("compareLevelInfs(): elev index %zu stop index %zu msg index %zu data dont match", i, j, k);
-						return false;
-					}
-				}
-
-				for (size_t k = 0; k < lStop->scriptCall.size(); k++)
-				{
-					Editor_ScriptCall* lCall = &lStop->scriptCall[k];
-					Editor_ScriptCall* rCall = &rStop->scriptCall[k];
-					if (lCall->funcName != rCall->funcName ||
-						lCall->arg[0].value != rCall->arg[0].value ||
-						lCall->arg[1].value != rCall->arg[1].value ||
-						lCall->arg[2].value != rCall->arg[2].value ||
-						lCall->arg[3].value != rCall->arg[3].value)
-					{
-						LE_WARNING("compareLevelInfs(): elev index %zu stop index %zu script index %zu data dont match", i, j, k);
-						return false;
-					}
-				}
-			} // for elev stops
-		} // for elev
+		}
 
 		for (size_t i = 0; i < left.trigger.size(); i++)
 		{
 			Editor_InfTrigger* lTrig = left.trigger[i];
 			Editor_InfTrigger* rTrig = right.trigger[i];
 
-			if (lTrig->clients.size() != rTrig->clients.size())
+			if (!isInfTriggerEqual(lTrig, rTrig))
 			{
-				LE_WARNING("compareLevelInfs(): trig index %zu client size not match", i);
+				LE_WARNING("Trig index: %zu", i);
 				return false;
 			}
-			if (lTrig->classId != rTrig->classId ||
-				lTrig->type != rTrig->type ||
-				lTrig->overrideSet != rTrig->overrideSet ||
-				lTrig->cmd != rTrig->cmd ||
-				(lTrig->arg[0] != rTrig->arg[0] || lTrig->arg[1] != rTrig->arg[1]) ||
-				lTrig->sound != rTrig->sound ||
-				lTrig->master != rTrig->master ||
-				lTrig->textId != rTrig->textId ||
-				lTrig->eventMask != rTrig->eventMask ||
-				lTrig->entityMask != rTrig->entityMask ||
-				lTrig->event != rTrig->event)
-			{
-				LE_WARNING("compareLevelInfs(): trig index %zu data not match", i);
-				return false;
-			}
-
-			for (size_t j = 0; j < lTrig->clients.size(); j++)
-			{
-				Editor_InfClient* lClient = &lTrig->clients[j];
-				Editor_InfClient* rClient = &rTrig->clients[j];
-				if (lClient->targetSector != rClient->targetSector ||
-					lClient->targetWall != rClient->targetWall ||
-					lClient->eventMask != rClient->eventMask)
-				{
-					LE_WARNING("compareLevelInfs(): trig index %zu client index %zu data not match", i, j);
-					return false;
-				}
-			}
-		} // for trig
+		}
 
 		for (size_t i = 0; i < left.teleport.size(); i++)
 		{
 			Editor_InfTeleporter* lTele = left.teleport[i];
 			Editor_InfTeleporter* rTele = right.teleport[i];
-			if (lTele->classId != rTele->classId ||
-				lTele->type != rTele->type ||
-				lTele->target != rTele->target ||
-				(lTele->dstPos.x != rTele->dstPos.x || lTele->dstPos.y != rTele->dstPos.y || lTele->dstPos.z != rTele->dstPos.z) ||
-				lTele->dstAngle != rTele->dstAngle)
+	
+			if (!isInfTeleporterEqual(lTele, rTele))
 			{
-				LE_WARNING("compareLevelInfs(): tele index %zu data not match", i);
+				LE_WARNING("Tele index: %zu", i);
 				return false;
 			}
 		}
@@ -1734,9 +1807,218 @@ namespace LevelEditor
 		}
 	}
 
+	bool isClassIndexesMatched()
+	{
+		for (const IndexPair pair : s_infModified.matches)
+		{
+			if (pair.i0 != pair.i1)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	void clearInfItemTemp()
+	{
+		for (s32 i = (s32)s_infItemTemp.classData.size() - 1; i >= 0; i--)
+		{
+			Editor_InfClass* itemClass = s_infItemTemp.classData[i];
+			if (itemClass->classId == IIC_ELEVATOR)
+			{
+				Editor_InfElevator* elev = (Editor_InfElevator*)itemClass;
+				delete elev;
+			}
+			else if (itemClass->classId == IIC_TRIGGER)
+			{
+				Editor_InfTrigger* trig = (Editor_InfTrigger*)itemClass;
+				delete trig;
+			}
+			else if (itemClass->classId == IIC_TELEPORTER)
+			{
+				Editor_InfTeleporter* tele = (Editor_InfTeleporter*)itemClass;
+				delete tele;
+			}
+		}
+		s_infItemTemp = {};
+	}
+
+	void setInfItemTemp(Editor_InfItem* infItem)
+	{
+		s_infItemTemp.name = s_infEditor.item->name;
+		s_infItemTemp.wallNum = s_infEditor.item->wallNum;
+
+		// doing another set of allocs to compare against later feels a bit silly
+		for (size_t i = 0; i < s_infEditor.item->classData.size(); i++)
+		{
+			Editor_InfClass* infClass = s_infEditor.item->classData[i];
+			s_infItemTemp.classPtr.push_back((void*)infClass);
+			if (infClass->classId == IIC_ELEVATOR)
+			{
+				Editor_InfElevator* elev = new Editor_InfElevator();
+				elev->classId = IIC_ELEVATOR;
+				s_infItemTemp.classData.push_back((Editor_InfClass*)elev);
+				*elev = *(Editor_InfElevator*)s_infEditor.item->classData[i];
+
+			}
+			else if (infClass->classId == IIC_TRIGGER)
+			{
+				Editor_InfTrigger* trig = new Editor_InfTrigger();
+				trig->classId = IIC_TRIGGER;
+				s_infItemTemp.classData.push_back((Editor_InfClass*)trig);
+				*trig = *(Editor_InfTrigger*)s_infEditor.item->classData[i];
+			}
+			else if (infClass->classId == IIC_TELEPORTER)
+			{
+				Editor_InfTeleporter* tele = new Editor_InfTeleporter();
+				tele->classId = IIC_TELEPORTER;
+				s_infItemTemp.classData.push_back((Editor_InfClass*)tele);
+				*tele = *(Editor_InfTeleporter*)s_infEditor.item->classData[i];
+			}
+		}
+	}
+
+	void findInfChangesForHistory()
+	{
+		// INF class definitions and each item's reference to it are behind heap allocated
+		// pointers. Fine while in memory but for serialisation we need indexes instead.
+		// For saving to TFL export that's easy just capture the order at point in time.
+		
+		// For history functions, we assume all changes are limited in scope
+		// to the Editor_InfItem that the UI is pointing to, and its classData[]. Within
+		// that scope, capture the changes. Actions within here will change the index of
+		// classData members around it, so being able to identify which classData before editing
+		// matches which classData after editing is essential. As there is, currently, no
+		// unique identifier within each INF class, the next best thing to match on 
+		// is the pointer address.
+
+		// We can't just clone the pointers into a new Editor_InfItem and compare later
+		// because those pointers will also point to the modified future state which doesn't
+		// work. This is why Editor_InfItemHistory was made, to take coipes the pointer addresses
+		// and save to classPtr[]. Then we can manually alloc copies of the original data
+		// and do deep comparisons to test for modifications later.
+
+		// FIXME: Possible bug if allocElev/Trig allocs the same address while in the UI?
+		// Maybe this is a good reason for a uniqueId/serial in the class itself?
+
+
+		if (s_infEditor.item == nullptr)
+		{
+			return; // FIXME: deletions?
+		}
+
+		void* classPtr = nullptr;
+		Editor_InfItem* infItem = s_levelInf.item.data();
+
+		std::vector<IndexPair> currentClasses;
+
+		s32 currentItemIndex = -1;
+		s32 index = 0;
+		
+		s_infModified.matches.clear();
+		s_infModified.deleteIndexes.clear();
+		s_infModified.modifiedIndexes.clear();
+		s_infModified.newIndexes.clear();
+		
+
+		if (s_infEditor.item != nullptr)
+		{
+			currentItemIndex = (s32)(s_infEditor.item - s_levelInf.item.data());
+			if (currentItemIndex >= s_infItemTemp.infCount)
+			{
+				// New item. Any class data is assumed new entries.
+				cmd_infCreateSnapshot(LName_Inf_Create);
+			}
+			else
+			{
+				// Modified item.
+				// 1. Test for deletions.
+				Editor_InfClass* beforeItemClass;
+				Editor_InfClass* afterItemClass;
+				void* beforeItemPtr;
+				void* afterItemPtr;
+
+				bool found = false;
+				s32 oldClassDataSize = (s32)s_infItemTemp.classData.size();
+				s32 newClassDataSize = (s32)s_levelInf.item[currentItemIndex].classData.size();
+				for (s32 oldClassIndex = oldClassDataSize - 1; oldClassIndex >= 0; oldClassIndex--) // Store in the vec in descending order
+				{
+					found = false;
+					beforeItemPtr = s_infItemTemp.classPtr[oldClassIndex];
+					for (s32 newClassIndex = 0; newClassIndex < newClassDataSize; newClassIndex++)
+					{
+						afterItemPtr = (void*)s_levelInf.item[currentItemIndex].classData[newClassIndex];
+						
+						// There is no unique identifier within each class. So the only way to find matching
+						// classes before and after, assuming the index can shuffle around, is by comparing 
+						// the pointer addresses.
+						if (beforeItemPtr == afterItemPtr) 
+						{
+							assert(oldClassIndex >= newClassIndex); // Deletions may demote order in classData, but should never be higher.
+							s_infModified.matches.push_back({ oldClassIndex, newClassIndex });
+							found = true;
+							break;
+						}
+					}
+					if (!found)
+					{
+						s_infModified.deleteIndexes.push_back(oldClassIndex);
+					}
+				}
+				
+				// 2. Test for equality of matches
+				for (s32 i = 0; i < s_infModified.matches.size(); i++)
+				{
+					beforeItemClass = s_infItemTemp.classData[s_infModified.matches[i].i0];
+					afterItemClass = s_levelInf.item[currentItemIndex].classData[s_infModified.matches[i].i1];
+					if (!isInfClassEqual(beforeItemClass, afterItemClass))
+					{
+						s_infModified.modifiedIndexes.push_back(s_infModified.matches[i].i1);
+					}
+				}
+
+				// 3. Test for additions. classData in after that wasn't in before.
+				for (s32 newClassIndex = 0; newClassIndex < newClassDataSize; newClassIndex++)
+				{
+					afterItemPtr = (void*)s_levelInf.item[currentItemIndex].classData[newClassIndex];
+					found = false;
+					for (s32 oldClassIndex = 0; oldClassIndex < oldClassDataSize; oldClassIndex++)
+					{
+						beforeItemPtr = s_infItemTemp.classPtr[oldClassIndex];
+						if (afterItemPtr == beforeItemPtr)
+						{
+							found = true;
+							break;
+						}
+					}
+
+					if (!found)
+					{
+						// Addition
+						s_infModified.newIndexes.push_back(newClassIndex);
+					}
+				}
+
+				if (s_infModified.deleteIndexes.size() == 0 && s_infModified.modifiedIndexes.size() == 0 && s_infModified.newIndexes.size() == 0)
+				{
+					assert(isClassIndexesMatched());
+					return; // no changes
+				}
+				
+				cmd_infModifySnapshot(LName_Inf_Change, currentItemIndex);
+			}
+		}
+		else
+		{
+			// Test for delete case
+		}
+	}
+
 	void editor_infEditEnd()
 	{
 		modifySectorGeometry();
+		findInfChangesForHistory();
+		clearInfItemTemp();
 	}
 
 	const char* c_infElevFlagNames[] =
@@ -4376,7 +4658,7 @@ namespace LevelEditor
 			}
 		}
 	}
-		
+
 	bool editor_infEdit()
 	{
 		DisplayInfo info;
@@ -4401,6 +4683,18 @@ namespace LevelEditor
 		ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg, { 0.80f, 0.80f, 0.80f, 0.15f });
 
 		bool wasPopupOpen = ImGui::IsPopupOpen("Edit INF");
+		if (!wasPopupOpen) // Runs once on open
+		{
+			// Init history things
+			clearInfItemTemp();
+			s_infItemTemp.infCount = (s32)s_levelInf.item.size();
+			if (s_infEditor.item)
+			{
+				setInfItemTemp(s_infEditor.item);
+			}
+			
+		}
+
 		if (ImGui::BeginPopupModal("Edit INF", &active, window_flags))
 		{
 			// Popups need multiple frames to "accept" the new position due to the way the imGui window position logic works.

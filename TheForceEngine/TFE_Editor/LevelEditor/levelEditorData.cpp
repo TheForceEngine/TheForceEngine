@@ -5586,6 +5586,204 @@ namespace LevelEditor
 		}
 	}
 
+	void level_createInfItemModifySnapshot(SnapshotBuffer* buffer, u32 itemIndex)
+	{
+		setSnapshotWriteBuffer(buffer);
+		
+		Editor_InfItem* infItem = &s_levelInf.item[itemIndex];
+		u32 classCount = (u32)infItem->classData.size();
+		writeU32(itemIndex);
+		writeU32(classCount);
+		s32 deletedSize = (s32)s_infModified.deleteIndexes.size();
+		s32 modifiedSize = (s32)s_infModified.modifiedIndexes.size();
+		s32 newSize = (s32)s_infModified.newIndexes.size();
+		writeS32(deletedSize);
+		writeS32(modifiedSize);
+		writeS32(newSize);
+		writeData(s_infModified.deleteIndexes.data(), deletedSize);
+		writeData(s_infModified.modifiedIndexes.data(), modifiedSize);
+		writeData(s_infModified.newIndexes.data(), newSize);
+
+		for (s32 i = 0; i < modifiedSize; i++)
+		{
+			Editor_InfClass* infClass = infItem->classData[s_infModified.modifiedIndexes[i]];
+			Editor_InfItemClass infItemClass = infClass->classId;
+			writeU32((u32)infItemClass);
+			if (infItemClass == IIC_ELEVATOR)
+			{
+				writeInfElevatorToSnapshot((Editor_InfElevator*)infClass);
+			}
+			else if (infItemClass == IIC_TRIGGER)
+			{
+				writeInfTriggerToSnapshot((Editor_InfTrigger*)infClass);
+			}
+			else if (infItemClass == IIC_TELEPORTER)
+			{
+				writeInfTeleporterToSnapshot((Editor_InfTeleporter*)infClass);
+			}
+		}
+
+		for (s32 i = 0; i < newSize; i++)
+		{
+			Editor_InfClass* infClass = infItem->classData[s_infModified.newIndexes[i]];
+			Editor_InfItemClass infItemClass = infClass->classId;
+			writeU32((u32)infItemClass);
+			if (infItemClass == IIC_ELEVATOR)
+			{
+				writeInfElevatorToSnapshot((Editor_InfElevator*)infClass);
+			}
+			else if (infItemClass == IIC_TRIGGER)
+			{
+				writeInfTriggerToSnapshot((Editor_InfTrigger*)infClass);
+			}
+			else if (infItemClass == IIC_TELEPORTER)
+			{
+				writeInfTeleporterToSnapshot((Editor_InfTeleporter*)infClass);
+			}
+		}
+	}
+
+	void level_unpackInfItemModifySnapshot(u32 size, void* data)
+	{
+		setSnapshotReadBuffer((u8*)data, size);
+
+		const u32 itemIndex = readU32();
+		assert(itemIndex < (u32)s_levelInf.item.size());
+		Editor_InfItem* infItem = &s_levelInf.item[itemIndex];
+		const u32 classCount = readU32();
+
+		const s32 deletedIndexCount = readS32(); // Existing item.classData indexes
+		const s32 modifiedIndexCount = readS32();
+		const s32 newIndexCount = readS32();
+
+		std::vector<s32> deletedIndexes;
+		std::vector<s32> modifiedIndexes;
+		std::vector<s32> newIndexes;
+		deletedIndexes.resize(deletedIndexCount);
+		modifiedIndexes.resize(modifiedIndexCount);
+		newIndexes.resize(newIndexCount);
+		
+		readData(deletedIndexes.data(), deletedIndexCount);
+		readData(modifiedIndexes.data(), modifiedIndexCount);
+		readData(newIndexes.data(), newIndexCount);
+
+		for (s32 i = 0; i < deletedIndexCount; i++) // Assumed to be reverse order
+		{
+			freeInfClass(infItem->classData[deletedIndexes[i]]);
+			for (s32 j = deletedIndexes[i]; j < infItem->classData.size() - 1; j++) // Delete and shuffle back
+			{
+				infItem->classData[j] = infItem->classData[j + 1];
+			}
+			infItem->classData.pop_back();
+		}
+
+		for (s32 i = 0; i < modifiedIndexCount; i++)
+		{
+			Editor_InfItemClass classId = (Editor_InfItemClass)readU32();
+			Editor_InfClass* modifiedClass = infItem->classData[modifiedIndexes[i]];
+			if (classId == IIC_ELEVATOR)
+			{
+				readInfElevatorFromSnapshot((Editor_InfElevator*)modifiedClass);
+			}
+			else if (classId == IIC_TRIGGER)
+			{
+				readInfTriggerFromSnapshot((Editor_InfTrigger*)modifiedClass);
+			}
+			else if (classId == IIC_TELEPORTER)
+			{
+				readInfTeleporterFromSnapshot((Editor_InfTeleporter*)modifiedClass);
+			}
+		}
+
+		for (s32 i = 0; i < newIndexCount; i++)
+		{
+			Editor_InfItemClass classId = (Editor_InfItemClass)readU32();
+			if (classId == IIC_ELEVATOR)
+			{
+				Editor_InfElevator* elev = allocElev(infItem);
+				readInfElevatorFromSnapshot(elev);
+			}
+			else if (classId == IIC_TRIGGER)
+			{
+				Editor_InfTrigger* trig = allocTrigger(infItem);
+				readInfTriggerFromSnapshot(trig);
+			}
+			else if (classId == IIC_TELEPORTER)
+			{
+				Editor_InfTeleporter* tele = allocTeleporter(infItem);
+				readInfTeleporterFromSnapshot(tele);
+			}
+		}
+	}
+
+	void level_createInfItemSnapshot(SnapshotBuffer* buffer)
+	{
+		setSnapshotWriteBuffer(buffer);
+		Editor_InfItem* newItem = &s_levelInf.item.back();
+		u32 classCount = (u32)newItem->classData.size();
+		writeString(newItem->name);
+		writeS32(newItem->wallNum);
+		writeU32(classCount);
+		for (u32 i = 0; i < classCount; i++)
+		{
+			Editor_InfClass* itemClass = newItem->classData[i];
+			if (itemClass->classId == IIC_ELEVATOR)
+			{
+				writeU32(IIC_ELEVATOR);
+				writeInfElevatorToSnapshot((Editor_InfElevator*)itemClass);
+			}
+			else if (itemClass->classId == IIC_TRIGGER)
+			{
+				writeU32(IIC_TRIGGER);
+				writeInfTriggerToSnapshot((Editor_InfTrigger*)itemClass);
+			}
+			else if (itemClass->classId == IIC_TELEPORTER)
+			{
+				writeU32(IIC_TELEPORTER);
+				writeInfTeleporterToSnapshot((Editor_InfTeleporter*)itemClass);
+			}
+		}
+	}
+
+	void level_unpackCreateInfSnapshot(u32 size, void* data)
+	{
+		setSnapshotReadBuffer((u8*)data, size);
+		s_levelInf.item.push_back({});
+		Editor_InfItem* infItem = &s_levelInf.item.back();
+		readString(infItem->name);
+		infItem->wallNum = readS32();
+		const u32 classCount = readU32();
+
+		for (u32 i = 0; i < classCount; i++)
+		{
+			Editor_InfItemClass itemClass = (Editor_InfItemClass)readU32();
+			if (itemClass == IIC_ELEVATOR)
+			{
+				Editor_InfElevator* infElevator = new Editor_InfElevator();
+				s_levelInf.elevator.push_back(infElevator);
+				infElevator->classId = IIC_ELEVATOR;
+				readInfElevatorFromSnapshot(infElevator);
+				infItem->classData.push_back((Editor_InfClass*)infElevator);
+			}
+			else if (itemClass == IIC_TRIGGER)
+			{
+				Editor_InfTrigger* infTrigger = new Editor_InfTrigger();
+				s_levelInf.trigger.push_back(infTrigger);
+				infTrigger->classId = IIC_TRIGGER;
+				readInfTriggerFromSnapshot(infTrigger);
+				infItem->classData.push_back((Editor_InfClass*)infTrigger);
+			}
+			else if (itemClass == IIC_TELEPORTER)
+			{
+				Editor_InfTeleporter* infTeleporter = new Editor_InfTeleporter();
+				s_levelInf.teleport.push_back(infTeleporter);
+				infTeleporter->classId = IIC_TELEPORTER;
+				readInfTeleporterFromSnapshot(infTeleporter);
+				infItem->classData.push_back((Editor_InfClass*)infTeleporter);
+			}
+		}
+	}
+
 	// Find a sector based on DF rules.
 	EditorSector* findSectorDf(const Vec3f pos)
 	{
