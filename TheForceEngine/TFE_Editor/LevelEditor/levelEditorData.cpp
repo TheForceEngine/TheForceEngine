@@ -5606,9 +5606,9 @@ namespace LevelEditor
 		writeS32(deletedSize);
 		writeS32(modifiedSize);
 		writeS32(newSize);
-		writeData(s_infModified.deleteIndexes.data(), deletedSize);
-		writeData(s_infModified.modifiedIndexes.data(), modifiedSize);
-		writeData(s_infModified.newIndexes.data(), newSize);
+		writeData(s_infModified.deleteIndexes.data(), sizeof(s32) * deletedSize);
+		writeData(s_infModified.modifiedIndexes.data(), sizeof(s32) * modifiedSize);
+		writeData(s_infModified.newIndexes.data(), sizeof(s32) * newSize);
 
 		for (s32 i = 0; i < modifiedSize; i++)
 		{
@@ -5669,9 +5669,9 @@ namespace LevelEditor
 		modifiedIndexes.resize(modifiedIndexCount);
 		newIndexes.resize(newIndexCount);
 		
-		readData(deletedIndexes.data(), deletedIndexCount);
-		readData(modifiedIndexes.data(), modifiedIndexCount);
-		readData(newIndexes.data(), newIndexCount);
+		readData(deletedIndexes.data(), sizeof(s32) * deletedIndexCount);
+		readData(modifiedIndexes.data(), sizeof(s32) * modifiedIndexCount);
+		readData(newIndexes.data(), sizeof(s32) * newIndexCount);
 
 		for (s32 i = 0; i < deletedIndexCount; i++) // Assumed to be reverse order
 		{

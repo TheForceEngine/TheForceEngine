@@ -244,7 +244,6 @@ namespace LevelEditor
 		ITRIGGER_SINGLE
 	};
 
-	//static Editor_LevelInf s_levelInfTemp = {}; // Copy of state prior to editing
 	static Editor_InfItemHistory s_infItemTemp = {};
 	static InfEditor s_infEditor = {};
 	static InfEditorState s_infEditorState;
@@ -258,6 +257,8 @@ namespace LevelEditor
 	static std::vector<f32> s_relTime;
 	static std::vector<f32> s_stopValue;
 	static std::vector<EditorSector*> s_sectorsToFixup;
+
+	bool s_writeLog = false;
 
 	void editor_selectViewportFeature(Editor_InfClass* editClass, SelectMode mode, SelectionType type, s32 index0 = -1, s32 index1 = -1);
 	void modifySectorGeometry(Editor_InfItem* item = nullptr, EditorSector* sector = nullptr, Editor_InfElevator* elev = nullptr, s32 stopIndex = -1);
@@ -583,7 +584,7 @@ namespace LevelEditor
 		if (lElev->slaves.size() != rElev->slaves.size() ||
 			lElev->stops.size() != rElev->stops.size())
 		{
-			LE_WARNING("elev slave/stop count mismatch");
+			if (s_writeLog) LE_WARNING("elev slave/stop count mismatch");
 			return false;
 		}
 
@@ -601,7 +602,7 @@ namespace LevelEditor
 			lElev->eventMask != rElev->eventMask ||
 			lElev->entityMask != rElev->entityMask)
 		{
-			LE_WARNING("elevs don't match");
+			if (s_writeLog) LE_WARNING("elevs don't match");
 			return false;
 		}
 
@@ -610,7 +611,7 @@ namespace LevelEditor
 			if (lElev->slaves[j].name != rElev->slaves[j].name ||
 				lElev->slaves[j].angleOffset != rElev->slaves[j].angleOffset)
 			{
-				LE_WARNING("elev slave index %zu don't match", j);
+				if (s_writeLog) LE_WARNING("elev slave index %zu don't match", j);
 				return false;
 			}
 		}
@@ -624,7 +625,7 @@ namespace LevelEditor
 				lStop->msg.size() != rStop->msg.size() ||
 				lStop->scriptCall.size() != rStop->scriptCall.size())
 			{
-				LE_WARNING("elev stop index %zu cmd vecs dont match", j);
+				if (s_writeLog) LE_WARNING("elev stop index %zu cmd vecs dont match", j);
 				return false;
 			}
 
@@ -636,7 +637,7 @@ namespace LevelEditor
 				lStop->delay != rStop->delay ||
 				lStop->page != rStop->page)
 			{
-				LE_WARNING("elev stop index %zu data dont match", j);
+				if (s_writeLog) LE_WARNING("elev stop index %zu data dont match", j);
 				return false;
 			}
 
@@ -649,7 +650,7 @@ namespace LevelEditor
 					lAdj->wallIndex0 != rAdj->wallIndex0 ||
 					lAdj->wallIndex1 != rAdj->wallIndex1)
 				{
-					LE_WARNING("elev stop index %zu adj index %zu data dont match", j, k);
+					if (s_writeLog) LE_WARNING("elev stop index %zu adj index %zu data dont match", j, k);
 					return false;
 				}
 			}
@@ -661,7 +662,7 @@ namespace LevelEditor
 				if (lTex->donorSector != rTex->donorSector ||
 					lTex->fromCeiling != rTex->fromCeiling)
 				{
-					LE_WARNING("elev stop index %zu tex index %zu data dont match", j, k);
+					if (s_writeLog) LE_WARNING("elev stop index %zu tex index %zu data dont match", j, k);
 					return false;
 				}
 			}
@@ -676,7 +677,7 @@ namespace LevelEditor
 					lMsg->eventFlags != rMsg->eventFlags ||
 					(lMsg->arg[0] != rMsg->arg[0] || lMsg->arg[1] != rMsg->arg[1]))
 				{
-					LE_WARNING("elev index %zu stop index %zu msg index %zu data dont match", j, k);
+					if (s_writeLog) LE_WARNING("elev index %zu stop index %zu msg index %zu data dont match", j, k);
 					return false;
 				}
 			}
@@ -691,7 +692,7 @@ namespace LevelEditor
 					lCall->arg[2].value != rCall->arg[2].value ||
 					lCall->arg[3].value != rCall->arg[3].value)
 				{
-					LE_WARNING("elev stop index %zu script index %zu data dont match", j, k);
+					if (s_writeLog) LE_WARNING("elev stop index %zu script index %zu data dont match", j, k);
 					return false;
 				}
 			}
@@ -704,7 +705,7 @@ namespace LevelEditor
 	{
 		if (lTrig->clients.size() != rTrig->clients.size())
 		{
-			LE_WARNING("trig client size not match");
+			if (s_writeLog) LE_WARNING("trig client size not match");
 			return false;
 		}
 		if (lTrig->classId != rTrig->classId ||
@@ -719,7 +720,7 @@ namespace LevelEditor
 			lTrig->entityMask != rTrig->entityMask ||
 			lTrig->event != rTrig->event)
 		{
-			LE_WARNING("trig data not match");
+			if (s_writeLog) LE_WARNING("trig data not match");
 			return false;
 		}
 
@@ -731,7 +732,7 @@ namespace LevelEditor
 				lClient->targetWall != rClient->targetWall ||
 				lClient->eventMask != rClient->eventMask)
 			{
-				LE_WARNING("trig client index %zu data not match", j);
+				if (s_writeLog) LE_WARNING("trig client index %zu data not match", j);
 				return false;
 			}
 		}
@@ -747,7 +748,7 @@ namespace LevelEditor
 			(lTele->dstPos.x != rTele->dstPos.x || lTele->dstPos.y != rTele->dstPos.y || lTele->dstPos.z != rTele->dstPos.z) ||
 			lTele->dstAngle != rTele->dstAngle)
 		{
-			LE_WARNING("tele data not match");
+			if (s_writeLog) LE_WARNING("tele data not match");
 			return false;
 		}
 
@@ -783,7 +784,7 @@ namespace LevelEditor
 			left.trigger.size() != right.trigger.size() ||
 			left.teleport.size() != right.teleport.size())
 		{
-			LE_WARNING("compareLevelInfs(): vec sizes don't match");
+			if (s_writeLog) LE_WARNING("compareLevelInfs(): vec sizes don't match");
 			return false;
 		}
 
@@ -792,7 +793,7 @@ namespace LevelEditor
 			if ((left.item[i].name != right.item[i].name) ||
 				(left.item[i].wallNum != right.item[i].wallNum))
 			{
-				LE_WARNING("compareLevelInfs(): item index %zu don't match", i);
+				if (s_writeLog) LE_WARNING("compareLevelInfs(): item index %zu don't match", i);
 				return false;
 			}
 		}
@@ -804,7 +805,7 @@ namespace LevelEditor
 
 			if (!isInfElevatorEqual(lElev, rElev))
 			{
-				LE_WARNING("Elev index: %zu", i);
+				if (s_writeLog) LE_WARNING("Elev index: %zu", i);
 				return false;
 			}
 		}
@@ -816,7 +817,7 @@ namespace LevelEditor
 
 			if (!isInfTriggerEqual(lTrig, rTrig))
 			{
-				LE_WARNING("Trig index: %zu", i);
+				if (s_writeLog) LE_WARNING("Trig index: %zu", i);
 				return false;
 			}
 		}
@@ -828,7 +829,7 @@ namespace LevelEditor
 	
 			if (!isInfTeleporterEqual(lTele, rTele))
 			{
-				LE_WARNING("Tele index: %zu", i);
+				if (s_writeLog) LE_WARNING("Tele index: %zu", i);
 				return false;
 			}
 		}
