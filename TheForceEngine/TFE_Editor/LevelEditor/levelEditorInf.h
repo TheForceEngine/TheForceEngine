@@ -328,8 +328,16 @@ namespace LevelEditor
 		Vec3f nrm;			// face normal.
 	};
 
+	struct INFWallTrack
+	{
+		std::string name;
+		s32 oldWall;
+		s32 newWall;
+	};
+
 	extern Editor_LevelInf s_levelInf;
 	extern InfModified s_infModified;
+	extern std::vector<INFWallTrack> s_infWallTrack;
 
 	void editor_infDestroy();
 	bool loadLevelInfFromAsset(const TFE_Editor::Asset* asset);
@@ -337,6 +345,7 @@ namespace LevelEditor
 	void editor_infEditEnd();
 	bool editor_infEdit();
 	Editor_InfItem* editor_getInfItem(const char* sectorName, s32 wallIndex);
+	std::vector<Editor_InfItem*> editor_listInfItemsByName(std::string& sectorName);
 
 	void editor_writeInfItem(std::string& outStr, const Editor_InfItem* item, const char* curTab);
 

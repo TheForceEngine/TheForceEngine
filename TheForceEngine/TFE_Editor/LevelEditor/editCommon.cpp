@@ -44,7 +44,8 @@ namespace LevelEditor
 				if (sector)
 				{
 					selection_clearHovered();
-					edit_deleteVertex(sector->id, featureIndex, LName_DeleteVertex);
+					//edit_deleteVertex(sector->id, featureIndex, LName_DeleteVertex);
+					edit_deleteVertices();
 				}
 			} break;
 			case LEDIT_WALL:
@@ -83,8 +84,16 @@ namespace LevelEditor
 			{
 				if (sector)
 				{
+					// Multidelete
+					std::vector<s32>sectorIds;
+					FeatureId* sectors;
+					u32 sectorCount = selection_getList(sectors, SEL_SECTOR);
+					for (u32 i = 0; i < sectorCount; i++, sectors++)
+					{
+						sectorIds.push_back((s32)*sectors);
+					}
 					selection_clearHovered();
-					edit_deleteSector(sector->id);
+					edit_deleteSectors(sectorIds);
 				}
 			} break;
 			case LEDIT_ENTITY:

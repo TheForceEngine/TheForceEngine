@@ -4832,10 +4832,12 @@ namespace LevelEditor
 		const u32 texCount = (u32)s_uniqueTextures.size();
 		const u32 sectorCount = (u32)s_sectorSnapshot.size();
 		const u32 entityCount = (u32)s_uniqueEntities.size();
+		const u32 wallTrackCount = (u32)s_infWallTrack.size();
 		writeU32(newSectorCount);
 		writeU32(texCount);
 		writeU32(sectorCount);
 		writeU32(entityCount);
+		writeU32(wallTrackCount);
 
 		// Textures.
 		const UniqueTexture* texture = s_uniqueTextures.data();
@@ -4858,6 +4860,13 @@ namespace LevelEditor
 		{
 			writeSectorToSnapshot(sector);
 		}
+
+		// Write INF moves
+		const INFWallTrack* wallTrack = s_infWallTrack.data();
+		for (u32 i = 0; i < wallTrackCount; i++, wallTrack++)
+		{
+			writeINFWallTrackToSnapshot(wallTrack);
+		}
 	}
 
 	void level_unpackSectorSnapshot(u32 size, void* data)
@@ -4868,6 +4877,7 @@ namespace LevelEditor
 		const u32 texCount = readU32();         // Number of unique textures from sectors in snapshot.
 		const u32 sectorCount = readU32();      // Number of sectors *in* snapshot.
 		const u32 entityCount = readU32();      // Number of unique entities from sectors in snapshot.
+		const u32 wallTrackCount = readU32();   // Number of INF wall ID updates to make
 
 		// Resize to post-snapshot sector total.
 		s_level.sectors.resize(newSectorCount);
@@ -4938,6 +4948,14 @@ namespace LevelEditor
 			// Build the sector polygon for the editor.
 			sectorToPolygon(sector);
 			sector->searchKey = 0;
+		}
+
+		for (u32 wt = 0; wt < wallTrackCount; wt++)
+		{
+			INFWallTrack tmp;
+			readINFWallTrackFromSnapshot(&tmp);
+			Editor_InfItem* infItem = editor_getInfItem(tmp.name.c_str(), tmp.oldWall);
+			infItem->wallNum = tmp.newWall;
 		}
 	}
 

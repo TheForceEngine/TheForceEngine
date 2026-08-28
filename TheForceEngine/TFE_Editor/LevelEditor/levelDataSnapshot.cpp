@@ -150,6 +150,13 @@ namespace LevelEditor
 		writeData(sector->obj.data(), u32(sizeof(EditorObject) * sector->obj.size()));
 	}
 
+	void writeINFWallTrackToSnapshot(const INFWallTrack* wt)
+	{
+		writeString(wt->name);
+		writeS32(wt->oldWall);
+		writeS32(wt->newWall);
+	}
+
 	void writeSectorAttribSnapshot(const EditorSector* sector)
 	{
 		writeU32(sector->groupId);
@@ -375,6 +382,13 @@ namespace LevelEditor
 		readData(sector->vtx.data(), u32(sizeof(Vec2f) * sector->vtx.size()));
 		readData(sector->walls.data(), u32(sizeof(EditorWall) * sector->walls.size()));
 		readData(sector->obj.data(), u32(sizeof(EditorObject) * sector->obj.size()));
+	}
+
+	void readINFWallTrackFromSnapshot(INFWallTrack* wallTrack)
+	{
+		readString(wallTrack->name);
+		wallTrack->oldWall = readS32();
+		wallTrack->newWall = readS32();
 	}
 
 	void readFromSectorAttribSnapshot(EditorSector* sector)

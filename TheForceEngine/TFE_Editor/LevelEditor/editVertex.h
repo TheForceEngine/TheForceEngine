@@ -18,6 +18,7 @@ namespace LevelEditor
 	void findHoveredVertex2d(EditorSector* hoveredSector, Vec2f worldPos);
 	void vertexComputeDragSelect();
 	void edit_deleteVertex(s32 sectorId, s32 vertexIndex, u32 nameId);
+	void edit_deleteVertices();
 
 	// Transforms
 	void edit_setVertexPos(FeatureId id, Vec2f pos);

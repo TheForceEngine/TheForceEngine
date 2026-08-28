@@ -248,6 +248,7 @@ namespace LevelEditor
 	static InfEditor s_infEditor = {};
 	static InfEditorState s_infEditorState;
 	InfModified s_infModified = {};
+	std::vector<INFWallTrack> s_infWallTrack;
 
 	static ImVec2 s_popupPos;
 	static s32 s_restorePos = 0;
@@ -1773,6 +1774,21 @@ namespace LevelEditor
 			}
 		}
 		return nullptr;
+	}
+
+	std::vector<Editor_InfItem*> editor_listInfItemsByName(std::string& sectorName)
+	{
+		std::vector<Editor_InfItem*> result;
+		const size_t itemCount = s_levelInf.item.size();
+		Editor_InfItem* item = s_levelInf.item.data();
+		for (size_t i = 0; i < itemCount; i++, item++)
+		{
+			if (sectorName == item->name)
+			{
+				result.push_back(item);
+			}
+		}
+		return result;
 	}
 		
 	void editor_infEditBegin(const char* sectorName, s32 wallIndex)

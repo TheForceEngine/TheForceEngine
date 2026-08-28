@@ -85,6 +85,7 @@ namespace LevelEditor
 	// Shared Edit Commands
 	void edit_moveSelectedFlats(f32 delta);
 	bool edit_splitWall(s32 sectorId, s32 wallIndex, Vec2f newPos);
+	void edit_deleteSectors(std::vector<s32>& sectorIds, bool addToHistory = true);
 	void edit_deleteSector(s32 sectorId, bool addToHistory = true);
 	bool edit_tryAdjoin(s32 sectorId, s32 wallId, bool exactMatch = false);
 	void edit_removeAdjoin(s32 sectorId, s32 wallId);

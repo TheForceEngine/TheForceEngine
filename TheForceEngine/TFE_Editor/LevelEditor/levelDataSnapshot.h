@@ -44,6 +44,7 @@ namespace LevelEditor
 	void writeInfTriggerToSnapshot(const Editor_InfTrigger* infTrigger);
 	void writeInfTeleporterToSnapshot(const Editor_InfTeleporter* infTeleporter);
 	void writeInfItemToSnapshot(const Editor_InfItem* infItem);
+	void writeINFWallTrackToSnapshot(const INFWallTrack* wt);
 
 	void readEntityFromSnapshot(Entity* entity);
 	void readSectorFromSnapshot(EditorSector* sector);
@@ -54,4 +55,5 @@ namespace LevelEditor
 	void readInfTriggerFromSnapshot(Editor_InfTrigger* infTrigger);
 	void readInfTeleporterFromSnapshot(Editor_InfTeleporter* infTeleporter);
 	void readInfItemFromSnapshot(Editor_InfItem* infItem);
+	void readINFWallTrackFromSnapshot(INFWallTrack* wallTrack);
 }
