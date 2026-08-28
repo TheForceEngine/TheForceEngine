@@ -3434,6 +3434,25 @@ namespace TFE_FrontEndUI
 				curOutput = -1;
 				hasChanged = true;
 			}
+#ifdef BUILD_CLAP
+			if (device->getType() == MIDI_TYPE_CLAP)
+			{
+				ImGui::SameLine();
+				if (ImGui::Button("Rescan for CLAP Plugins"))
+				{
+					TFE_Audio::pause();
+					TFE_MidiPlayer::pauseThread();
+
+					device->rescanOutputs();
+					curOutput = device->getActiveOutput();
+					hasChanged = true;
+
+					TFE_MidiPlayer::resumeThread();
+					TFE_Audio::resume();
+				}
+				Tooltip("Searches the standard CLAP install locations again for newly added or removed plugins.");
+			}
+#endif
 			if (hasChanged)
 			{
 				TFE_Audio::pause();
