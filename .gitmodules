@@ -1,0 +1,3 @@
+[submodule "TheForceEngine/clap"]
+	path = TheForceEngine/clap
+	url = https://github.com/free-audio/clap.git

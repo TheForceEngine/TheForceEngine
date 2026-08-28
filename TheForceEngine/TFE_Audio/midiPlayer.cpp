@@ -4,6 +4,9 @@
 #ifdef BUILD_SYSMIDI
 #include "systemMidiDevice.h"
 #endif
+#ifdef BUILD_CLAP
+#include "clapDevice.h"
+#endif
 #include <SDL_mutex.h>
 #include <SDL_thread.h>
 #include <TFE_Asset/gmidAsset.h>
@@ -94,6 +97,9 @@ namespace TFE_MidiPlayer
 		"OPL3 Synthesized Midi",// MIDI_TYPE_OPL3
 #ifdef BUILD_SYSMIDI
 		"System Midi",		// MIDI_TYPE_SYSTEM
+#endif
+#ifdef BUILD_CLAP
+		"CLAP Plugin",		// MIDI_TYPE_CLAP
 #endif
 	};
 
@@ -569,6 +575,11 @@ namespace TFE_MidiPlayer
 #ifdef BUILD_SYSMIDI
 			case MIDI_TYPE_SYSTEM:
 				s_midiDevice = new SystemMidiDevice();
+				break;
+#endif
+#ifdef BUILD_CLAP
+			case MIDI_TYPE_CLAP:
+				s_midiDevice = new ClapDevice();
 				break;
 #endif
 			case MIDI_TYPE_SF2:
