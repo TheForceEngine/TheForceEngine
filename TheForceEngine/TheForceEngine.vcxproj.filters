@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -365,6 +365,15 @@
       <Filter>Source\TFE_FrontEndUI</Filter>
     </ClInclude>
     <ClInclude Include="TFE_Audio\RtMidi.h">
+      <Filter>Source\TFE_Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="TFE_Audio\clapDevice.h">
+      <Filter>Source\TFE_Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="TFE_Audio\clapModule.h">
+      <Filter>Source\TFE_Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="TFE_Audio\clapPluginScanner.h">
       <Filter>Source\TFE_Audio</Filter>
     </ClInclude>
     <ClInclude Include="TFE_Audio\midi.h">
@@ -1654,6 +1663,15 @@
       <Filter>Source\TFE_FrontEndUI</Filter>
     </ClCompile>
     <ClCompile Include="TFE_Audio\RtMidi.cpp">
+      <Filter>Source\TFE_Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="TFE_Audio\clapDevice.cpp">
+      <Filter>Source\TFE_Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="TFE_Audio\clapModule.cpp">
+      <Filter>Source\TFE_Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="TFE_Audio\clapPluginScanner.cpp">
       <Filter>Source\TFE_Audio</Filter>
     </ClCompile>
     <ClCompile Include="TFE_Asset\gmidAsset.cpp">
