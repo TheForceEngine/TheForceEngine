@@ -31,6 +31,7 @@ On this system it is recommended to run “The Force Engine” in desktop mode
 * Optional quality‑of‑life improvements, such as full mouselook, aiming reticle, improved Boba Fett AI, autorun, and more.
 * A new save system that works seamlessly with the exiting checkpoint and lives system. You can ignore it entirely, use it just as an exit save so you don’t have to play long user levels in one sitting, or full save and load with quicksaves like “Doom” or “Duke Nukem 3D”.
 * Sound Font (sf2) and OPL3 emulation support.
+* CLAP plugin support.
 * Optional and quality‑of‑life features, even mouselook, can be disabled if you want the original experience. Play in 320×200, turn the mouse mode (input menu) to menus only or horizontal, and enable the classic (software) renderer — and it will look and play just like DOS but at a higher frame rate and no need to adjust cycles in “DosBox”.
 
 ## Current State
