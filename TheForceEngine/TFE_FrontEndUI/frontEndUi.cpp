@@ -1640,10 +1640,10 @@ namespace TFE_FrontEndUI
 			{
 				if (s_saveSortMode == SAVE_SORT_TIME)
 				{
-					s64 keyA = 0, keyB = 0;
-					TFE_System::parseDateTimeString(a.dateTime, &keyA);
-					TFE_System::parseDateTimeString(b.dateTime, &keyB);
-					return s_saveSortReverse ? keyA < keyB : keyB < keyA;
+					time_t timeA, timeB;
+					timeA = TFE_System::getTimeFromString(a.dateTime);
+					timeB = TFE_System::getTimeFromString(b.dateTime);
+					return s_saveSortReverse ? timeA < timeB : timeB < timeA;
 				}
 				else if (s_saveSortMode == SAVE_SORT_FILENAME)
 				{
