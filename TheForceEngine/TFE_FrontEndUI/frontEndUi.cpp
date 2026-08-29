@@ -1622,7 +1622,7 @@ namespace TFE_FrontEndUI
 		SAVE_SORT_FILENAME,
 		SAVE_SORT_COUNT
 	};
-	static s32  s_saveSortMode = SAVE_SORT_NAME;
+	static s32  s_saveSortMode = SAVE_SORT_TIME;
 	static bool s_saveSortReverse = false;
 
 	// Sorts s_saveDir in place according to s_saveSortMode / s_saveSortReverse.
@@ -1839,9 +1839,9 @@ namespace TFE_FrontEndUI
 				const s32  prevSortMode = s_saveSortMode;
 				const bool prevSortReverse = s_saveSortReverse;
 
-				if (ImGui::RadioButton("Name", s_saveSortMode == SAVE_SORT_NAME)) { s_saveSortMode = SAVE_SORT_NAME; }
-				ImGui::SameLine();
 				if (ImGui::RadioButton("Time", s_saveSortMode == SAVE_SORT_TIME)) { s_saveSortMode = SAVE_SORT_TIME; }
+				ImGui::SameLine();
+				if (ImGui::RadioButton("Name", s_saveSortMode == SAVE_SORT_NAME)) { s_saveSortMode = SAVE_SORT_NAME; }
 				ImGui::SameLine();
 				if (ImGui::RadioButton("Filename", s_saveSortMode == SAVE_SORT_FILENAME)) { s_saveSortMode = SAVE_SORT_FILENAME; }
 				ImGui::SameLine(0.0f, 32.0f * s_uiScale);
