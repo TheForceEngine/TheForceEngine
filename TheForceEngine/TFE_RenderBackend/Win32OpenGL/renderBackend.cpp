@@ -11,6 +11,8 @@
 #include <TFE_PostProcess/bloomThreshold.h>
 #include <TFE_PostProcess/bloomDownsample.h>
 #include <TFE_PostProcess/bloomMerge.h>
+#include <TFE_PostProcess/scaler2DResample.h>
+#include <TFE_PostProcess/scaler2DDeblur.h>
 #include <TFE_PostProcess/postprocess.h>
 #include "renderTarget.h"
 #include "screenCapture.h"
@@ -64,16 +66,33 @@ namespace TFE_RenderBackend
 	static f32 s_clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	static u32 s_rtWidth, s_rtHeight;
 
+	// 2D-Scaler state - see setupScaler2DTargets()/setScaler2DOptions().
+	static bool s_scaler2DEnable = false;
+	static bool s_scaler2DShadersValid = false;
+	static f32  s_scaler2DFilterWidth = 0.750f;
+	static f32  s_scaler2DDeblur = 3.000f;
+
 	static Blit* s_postEffectBlit;
 	static BloomThreshold* s_bloomTheshold;
 	static BloomDownsample* s_bloomDownsample;
 	static BloomMerge* s_bloomMerge;
 	static std::vector<SDL_Rect> s_displayBounds;
 
+	// 2D-Scaler post effects and its two window-resolution intermediate
+	// render targets (ping-ponged: blit -> A -> resample -> B -> deblur -> screen).
+	static Scaler2DResample* s_scaler2DResample = nullptr;
+	static Scaler2DDeblur*   s_scaler2DDeblurEffect = nullptr;
+	static RenderTarget* s_scaler2DTargetA = nullptr;
+	static TextureGpu*   s_scaler2DTextureA = nullptr;
+	static RenderTarget* s_scaler2DTargetB = nullptr;
+	static TextureGpu*   s_scaler2DTextureB = nullptr;
+
 	static SDL_Window* s_window = nullptr;
 
 	void drawVirtualDisplay();
 	void setupPostEffectChain(bool useDynamicTexture, bool useBloom);
+	void freeScaler2DTargets();
+	void setupScaler2DTargets();
 
 	static GLuint s_globalVAO = 0;
 	static bool s_isMacOS = false;
@@ -327,6 +346,22 @@ namespace TFE_RenderBackend
 		s_bloomMerge = new BloomMerge();
 		s_bloomMerge->init();
 
+		s_scaler2DResample = new Scaler2DResample();
+		const bool scaler2DResampleOk = s_scaler2DResample->init();
+
+		s_scaler2DDeblurEffect = new Scaler2DDeblur();
+		const bool scaler2DDeblurOk = s_scaler2DDeblurEffect->init();
+
+		// If either shader failed to load/compile, permanently disable the
+		// 2D-Scaler feature for this session rather than risk running the post
+		// process chain with an invalid/uninitialized shader (which can crash,
+		// particularly on some GPU drivers). See setupScaler2DTargets().
+		s_scaler2DShadersValid = scaler2DResampleOk && scaler2DDeblurOk;
+		if (!s_scaler2DShadersValid)
+		{
+			TFE_System::logWrite(LOG_ERROR, "RenderBackend", "2D-Scaler shaders failed to load - the filter has been disabled for this session. Check %s for shader compile errors.", "the_force_engine_log.txt");
+		}
+
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClearDepth(0.0f);
 
@@ -368,6 +403,16 @@ namespace TFE_RenderBackend
 		s_bloomMerge->destroy();
 		delete s_bloomMerge;
 		s_bloomMerge = nullptr;
+
+		s_scaler2DResample->destroy();
+		delete s_scaler2DResample;
+		s_scaler2DResample = nullptr;
+
+		s_scaler2DDeblurEffect->destroy();
+		delete s_scaler2DDeblurEffect;
+		s_scaler2DDeblurEffect = nullptr;
+
+		freeScaler2DTargets();
 
 		TFE_PostProcess::destroy();
 		TFE_Ui::shutdown();
@@ -497,6 +542,7 @@ namespace TFE_RenderBackend
 			windowSettings->baseHeight = height;
 		}
 		glViewport(0, 0, width, height);
+		setupScaler2DTargets();
 		setupPostEffectChain(!s_useRenderTarget, s_bloomEnable);
 
 		s_screenCapture->resize(width, height);
@@ -632,6 +678,7 @@ namespace TFE_RenderBackend
 		}
 
 		glViewport(0, 0, m_windowState.width, m_windowState.height);
+		setupScaler2DTargets();
 		setupPostEffectChain(!s_useRenderTarget, s_bloomEnable);
 		s_screenCapture->resize(m_windowState.width, m_windowState.height);
 	}
@@ -738,6 +785,14 @@ namespace TFE_RenderBackend
 		s_gpuColorConvert = (vdispInfo.flags & VDISP_GPU_COLOR_CONVERT) != 0;
 		s_useRenderTarget = (vdispInfo.flags & VDISP_RENDER_TARGET) != 0;
 		s_bloomEnable = graphicsSettings->bloomEnabled && s_useRenderTarget;
+
+		s_scaler2DEnable = graphicsSettings->scaler2DEnabled;
+		s_scaler2DFilterWidth = graphicsSettings->scaler2DFilterWidth;
+		s_scaler2DDeblur = graphicsSettings->scaler2DDeblur;
+		s_scaler2DResample->setFilterWidth(s_scaler2DFilterWidth);
+		s_scaler2DDeblurEffect->setFilterWidth(s_scaler2DFilterWidth);
+		s_scaler2DDeblurEffect->setDeblur(s_scaler2DDeblur);
+		setupScaler2DTargets();
 
 		return recreateDisplay(true);
 	}
@@ -871,6 +926,27 @@ namespace TFE_RenderBackend
 		}
 	}
 
+	void setScaler2DOptions(bool enabled, f32 filterWidth, f32 deblur)
+	{
+		filterWidth = std::max(0.25f, std::min(2.0f, filterWidth));
+		deblur = std::max(1.0f, std::min(5.0f, deblur));
+
+		const bool targetsNeedRebuild = (enabled != s_scaler2DEnable);
+
+		s_scaler2DEnable = enabled;
+		s_scaler2DFilterWidth = filterWidth;
+		s_scaler2DDeblur = deblur;
+		s_scaler2DResample->setFilterWidth(filterWidth);
+		s_scaler2DDeblurEffect->setFilterWidth(filterWidth);
+		s_scaler2DDeblurEffect->setDeblur(deblur);
+
+		if (targetsNeedRebuild)
+		{
+			setupScaler2DTargets();
+			setupPostEffectChain(!s_useRenderTarget, s_bloomEnable);
+		}
+	}
+
 	void drawVirtualDisplay()
 	{
 		TFE_ZONE("Draw Virtual Display");
@@ -880,6 +956,29 @@ namespace TFE_RenderBackend
 		if (s_displayMode != DMODE_STRETCH)
 		{
 			glClear(GL_COLOR_BUFFER_BIT);
+
+			// When the 2D-Scaler is active, the final blit stage below no longer
+			// writes directly to the screen - it writes to s_scaler2DTargetA
+			// instead (see setupPostEffectChain()). That target needs the same
+			// letterbox/pillarbox clear the screen would otherwise get, since the
+			// blit only covers its aspect-corrected sub-rect, not the full target.
+			// RenderTarget::clear() clears whatever framebuffer is CURRENTLY
+			// bound rather than binding its own, so its own FBO must be bound
+			// explicitly first - otherwise this clears the screen a second time
+			// and leaves target A's letterbox/pillarbox area filled with
+			// whatever was previously in that GPU memory.
+			if (s_scaler2DEnable && s_scaler2DTargetA)
+			{
+				const f32 black[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+				bindRenderTarget(s_scaler2DTargetA);
+				clearRenderTarget(s_scaler2DTargetA, black);
+				// Not using the unbindRenderTarget() wrapper here deliberately -
+				// it also drives the pending-screenshot-copy side effect, which
+				// must only fire once for the frame's actual final image, not
+				// for this internal clear-then-restore step.
+				RenderTarget::unbind();
+				glViewport(0, 0, m_windowState.width, m_windowState.height);
+			}
 		}
 		TFE_PostProcess::execute();
 	}
@@ -1152,6 +1251,12 @@ namespace TFE_RenderBackend
 		}
 		TFE_PostProcess::clearEffectStack();
 
+		// When the 2D-Scaler is enabled, the normal final blit below writes to
+		// an intermediate window-resolution target instead of the screen, so
+		// the resample + deblur passes appended further down can process it.
+		const bool useScaler2D = s_scaler2DEnable && s_scaler2DTargetA && s_scaler2DTargetB;
+		RenderTargetHandle finalOutput = useScaler2D ? RenderTargetHandle(s_scaler2DTargetA) : nullptr;
+
 		if (useDynamicTexture)
 		{
 			const PostEffectInput blitInputs[] =
@@ -1159,7 +1264,7 @@ namespace TFE_RenderBackend
 				{ PTYPE_DYNAMIC_TEX, s_virtualDisplay },
 				{ PTYPE_DYNAMIC_TEX, s_palette }
 			};
-			TFE_PostProcess::appendEffect(s_postEffectBlit, TFE_ARRAYSIZE(blitInputs), blitInputs, nullptr, x, y, w, h);
+			TFE_PostProcess::appendEffect(s_postEffectBlit, TFE_ARRAYSIZE(blitInputs), blitInputs, finalOutput, x, y, w, h);
 		}
 		else if (useBloom)
 		{
@@ -1171,7 +1276,7 @@ namespace TFE_RenderBackend
 				{ PTYPE_TEXTURE, (void*)s_bloomTextures[s_bloomBufferCount-1] },
 				{ PTYPE_DYNAMIC_TEX, s_palette }
 			};
-			TFE_PostProcess::appendEffect(s_postEffectBlit, TFE_ARRAYSIZE(blitInputs), blitInputs, nullptr, x, y, w, h);
+			TFE_PostProcess::appendEffect(s_postEffectBlit, TFE_ARRAYSIZE(blitInputs), blitInputs, finalOutput, x, y, w, h);
 		}
 		else
 		{
@@ -1180,8 +1285,89 @@ namespace TFE_RenderBackend
 				{ PTYPE_TEXTURE, (void*)s_virtualRenderTarget->getTexture() },
 				{ PTYPE_DYNAMIC_TEX, s_palette }
 			};
-			TFE_PostProcess::appendEffect(s_postEffectBlit, TFE_ARRAYSIZE(blitInputs), blitInputs, nullptr, x, y, w, h);
+			TFE_PostProcess::appendEffect(s_postEffectBlit, TFE_ARRAYSIZE(blitInputs), blitInputs, finalOutput, x, y, w, h);
 		}
+
+		if (useScaler2D)
+		{
+			// Both passes operate on the *whole* window-resolution image (like
+			// the original ReShade shader operating on BUFFER_WIDTH/HEIGHT),
+			// not just the aspect-corrected game rect, so letterbox/pillarbox
+			// bars get resampled/deblurred too (harmless, since they're black).
+			const s32 fullW = m_windowState.width;
+			const s32 fullH = m_windowState.height;
+
+			const PostEffectInput resampleInputs[] =
+			{
+				{ PTYPE_TEXTURE, (void*)s_scaler2DTargetA->getTexture() }
+			};
+			TFE_PostProcess::appendEffect(s_scaler2DResample, TFE_ARRAYSIZE(resampleInputs), resampleInputs,
+				s_scaler2DTargetB, 0, 0, fullW, fullH);
+
+			const PostEffectInput deblurInputs[] =
+			{
+				{ PTYPE_TEXTURE, (void*)s_scaler2DTargetB->getTexture() }
+			};
+			TFE_PostProcess::appendEffect(s_scaler2DDeblurEffect, TFE_ARRAYSIZE(deblurInputs), deblurInputs,
+				nullptr, 0, 0, fullW, fullH);
+		}
+	}
+
+	// Free any previously allocated 2D-Scaler render targets/textures.
+	void freeScaler2DTargets()
+	{
+		delete s_scaler2DTargetA;
+		delete s_scaler2DTextureA;
+		delete s_scaler2DTargetB;
+		delete s_scaler2DTextureB;
+		s_scaler2DTargetA = nullptr;
+		s_scaler2DTextureA = nullptr;
+		s_scaler2DTargetB = nullptr;
+		s_scaler2DTextureB = nullptr;
+	}
+
+	// (Re)allocates the 2D-Scaler's two window-resolution intermediate render
+	// targets. Must be called whenever the window is resized/fullscreen is
+	// toggled, or the filter is enabled/disabled, before setupPostEffectChain()
+	// so it can reference the up to date targets.
+	void setupScaler2DTargets()
+	{
+		freeScaler2DTargets();
+		if (!s_scaler2DEnable || !s_scaler2DShadersValid) { return; }
+
+		const u32 w = (u32)m_windowState.width;
+		const u32 h = (u32)m_windowState.height;
+		if (w == 0 || h == 0) { return; }
+
+		// The shader relies on hardware bilinear filtering when sampling at
+		// sub-texel offsets, so both intermediate targets need linear filtering
+		// (unlike the virtual display, which uses nearest to keep pixel art crisp).
+		s_scaler2DTextureA = new TextureGpu();
+		s_scaler2DTextureA->create(w, h, TexFormat::TEX_RGBA8, false, MAG_FILTER_LINEAR);
+		s_scaler2DTextureA->setFilter(MAG_FILTER_LINEAR, MIN_FILTER_LINEAR);
+		s_scaler2DTargetA = new RenderTarget();
+		if (!s_scaler2DTargetA->create(1, &s_scaler2DTextureA, false))
+		{
+			TFE_System::logWrite(LOG_ERROR, "RenderBackend", "Failed to create 2D-Scaler render target A (%u x %u).", w, h);
+			freeScaler2DTargets();
+			return;
+		}
+
+		s_scaler2DTextureB = new TextureGpu();
+		s_scaler2DTextureB->create(w, h, TexFormat::TEX_RGBA8, false, MAG_FILTER_LINEAR);
+		s_scaler2DTextureB->setFilter(MAG_FILTER_LINEAR, MIN_FILTER_LINEAR);
+		s_scaler2DTargetB = new RenderTarget();
+		if (!s_scaler2DTargetB->create(1, &s_scaler2DTextureB, false))
+		{
+			TFE_System::logWrite(LOG_ERROR, "RenderBackend", "Failed to create 2D-Scaler render target B (%u x %u).", w, h);
+			freeScaler2DTargets();
+			return;
+		}
+
+		const f32 invW = 1.0f / f32(w);
+		const f32 invH = 1.0f / f32(h);
+		s_scaler2DResample->setPixelSize(invW, invH);
+		s_scaler2DDeblurEffect->setPixelSize(invW, invH);
 	}
 
 	void bindGlobalVAO(void)

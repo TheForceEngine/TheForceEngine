@@ -1048,6 +1048,12 @@
     <ClInclude Include="TFE_PostProcess\bloomMerge.h">
       <Filter>Source\TFE_PostProcess</Filter>
     </ClInclude>
+    <ClInclude Include="TFE_PostProcess\scaler2DResample.h">
+      <Filter>Source\TFE_PostProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="TFE_PostProcess\scaler2DDeblur.h">
+      <Filter>Source\TFE_PostProcess</Filter>
+    </ClInclude>
     <ClInclude Include="TFE_Jedi\Level\levelBin.h">
       <Filter>Source\TFE_Jedi\Level</Filter>
     </ClInclude>
@@ -2232,6 +2238,12 @@
     <ClCompile Include="TFE_PostProcess\bloomMerge.cpp">
       <Filter>Source\TFE_PostProcess</Filter>
     </ClCompile>
+    <ClCompile Include="TFE_PostProcess\scaler2DResample.cpp">
+      <Filter>Source\TFE_PostProcess</Filter>
+    </ClCompile>
+    <ClCompile Include="TFE_PostProcess\scaler2DDeblur.cpp">
+      <Filter>Source\TFE_PostProcess</Filter>
+    </ClCompile>
     <ClCompile Include="TFE_Jedi\Level\levelBin.cpp">
       <Filter>Source\TFE_Jedi\Level</Filter>
     </ClCompile>
@@ -2866,6 +2878,15 @@
       <Filter>Source\Shaders</Filter>
     </None>
     <None Include="Shaders\bloom.vert">
+      <Filter>Source\Shaders</Filter>
+    </None>
+    <None Include="Shaders\scaler2D.vert">
+      <Filter>Source\Shaders</Filter>
+    </None>
+    <None Include="Shaders\scaler2DResample.frag">
+      <Filter>Source\Shaders</Filter>
+    </None>
+    <None Include="Shaders\scaler2DDeblur.frag">
       <Filter>Source\Shaders</Filter>
     </None>
     <None Include="Shaders\tri3dWall.frag">

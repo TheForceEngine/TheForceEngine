@@ -700,6 +700,8 @@ echo ^)";
     <ClInclude Include="TFE_PostProcess\blit.h" />
     <ClInclude Include="TFE_PostProcess\bloomDownsample.h" />
     <ClInclude Include="TFE_PostProcess\bloomMerge.h" />
+    <ClInclude Include="TFE_PostProcess\scaler2DResample.h" />
+    <ClInclude Include="TFE_PostProcess\scaler2DDeblur.h" />
     <ClInclude Include="TFE_PostProcess\bloomThreshold.h" />
     <ClInclude Include="TFE_PostProcess\overlay.h" />
     <ClInclude Include="TFE_PostProcess\postprocess.h" />
@@ -1094,6 +1096,8 @@ echo ^)";
     <ClCompile Include="TFE_PostProcess\blit.cpp" />
     <ClCompile Include="TFE_PostProcess\bloomDownsample.cpp" />
     <ClCompile Include="TFE_PostProcess\bloomMerge.cpp" />
+    <ClCompile Include="TFE_PostProcess\scaler2DResample.cpp" />
+    <ClCompile Include="TFE_PostProcess\scaler2DDeblur.cpp" />
     <ClCompile Include="TFE_PostProcess\bloomThreshold.cpp" />
     <ClCompile Include="TFE_PostProcess\overlay.cpp" />
     <ClCompile Include="TFE_PostProcess\postprocess.cpp" />
@@ -1183,6 +1187,9 @@ echo ^)";
     <None Include="Shaders\bloomDownsample.frag" />
     <None Include="Shaders\bloomMerge.frag" />
     <None Include="Shaders\bloomThreshold.frag" />
+    <None Include="Shaders\scaler2D.vert" />
+    <None Include="Shaders\scaler2DResample.frag" />
+    <None Include="Shaders\scaler2DDeblur.frag" />
     <None Include="Shaders\gpu_render_modelHologram.frag" />
     <None Include="Shaders\gpu_render_modelHologram.vert" />
     <None Include="Shaders\gpu_render_modelSolid.frag" />
