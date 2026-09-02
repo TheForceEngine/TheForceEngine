@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sstream>
+#include <iomanip>
 #include <time.h> 
 #include <algorithm>
 #include <TFE_Input/input.h>
@@ -35,7 +37,7 @@ namespace TFE_System
 	static u64 s_syncCheckDelay;
 	static f64 s_freq;
 	static f64 s_refreshRate;
-	
+
 	static f64 s_dt = 1.0 / 60.0;		// This is just to handle the first frame, so any reasonable value will work.
 	static f64 s_dtRaw = 1.0 / 60.0;
 	static const f64 c_maxDt = 0.05;	// 20 fps
@@ -131,7 +133,7 @@ namespace TFE_System
 	{
 		return SDL_GetPerformanceCounter();
 	}
-	
+
 	void update()
 	{
 		// This assumes that SDL_GetPerformanceCounter() is monotonic.
@@ -203,7 +205,7 @@ namespace TFE_System
 		const u64 uDt = s_time - s_startTime;
 		return f64(uDt) * s_freq;
 	}
-	
+
 	u64 getCurrentTimeInTicks()
 	{
 		return SDL_GetPerformanceCounter() - s_startTime;
@@ -236,6 +238,14 @@ namespace TFE_System
 		time_t _tm = time(NULL);
 		struct tm* curtime = localtime(&_tm);
 		strftime(output, 16, "%m-%d-%Y-%H-%M", curtime);
+	}
+
+	time_t getTimeFromString(const char* str)
+	{
+		std::istringstream s(str);
+		std::tm timeStruct = {};
+		s >> std::get_time(&timeStruct, "%a %b %d %H:%M:%S %Y");
+		return std::mktime(&timeStruct);
 	}
 
 	bool osShellExecute(const char* pathToExe, const char* exeDir, const char* param, bool waitForCompletion)
@@ -305,7 +315,7 @@ namespace TFE_System
 	{
 		s_quitMessagePosted = true;
 	}
-		
+
 	void postSystemUiRequest()
 	{
 		s_systemUiRequestPosted = true;

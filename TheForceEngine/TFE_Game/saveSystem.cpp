@@ -32,7 +32,7 @@ namespace TFE_SaveSystem
 		SVER_CUR = SVER_REPLAY
 	};
 
-	const int TFE_MAX_SAVES = 1024; 
+	const int TFE_MAX_SAVES = 1024;
 
 	static SaveRequest s_req = SF_REQ_NONE;
 	static char s_reqFilename[TFE_MAX_PATH];
@@ -43,6 +43,44 @@ namespace TFE_SaveSystem
 
 	static u32* s_imageBuffer[2] = { nullptr, nullptr };
 	static size_t s_imageBufferSize[2] = { 0 };
+
+	// Two alternating quicksave slots (Quicksave 1 / Quicksave 2), so a
+	// bad quicksave never overwrites your only recent save.
+	static const char* c_quickSaveSlotNames[2] = { c_quickSaveName, "quicksave2.tfe" };
+	static const char* c_quickSaveSlotLabels[2] = { "Quicksave", "Quicksave 2" };
+
+	// Get the Quicksave index slot. Alternate them based on timestamps
+	// Or just get the latest one when you are loading. 
+	static s32 getQuickSaveSlotIndex(bool getLatest)
+	{
+		char path[2][TFE_MAX_PATH];
+		bool slotExists[2];
+		for (s32 i = 0; i < 2; i++)
+		{
+			sprintf(path[i], "%s%s", s_gameSavePath, c_quickSaveSlotNames[i]);
+			slotExists[i] = FileUtil::exists(path[i]);
+		}
+
+		// If neither or one of the slots exist return the
+		// one that exists. 
+		if (!slotExists[0] && !slotExists[1]) { return getLatest ? -1 : 0; }
+		if (!slotExists[0]) { return getLatest ? 1 : 0; }
+		if (!slotExists[1]) { return getLatest ? 0 : 1; }
+
+		// When you are saving you want to overwrite the oldest but 
+		// when you are loading you want to get the latest, that's why
+		// we are doing all these comparisons
+		bool slot0IsOlder = FileUtil::getModifiedTime(path[0]) < FileUtil::getModifiedTime(path[1]);
+		if (getLatest)
+		{
+			return slot0IsOlder ? 1 : 0;
+		}
+		else
+		{
+			return slot0IsOlder ? 0 : 1;
+		}
+	}
+
 
 	bool versionValid(s32 version)
 	{
@@ -382,16 +420,16 @@ namespace TFE_SaveSystem
 		}
 		else if (inputMapping_getActionState(IAS_QUICK_SAVE) == STATE_PRESSED && canSave)
 		{
-			saveGame(c_quickSaveName, "Quicksave");
+			const s32 slot = getQuickSaveSlotIndex(false);
+			saveGame(c_quickSaveSlotNames[slot], c_quickSaveSlotLabels[slot]);
 			lastState = 1;
 		}
 		else if (inputMapping_getActionState(IAS_QUICK_LOAD) == STATE_PRESSED && !lastState)
 		{
-			char filePath[TFE_MAX_PATH];
-			sprintf(filePath, "%s%s", s_gameSavePath, c_quickSaveName);
-			if (FileUtil::exists(filePath))
+			const s32 slot = getQuickSaveSlotIndex(true);
+			if (slot >= 0)
 			{
-				postLoadRequest(c_quickSaveName);
+				postLoadRequest(c_quickSaveSlotNames[slot]);
 				lastState = 1;
 			}
 			else

@@ -53,6 +53,7 @@ namespace TFE_System
 
 	void getDateTimeString(char* output);
 	void getDateTimeStringForFile(char* output);
+	time_t getTimeFromString(const char* str);
 
 	// Log
 	void logTimeToggle();

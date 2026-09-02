@@ -1,5 +1,6 @@
 #include "frontEndUi.h"
 #include "console.h"
+#include <algorithm>
 #include "profilerView.h"
 #include "modLoader.h"
 #include <TFE_A11y/accessibility.h>
@@ -1614,6 +1615,46 @@ namespace TFE_FrontEndUI
 	static bool s_popupOpen = false;
 	static bool s_popupSetFocus = false;
 
+	enum SaveSortMode
+	{
+		SAVE_SORT_NAME = 0,
+		SAVE_SORT_TIME,
+		SAVE_SORT_FILENAME,
+		SAVE_SORT_COUNT
+	};
+	static s32  s_saveSortMode = SAVE_SORT_TIME;
+	static bool s_saveSortReverse = false;
+
+	// Sorts s_saveDir in place according to s_saveSortMode / s_saveSortReverse.
+	// Quicksave (if present) is always populateSaveDirectory()'s first entry and several
+	// index calculations elsewhere assume it stays pinned there, so it's excluded from the sort.
+	void sortSaveDir()
+	{
+		if (s_saveDir.empty()) { return; }
+
+		const size_t startIndex = s_hasQuicksave ? 1 : 0;
+		if (s_saveDir.size() <= startIndex + 1) { return; }
+
+		std::sort(s_saveDir.begin() + startIndex, s_saveDir.end(),
+			[](const TFE_SaveSystem::SaveHeader& a, const TFE_SaveSystem::SaveHeader& b) -> bool
+			{
+				if (s_saveSortMode == SAVE_SORT_TIME)
+				{
+					time_t timeA, timeB;
+					timeA = TFE_System::getTimeFromString(a.dateTime);
+					timeB = TFE_System::getTimeFromString(b.dateTime);
+					return s_saveSortReverse ? timeA < timeB : timeB < timeA;
+				}
+				else if (s_saveSortMode == SAVE_SORT_FILENAME)
+				{
+					s32 cmp = strcasecmp(a.fileName, b.fileName);
+					return s_saveSortReverse ? cmp > 0 : cmp < 0;
+				}
+				s32 cmp = strcasecmp(a.saveName, b.saveName);
+				return s_saveSortReverse ? cmp > 0 : cmp < 0;
+			});
+	}
+
 	void clearSaveImage()
 	{
 		u32 zero[TFE_SaveSystem::SAVE_IMAGE_WIDTH * TFE_SaveSystem::SAVE_IMAGE_HEIGHT];
@@ -1689,6 +1730,7 @@ namespace TFE_FrontEndUI
 		}
 		TFE_SaveSystem::populateSaveDirectory(s_saveDir);
 		s_hasQuicksave = (!s_saveDir.empty() && strcasecmp(s_saveDir[0].saveName, "Quicksave") == 0);
+		sortSaveDir();
 
 		if (!s_saveDir.empty() && (s_selectedSave > 0 || !save))
 		{
@@ -1715,12 +1757,19 @@ namespace TFE_FrontEndUI
 		DisplayInfo displayInfo;
 		TFE_RenderBackend::getDisplayInfo(&displayInfo);
 
-		f32 leftColumn = displayInfo.width < 1200 ? 196.0f*s_uiScale : 256.0f*s_uiScale;
-		f32 rightColumn = leftColumn + ((f32)TFE_SaveSystem::SAVE_IMAGE_WIDTH + 32.0f)*s_uiScale;
+		f32 leftColumn = displayInfo.width < 1200 ? 196.0f*s_uiScale : 228.0f*s_uiScale;
+		f32 rightColumn = leftColumn + ((f32)TFE_SaveSystem::SAVE_IMAGE_WIDTH + 64.0f)*s_uiScale;
 		const s32 listOffset = save ? 1 : 0;
 
+		string saveLoadText = save ? "Save" : "Load";
+		ImVec4 color = save ? ImVec4(1.0f, 0.65f, 0.0f, 1.0f) : ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
+
+		// Wrap the color around the save/load menu.
+		ImGui::PushStyleColor(ImGuiCol_Border, color);
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 2.0f);
+
 		// Left Column
-		ImGui::SetNextWindowPos(ImVec2(leftColumn, floorf(displayInfo.height * 0.25f)));
+		ImGui::SetNextWindowPos(ImVec2(leftColumn, 64.0f * s_uiScale));
 		ImGui::BeginChild("##ImageAndInfo");
 		{
 			// Image
@@ -1764,6 +1813,8 @@ namespace TFE_FrontEndUI
 			ImGui::EndChild();
 		}
 		ImGui::EndChild();
+		ImGui::PopStyleVar();
+		ImGui::PopStyleColor();
 
 		// Right Column
 		f32 rwidth  = 1024.0f * s_uiScale;
@@ -1782,6 +1833,29 @@ namespace TFE_FrontEndUI
 			ImVec2 buttonSize(rwidth - 2.0f, floorf(20 * s_uiScale + 0.5f));
 			ImGui::PushFont(s_dialogFont);
 			ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+
+			// Sort controls.
+			{
+				const s32  prevSortMode = s_saveSortMode;
+				const bool prevSortReverse = s_saveSortReverse;
+
+				if (ImGui::RadioButton("Time", s_saveSortMode == SAVE_SORT_TIME)) { s_saveSortMode = SAVE_SORT_TIME; }
+				ImGui::SameLine();
+				if (ImGui::RadioButton("Name", s_saveSortMode == SAVE_SORT_NAME)) { s_saveSortMode = SAVE_SORT_NAME; }
+				ImGui::SameLine();
+				if (ImGui::RadioButton("Filename", s_saveSortMode == SAVE_SORT_FILENAME)) { s_saveSortMode = SAVE_SORT_FILENAME; }
+				ImGui::SameLine(0.0f, 32.0f * s_uiScale);
+				ImGui::Checkbox("Reverse Order", &s_saveSortReverse);
+				ImGui::Separator();
+
+				if (s_saveSortMode != prevSortMode || s_saveSortReverse != prevSortReverse)
+				{
+					sortSaveDir();
+					s_selectedSave = 0;
+					updateSaveImage(s_selectedSave);
+				}
+			}
+
 			s32 prevSelected = s_selectedSave;
 			for (size_t i = 0; i < count; i++)
 			{
