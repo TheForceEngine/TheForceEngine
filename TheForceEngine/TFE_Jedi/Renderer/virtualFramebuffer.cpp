@@ -15,6 +15,7 @@ namespace TFE_Jedi
 	static u32 s_prevWidth = 0;
 	static u32 s_prevHeight = 0;
 	static s32 s_widescreenOffset = 0;
+	static s32 s_supersampling = 1;
 	static bool s_widescreen = false;
 
 	static u32 s_palette[256];
@@ -39,11 +40,13 @@ namespace TFE_Jedi
 	JBool vfb_setResolution(u32 width, u32 height)
 	{
 		TFE_Settings_Graphics* graphics = TFE_Settings::getGraphicsSettings();
-		if (width == s_width && height == s_height && s_widescreen == graphics->widescreen && s_mode == s_nextMode)
+		const s32 supersampling = s_nextMode == VFB_RENDER_TRAGET ? graphics->supersampling : 1;
+		if (width == s_width && height == s_height && s_widescreen == graphics->widescreen && s_supersampling == supersampling && s_mode == s_nextMode)
 		{
 			return JFALSE;
 		}
 		s_widescreen = graphics->widescreen;
+		s_supersampling = supersampling;
 		s_mode = s_nextMode;
 
 		if (width == 320 && height == 200)
