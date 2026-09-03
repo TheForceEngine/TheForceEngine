@@ -10,6 +10,7 @@
 #include "entity.h"
 #include "groups.h"
 #include "note.h"
+#include "levelEditorInf.h"
 #include <TFE_Editor/EditorAsset/editorAsset.h>
 #include <TFE_Editor/EditorAsset/editorTexture.h>
 #include <TFE_Editor/editorProject.h>
@@ -39,10 +40,18 @@ namespace LevelEditor
 	void writeSectorAttribSnapshot(const EditorSector* sector);
 	void writeLevelNoteToSnapshot(const LevelNote* note);
 	void writeGuidelineToSnapshot(const Guideline* guideline);
+	void writeInfElevatorToSnapshot(const Editor_InfElevator* infElevator);
+	void writeInfTriggerToSnapshot(const Editor_InfTrigger* infTrigger);
+	void writeInfTeleporterToSnapshot(const Editor_InfTeleporter* infTeleporter);
+	void writeInfItemToSnapshot(const Editor_InfItem* infItem);
 
 	void readEntityFromSnapshot(Entity* entity);
 	void readSectorFromSnapshot(EditorSector* sector);
 	void readFromSectorAttribSnapshot(EditorSector* sector);
 	void readLevelNoteFromSnapshot(LevelNote* note);
 	void readGuidelineFromSnapshot(Guideline* guideline);
+	void readInfElevatorFromSnapshot(Editor_InfElevator* infElevator);
+	void readInfTriggerFromSnapshot(Editor_InfTrigger* infTrigger);
+	void readInfTeleporterFromSnapshot(Editor_InfTeleporter* infTeleporter);
+	void readInfItemFromSnapshot(Editor_InfItem* infItem);
 }

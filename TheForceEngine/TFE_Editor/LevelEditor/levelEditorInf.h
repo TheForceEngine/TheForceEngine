@@ -292,6 +292,24 @@ namespace LevelEditor
 		std::vector<Editor_InfTeleporter*>    teleport;
 	};
 
+	struct Editor_InfItemHistory
+	{
+		std::string name;
+		s32 wallNum = -1;
+		s32 infCount = -1;
+		std::vector<Editor_InfClass*> classData;
+		std::vector<void*> classPtr; // Pointers to original data for testing equality
+	};
+
+	// Modify INF history, index tracking
+	struct InfModified
+	{
+		std::vector<IndexPair>matches;
+		std::vector<s32>deleteIndexes; // temp var refs
+		std::vector<s32>modifiedIndexes; // s_levelInf refs
+		std::vector<s32>newIndexes; //s_levelInf refs
+	};
+
 	enum InfVpControlType
 	{
 		InfVpControl_None = 0,
@@ -311,7 +329,9 @@ namespace LevelEditor
 	};
 
 	extern Editor_LevelInf s_levelInf;
+	extern InfModified s_infModified;
 
+	void editor_infDestroy();
 	bool loadLevelInfFromAsset(const TFE_Editor::Asset* asset);
 	void editor_infEditBegin(const char* sectorName, s32 wallIndex = -1);
 	void editor_infEditEnd();
@@ -328,7 +348,16 @@ namespace LevelEditor
 
 	void editor_infGetViewportControl(Editor_InfVpControl* ctrl);
 
+	s32 getClassIndex(Editor_InfItemClass classId, const void* classPtr);
+
+	bool compareLevelInfs(Editor_LevelInf& left, Editor_LevelInf& right);
+
 	const Editor_InfElevator* getElevFromClassData(const Editor_InfClass* data);
 	const Editor_InfTrigger* getTriggerFromClassData(const Editor_InfClass* data);
 	const Editor_InfTeleporter* getTeleporterFromClassData(const Editor_InfClass* data);
+
+	void freeInfClass(Editor_InfClass* infClass);
+	Editor_InfElevator* allocElev(Editor_InfItem* item);
+	Editor_InfTrigger* allocTrigger(Editor_InfItem* item);
+	Editor_InfTeleporter* allocTeleporter(Editor_InfItem* item);
 }
