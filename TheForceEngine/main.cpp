@@ -566,8 +566,8 @@ int main(int argc, char* argv[])
 	}
 
 	// Create a mods temporary directory.
-	char tempPath[TFE_MAX_PATH];
-	sprintf(tempPath, "%sTemp/", TFE_Paths::getPath(PATH_PROGRAM_DATA));
+	char tempPath[TFE_MAX_PATH] = { 0 };
+	sprintf(tempPath, std::filesystem::temp_directory_path().c_str());
 	if (!FileUtil::directoryExists(tempPath))
 	{
 		FileUtil::makeDirectory(tempPath);
