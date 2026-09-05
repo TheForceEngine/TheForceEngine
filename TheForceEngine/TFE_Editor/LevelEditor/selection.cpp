@@ -6,6 +6,8 @@
 #include "sharedState.h"
 #include "infoPanel.h"
 
+#include <unordered_map>
+
 using namespace TFE_Editor;
 
 namespace LevelEditor
@@ -745,24 +747,112 @@ namespace LevelEditor
 		// Setup derived selections.
 		if (s_currentSelection == SEL_VERTEX)
 		{
-			// For now, vertices don't select anything.
-			// This may change.
+			const s32 count = (s32)s_selectionList2[SEL_VERTEX].size();
+			const FeatureId* vtx = s_selectionList2[SEL_VERTEX].data();
+
+			s32 featureIndex = -1;
+			std::unordered_map<s32, std::vector<s32>> sectorVtxMap;
+
+			// Fill the hashmap with sectors and feature (vtx) ids.
+			for (size_t i = 0; i < count; i++)
+			{
+				EditorSector* sector = unpackFeatureId(vtx[i], &featureIndex);
+				if (sectorVtxMap.count(sector->id) > 0)
+				{
+					sectorVtxMap.at(sector->id).push_back(featureIndex);
+				}
+				else
+				{
+					sectorVtxMap.emplace(sector->id, std::vector<s32>());
+					sectorVtxMap.at(sector->id).push_back(featureIndex);
+				}
+			}
+
+			// walk hashmap keys (sectorIds)
+			for (const auto entry : sectorVtxMap)
+			{
+				s32 sectorId = entry.first;
+				std::vector<s32> vtxIds = entry.second;
+				EditorSector* sector = &s_level.sectors[sectorId];
+				if (vtxIds.size() == sector->vtx.size())
+				{
+					// All vtx captured. Add the sector then all its walls
+					FeatureId id = createFeatureId(sector);
+					selection_insertFeatureId(s_selectionList2[SEL_SECTOR], id);
+					for (s32 wallIndex = 0; wallIndex < (s32)sector->walls.size(); wallIndex++)
+					{
+						id = createFeatureId(sector, wallIndex, HP_MID);
+						selection_insertFeatureId(s_selectionList2[SEL_SURFACE], id); // add walls
+					}
+				}
+				else if (vtxIds.size() > 1)
+				{
+					// find which walls are captured
+					s32 wallCount = (s32)sector->walls.size();
+					EditorWall* w = sector->walls.data();
+					for (size_t wallIndex = 0; wallIndex < wallCount; wallIndex++, w++)
+					{
+						for (size_t v0 = 0; v0 < vtxIds.size(); v0++)
+						{
+							if (vtxIds[v0] == w->idx[0])
+							{
+								for (size_t v1 = 0; v1 < vtxIds.size(); v1++)
+								{
+									if (vtxIds[v1] == w->idx[1])
+									{
+										FeatureId id = createFeatureId(sector, (s32)wallIndex, HP_MID);
+										selection_insertFeatureId(s_selectionList2[SEL_SURFACE], id);
+									}
+								}
+							}
+						}
+					}
+
+				}
+			}
 		}
 		else if (s_currentSelection == SEL_SURFACE)
 		{
 			// Surfaces select vertices.
 			const s32 count = (s32)s_selectionList2[SEL_SURFACE].size();
 			const FeatureId* list = s_selectionList2[SEL_SURFACE].data();
+			std::unordered_map<s32, std::vector<s32>> sectorWallMap;
+
 			for (s32 i = 0; i < count; i++)
 			{
 				s32 featureIndex;
 				HitPart part;
 				EditorSector* sector = unpackFeatureId(list[i], &featureIndex, (s32*)&part);
+
 				// Skip flats.
 				if (part == HP_FLOOR || part == HP_CEIL) { continue; }
 
+				// Populate hashmap for sector selection based on MID walls
+				if (sectorWallMap.count(sector->id) > 0)
+				{
+					sectorWallMap.at(sector->id).push_back(featureIndex);
+				}
+				else
+				{
+					sectorWallMap.emplace(sector->id, std::vector<s32>());
+					sectorWallMap.at(sector->id).push_back(featureIndex);
+				}
+
 				EditorWall* wall = &sector->walls[featureIndex];
 				selection_insertWallVertices(sector, wall);
+			}
+
+			// Do select sectors on MID wall tests
+			for (const auto entry : sectorWallMap)
+			{
+				s32 sectorId = entry.first;
+				std::vector<s32> wallIds = entry.second;
+				EditorSector* sector = &s_level.sectors[sectorId];
+				if (sector->walls.size() == wallIds.size())
+				{
+					FeatureId id = createFeatureId(sector);
+					selection_insertFeatureId(s_selectionList2[SEL_SECTOR], id);
+				}
 			}
 
 			// Surfaces may also select sectors, if floor and ceiling surfaces are selected.
@@ -776,6 +866,7 @@ namespace LevelEditor
 				FeatureId id = createFeatureId(sector);
 				selection_insertFeatureId(s_selectionList2[SEL_SECTOR], id);
 			}
+
 		}
 		else if (s_currentSelection == SEL_SECTOR)
 		{
