@@ -754,9 +754,10 @@ namespace LevelEditor
 			std::unordered_map<s32, std::vector<s32>> sectorVtxMap;
 
 			// Fill the hashmap with sectors and feature (vtx) ids.
-			for (size_t i = 0; i < count; i++)
+			for (s32 i = 0; i < count; i++)
 			{
 				EditorSector* sector = unpackFeatureId(vtx[i], &featureIndex);
+				if (!sector) { continue; }
 				if (sectorVtxMap.count(sector->id) > 0)
 				{
 					sectorVtxMap.at(sector->id).push_back(featureIndex);
@@ -790,13 +791,13 @@ namespace LevelEditor
 					// find which walls are captured
 					s32 wallCount = (s32)sector->walls.size();
 					EditorWall* w = sector->walls.data();
-					for (size_t wallIndex = 0; wallIndex < wallCount; wallIndex++, w++)
+					for (s32 wallIndex = 0; wallIndex < wallCount; wallIndex++, w++)
 					{
-						for (size_t v0 = 0; v0 < vtxIds.size(); v0++)
+						for (s32 v0 = 0; v0 < (s32)vtxIds.size(); v0++)
 						{
 							if (vtxIds[v0] == w->idx[0])
 							{
-								for (size_t v1 = 0; v1 < vtxIds.size(); v1++)
+								for (s32 v1 = 0; v1 < (s32)vtxIds.size(); v1++)
 								{
 									if (vtxIds[v1] == w->idx[1])
 									{
@@ -807,7 +808,6 @@ namespace LevelEditor
 							}
 						}
 					}
-
 				}
 			}
 		}
@@ -824,10 +824,9 @@ namespace LevelEditor
 				HitPart part;
 				EditorSector* sector = unpackFeatureId(list[i], &featureIndex, (s32*)&part);
 
-				// Skip flats.
-				if (part == HP_FLOOR || part == HP_CEIL) { continue; }
+				// Filter out flats and signs. MID, TOP & BOT faces considered for vertex derivision
+				if (part == HP_FLOOR || part == HP_CEIL || part == HP_SIGN) { continue; }
 
-				// Populate hashmap for sector selection based on MID walls
 				if (sectorWallMap.count(sector->id) > 0)
 				{
 					sectorWallMap.at(sector->id).push_back(featureIndex);
@@ -842,7 +841,7 @@ namespace LevelEditor
 				selection_insertWallVertices(sector, wall);
 			}
 
-			// Do select sectors on MID wall tests
+			// Select whole sectors if all walls are accounted for
 			for (const auto entry : sectorWallMap)
 			{
 				s32 sectorId = entry.first;
@@ -866,7 +865,6 @@ namespace LevelEditor
 				FeatureId id = createFeatureId(sector);
 				selection_insertFeatureId(s_selectionList2[SEL_SECTOR], id);
 			}
-
 		}
 		else if (s_currentSelection == SEL_SECTOR)
 		{
