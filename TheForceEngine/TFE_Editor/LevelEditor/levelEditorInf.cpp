@@ -102,6 +102,7 @@ namespace LevelEditor
 
 		bool showAnim = false;
 		bool playAnim = false;
+		bool wasSelecting = false;
 		f32 time = 0.0f;
 	};
 	
@@ -3390,6 +3391,7 @@ namespace LevelEditor
 	{
 		// Restore Inf Editor State.
 		s_infEditor = s_infEditorState.editorState;
+		s_infEditor.wasSelecting = true;
 
 		if (s_infEditorState.editClass->classId == IIC_ELEVATOR)
 		{
@@ -3418,6 +3420,7 @@ namespace LevelEditor
 	{
 		// Restore Inf Editor State.
 		s_infEditor = s_infEditorState.editorState;
+		s_infEditor.wasSelecting = true;
 
 		// Set the client name.
 		if (s_infEditorState.editClass->classId == IIC_TRIGGER)
@@ -4686,14 +4689,17 @@ namespace LevelEditor
 		bool wasPopupOpen = ImGui::IsPopupOpen("Edit INF");
 		if (!wasPopupOpen) // Runs once on open
 		{
-			// Init history things
-			clearInfItemTemp();
-			s_infItemTemp.infCount = (s32)s_levelInf.item.size();
-			if (s_infEditor.item)
+			// Only init history things if not returning from a selection case
+			if (!s_infEditor.wasSelecting)
 			{
-				setInfItemTemp(s_infEditor.item);
+				clearInfItemTemp();
+				s_infItemTemp.infCount = (s32)s_levelInf.item.size();
+				if (s_infEditor.item)
+				{
+					setInfItemTemp(s_infEditor.item);
+				}
 			}
-			
+			s_infEditor.wasSelecting = false;
 		}
 
 		if (ImGui::BeginPopupModal("Edit INF", &active, window_flags))
