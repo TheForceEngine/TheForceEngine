@@ -106,6 +106,15 @@ struct TFE_Settings_Graphics
 	f32  bloomStrength = 0.4f;
 	f32  bloomSpread = 0.6f;
 
+	// 2D-Scaler options.
+	// Edge-aware resample + deblur filter (ported from the "2D-Scaler" ReShade
+	// shader by guest(r)), applied only to the game framebuffer after it has
+	// been scaled to the window - never to TFE's own ImGui front-end or main
+	// menu (see TFE_RenderBackend::swap()).
+	bool scaler2DEnabled = false;
+	f32  scaler2DFilterWidth = 0.750f;	// 'Filter Width' - valid range [0.25, 2.0].
+	f32  scaler2DDeblur = 3.000f;		// 'Deblur' - valid range [1.0, 5.0].
+
 	// Sky (Ignored when using the software renderer)
 	s32  skyMode = SKYMODE_CYLINDER;
 };
