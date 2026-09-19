@@ -638,6 +638,12 @@ namespace TFE_Jedi
 		}
 
 		size_t len = file.getSize();
+		if (len == 0)
+		{
+			TFE_System::logWrite(LOG_ERROR, "level_loadGoals", "Level goals file '%s' is empty.", levelName);
+			return JFALSE;
+		}
+
 		s_buffer.resize(len);
 		file.readBuffer(s_buffer.data(), u32(len));
 		file.close();
