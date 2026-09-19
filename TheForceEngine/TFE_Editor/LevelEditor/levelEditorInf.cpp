@@ -2180,14 +2180,14 @@ namespace LevelEditor
 					editor_infPropertySelectable(ITV_EVENT, itemClassIndex);
 
 					ImGui::SetNextItemWidth(128.0f);
-					ImGui::InputInt(editor_getUniqueLabel(""), &trigger->eventMask);
+					ImGui::InputUInt(editor_getUniqueLabel(""), &trigger->event);
 
 					if (s_infEditor.curPropIndex == ITV_EVENT && s_infEditor.curClassIndex == itemClassIndex)
 					{
 						for (s32 i = 0; i < TFE_ARRAYSIZE(c_infEventMaskNames); i++)
 						{
 							if ((i % 4) != 0) { ImGui::SameLine(200.0f * (i % 4), 0.0f); }
-							ImGui::CheckboxFlags(editor_getUniqueLabel(c_infEventMaskNames[i]), (u32*)&trigger->eventMask, 1 << i);
+							ImGui::CheckboxFlags(editor_getUniqueLabel(c_infEventMaskNames[i]), (u32*)&trigger->event, 1 << i);
 						}
 					}
 				}
