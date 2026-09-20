@@ -7,6 +7,7 @@
 #include "infoPanel.h"
 
 #include <unordered_map>
+#include <algorithm>
 
 using namespace TFE_Editor;
 
@@ -841,13 +842,20 @@ namespace LevelEditor
 				selection_insertWallVertices(sector, wall);
 			}
 
-			// Select whole sectors if all walls are accounted for
+			// Select whole sectors if all component wallIds are accounted for
 			for (const auto entry : sectorWallMap)
 			{
 				s32 sectorId = entry.first;
 				std::vector<s32> wallIds = entry.second;
 				EditorSector* sector = &s_level.sectors[sectorId];
-				if (sector->walls.size() == wallIds.size())
+				if (sector->walls.size() > wallIds.size()) { continue; }
+
+				// sort and delete dupes (a single wall can have 3 selection entries (surfaces), one for top, mid & bot)
+				std::sort(wallIds.begin(), wallIds.end());
+				auto iterator = std::unique(wallIds.begin(), wallIds.end());
+				wallIds.erase(iterator, wallIds.end());
+
+				if (wallIds.size() == sector->walls.size() && wallIds.front() == 0 && wallIds.back() == (s32)wallIds.size() - 1)
 				{
 					FeatureId id = createFeatureId(sector);
 					selection_insertFeatureId(s_selectionList2[SEL_SECTOR], id);
