@@ -16,6 +16,7 @@ public:
 	~FileStream();
 
 	bool exists(const char* filename);
+	bool renameFile(const char* oldName, const char* newName);
 	bool open(const char* filename, AccessMode mode);
 	bool open(const FilePath* filePath, AccessMode mode);
 	void close();
