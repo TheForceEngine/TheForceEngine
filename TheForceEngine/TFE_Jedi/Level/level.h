@@ -38,6 +38,10 @@ struct Safe
 
 namespace TFE_Jedi
 {
+	//////////////////////////////////////////////
+	extern const char* const c_levelScriptName;
+	extern const char* const c_levelScriptFile;
+
 	JBool level_load(const char* levelName, u8 difficulty);
 	void  level_clearData();
 	void  level_freeAllAssets();
