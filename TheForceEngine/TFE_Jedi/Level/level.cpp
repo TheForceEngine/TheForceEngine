@@ -41,7 +41,10 @@ namespace TFE_Jedi
 		DF_LEVEL_VERSION_MAJOR = 2,
 		DF_LEVEL_VERSION_MINOR = 1,
 	};
-			
+
+	const char* const c_levelScriptName = "LevelScript";
+	const char* const c_levelScriptFile = "LevelScript.fs";
+
 	// Temp State.
 	static s32 s_dataIndex;
 	static char s_readBuffer[256];
@@ -1083,8 +1086,6 @@ namespace TFE_Jedi
 	//////////////////////////////////////////////
 	// TFE: Level Script
 	//////////////////////////////////////////////
-	const char* c_levelScriptName = "LevelScript";
-	const char* c_levelScriptFile = "LevelScript.fs";
 
 	void freeLevelScript()
 	{

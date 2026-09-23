@@ -2,6 +2,8 @@
 #include "scriptbuilder.h"
 #include <vector>
 #include <assert.h>
+#include <TFE_Jedi/Level/level.h>
+
 using namespace std;
 
 #include <stdio.h>
@@ -190,14 +192,28 @@ s32 readScriptFileTFE(const char* filename, string& code, asIScriptEngine* engin
 {
 	FilePath path;
 	FileStream file;
-	if (!TFE_Paths::getFilePath(filename, &path) || !file.open(&path, FileStream::MODE_READ))
+
+	if (!TFE_Paths::getFilePath(filename, &path))
+	{
+		// Only throw errors if it is an include instead of the main LevelScript.fs
+		if (filename != TFE_Jedi::c_levelScriptFile)
+		{
+			string msg = "Script file not found: '" + std::string(filename) + "'";
+			engine->WriteMessage(filename, 0, 0, asMSGTYPE_ERROR, msg.c_str());
+		}
+		// File is missing
+		return -1;
+	}
+		
+	if (!file.open(&path, FileStream::MODE_READ))
 	{
 		// Write a message to the engine's message callback
-		string msg = "Failed to open script file '" + std::string(filename) + "'";
+		string msg = "Failed to read script file '" + std::string(filename) + "'";
 		engine->WriteMessage(filename, 0, 0, asMSGTYPE_ERROR, msg.c_str());
 		// TODO: Write the file where this one was included from
 		return -1;
-	}
+	}		
+		
 
 	if (file.getSize() > 0)
 	{
