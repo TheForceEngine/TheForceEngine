@@ -261,6 +261,15 @@ namespace TFE_PostProcess
 			}
 
 			Shader* shader = effect->m_shader;
+			if (!shader)
+			{
+				// Defensive guard: an effect whose init() failed to load/compile
+				// its shader(s) would otherwise leave m_shader uninitialized,
+				// crashing here (and, on some GPU drivers, inside the driver
+				// itself rather than with a clean access violation in TFE).
+				TFE_System::logWrite(LOG_ERROR, "PostFX", "Effect instance has NULL shader. Index = %u", e);
+				continue;
+			}
 			shader->bind();
 
 			if (curRenderTarget != effectInst->output)

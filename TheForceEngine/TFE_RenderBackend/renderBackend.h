@@ -164,6 +164,11 @@ namespace TFE_RenderBackend
 	// Toggle bloom - but only the final post process.
 	void bloomPostEnable(bool enable = true);
 
+	// Enable/disable the 2D-Scaler filter (edge-aware resample + deblur) and
+	// set its parameters. Like bloom, this only affects the game framebuffer
+	// post process chain and never TFE's own ImGui front-end.
+	void setScaler2DOptions(bool enabled, f32 filterWidth, f32 deblur);
+
 	// Generic triangle draw.
 	// triCount : number of triangles to draw.
 	// indexStride : index buffer stride in bytes.
