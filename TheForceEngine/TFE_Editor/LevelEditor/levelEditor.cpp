@@ -2502,10 +2502,12 @@ namespace LevelEditor
 	{
 		if (isShortcutPressed(SHORTCUT_UNDO))
 		{
+			if (isPopupOpen()) return; // Avoid problems with INF UI
 			levHistory_undo();
 		}
 		else if (isShortcutPressed(SHORTCUT_REDO))
 		{
+			if (isPopupOpen()) return; // Avoid problems with INF UI
 			levHistory_redo();
 		}
 		if (isShortcutPressed(SHORTCUT_SHOW_ALL_LABELS))

@@ -2,6 +2,7 @@
 #include "levelDataSnapshot.h"
 #include "sharedState.h"
 #include "guidelines.h"
+#include "levelEditorInf.h"
 #include <TFE_Editor/snapshotReaderWriter.h>
 #include <TFE_Editor/history.h>
 #include <TFE_Editor/errorMessages.h>
@@ -205,6 +206,135 @@ namespace LevelEditor
 		writeData(guideline->offsets.data(), sizeof(f32) * offsetCount);
 	}
 
+	void writeInfElevatorToSnapshot(const Editor_InfElevator* infElevator)
+	{
+		const s32 slaveCount = (s32)infElevator->slaves.size();
+		const s32 stopCount = (s32)infElevator->stops.size();
+
+		writeU32(infElevator->classId);
+		writeU32(infElevator->type);
+		writeU32(infElevator->overrideSet);
+		writeS32(infElevator->start);
+		writeF32(infElevator->speed);
+		writeF32(infElevator->angle);
+		writeU32(infElevator->flags);
+		writeData(infElevator->key, sizeof(KeyItem) * 2);
+		writeData(&infElevator->center, sizeof(Vec2f));
+		writeString(infElevator->sounds[0]);
+		writeString(infElevator->sounds[1]);
+		writeString(infElevator->sounds[2]);
+		writeU8(infElevator->master);
+		writeS32(infElevator->eventMask);
+		writeS32(infElevator->entityMask);
+		writeS32(slaveCount);
+		writeS32(stopCount);
+
+		// Each slave & stop is of variable length
+		for (s32 i = 0; i < slaveCount; i++)
+		{
+			writeString(infElevator->slaves[i].name);
+			writeF32(infElevator->slaves[i].angleOffset);
+		}
+
+		for (s32 i = 0; i < stopCount; i++)
+		{
+			const s32 adjoinCount = (s32)infElevator->stops[i].adjoinCmd.size();
+			const s32 textureCount = (s32)infElevator->stops[i].textureCmd.size();
+			const s32 messageCount = (s32)infElevator->stops[i].msg.size();
+			const s32 scriptCount = (s32)infElevator->stops[i].scriptCall.size();
+			writeU32(infElevator->stops[i].overrideSet);
+			writeU8(infElevator->stops[i].relative);
+			writeF32(infElevator->stops[i].value);
+			writeString(infElevator->stops[i].fromSectorFloor);
+			writeU32(infElevator->stops[i].delayType);
+			writeF32(infElevator->stops[i].delay);
+			writeString(infElevator->stops[i].page);
+			writeS32(adjoinCount);
+			writeS32(textureCount);
+			writeS32(messageCount);
+			writeS32(scriptCount);
+			for (s32 j = 0; j < adjoinCount; j++)
+			{
+				writeString(infElevator->stops[i].adjoinCmd[j].sector0);
+				writeString(infElevator->stops[i].adjoinCmd[j].sector1);
+				writeS32(infElevator->stops[i].adjoinCmd[j].wallIndex0);
+				writeS32(infElevator->stops[i].adjoinCmd[j].wallIndex1);
+			}
+			for (s32 j = 0; j < textureCount; j++)
+			{
+				writeString(infElevator->stops[i].textureCmd[j].donorSector);
+				writeU8(infElevator->stops[i].textureCmd[j].fromCeiling);
+			}
+			for (s32 j = 0; j < messageCount; j++)
+			{
+				writeString(infElevator->stops[i].msg[j].targetSector);
+				writeS32(infElevator->stops[i].msg[j].targetWall);
+				writeU32(infElevator->stops[i].msg[j].type);
+				writeU32(infElevator->stops[i].msg[j].eventFlags);
+				writeU32(infElevator->stops[i].msg[j].arg[0]);
+				writeU32(infElevator->stops[i].msg[j].arg[1]);
+			}
+			for (s32 j = 0; j < scriptCount; j++)
+			{
+				writeString(infElevator->stops[i].scriptCall[j].funcName);
+				writeString(infElevator->stops[i].scriptCall[j].arg[0].value);
+				writeString(infElevator->stops[i].scriptCall[j].arg[1].value);
+				writeString(infElevator->stops[i].scriptCall[j].arg[2].value);
+				writeString(infElevator->stops[i].scriptCall[j].arg[3].value);
+			}
+		}
+	}
+
+	void writeInfTriggerToSnapshot(const Editor_InfTrigger* infTrigger)
+	{
+		writeU32(infTrigger->classId);
+		writeU32(infTrigger->type);
+		writeU32(infTrigger->overrideSet);
+		const s32 clientCount = (s32)infTrigger->clients.size();
+		writeS32(clientCount);
+		for (s32 i = 0; i < clientCount; i++)
+		{
+			writeString(infTrigger->clients[i].targetSector);
+			writeS32(infTrigger->clients[i].targetWall);
+			writeS32(infTrigger->clients[i].eventMask);
+		}
+		writeU32(infTrigger->cmd);
+		writeData(&infTrigger->arg, sizeof(u32) * 2);
+		writeString(infTrigger->sound);
+		writeU8(infTrigger->master);
+		writeU32(infTrigger->textId);
+		writeS32(infTrigger->eventMask);
+		writeS32(infTrigger->entityMask);
+		writeU32(infTrigger->event);
+	}
+
+	void writeInfTeleporterToSnapshot(const Editor_InfTeleporter* infTeleporter)
+	{
+		writeU32(infTeleporter->classId);
+		writeU32(infTeleporter->type);
+		writeString(infTeleporter->target);
+		writeData(&infTeleporter->dstPos, sizeof(Vec3f));
+		writeF32(infTeleporter->dstAngle);
+	}
+
+	void writeInfItemToSnapshot(const Editor_InfItem* infItem)
+	{
+		const s32 classCount = (s32)infItem->classData.size();
+
+		writeString(infItem->name);
+		writeS32(infItem->wallNum);
+		writeS32(classCount);
+		for (s32 i = 0; i < classCount; i++)
+		{
+			// classData are ptrs to heap data. Store the index for snapshotting, ref new ptr addresses when unpacking.
+			Editor_InfClass* classPtr = infItem->classData[i];
+			s32 classIndex = getClassIndex(classPtr->classId, classPtr);
+			assert(classIndex >= 0);
+			writeU32(infItem->classData[i]->classId);
+			writeS32(classIndex);
+		}
+	}
+
 	void readEntityFromSnapshot(Entity* entity)
 	{
 		entity->id = readS32();
@@ -302,5 +432,123 @@ namespace LevelEditor
 		readData(guideline->offsets.data(), sizeof(f32) * offsetCount);
 
 		guideline_computeSubdivision(guideline);
+	}
+
+	void readInfItemFromSnapshot(Editor_InfItem* infItem)
+	{
+		readString(infItem->name);
+		infItem->wallNum = readS32();
+		s32 classCount = readS32();
+		infItem->classData.resize(classCount);
+	}
+
+	void readInfElevatorFromSnapshot(Editor_InfElevator* infElevator)
+	{
+		infElevator->classId = (Editor_InfItemClass)readU32();
+		infElevator->type = (Editor_InfElevType)readU32();
+		infElevator->overrideSet = (Editor_InfElevatorOverride)readU32();
+		infElevator->start = readS32();
+		infElevator->speed = readF32();
+		infElevator->angle = readF32();
+		infElevator->flags = readU32();
+		readData(infElevator->key, sizeof(KeyItem) * 2);
+		readData(&infElevator->center, sizeof(Vec2f));
+		readString(infElevator->sounds[0]);
+		readString(infElevator->sounds[1]);
+		readString(infElevator->sounds[2]);
+		infElevator->master = (bool)readU8();
+		infElevator->eventMask = readS32();
+		infElevator->entityMask = readS32();
+		const s32 slaveCount = readS32();
+		const s32 stopCount = readS32();
+		infElevator->slaves.resize(slaveCount);
+		infElevator->stops.resize(stopCount);
+		
+		// Each slave & stop is of variable length
+		for (s32 i = 0; i < slaveCount; i++)
+		{
+			readString(infElevator->slaves[i].name);
+			infElevator->slaves[i].angleOffset = readF32();
+		}
+
+		for (s32 i = 0; i < stopCount; i++)
+		{
+			infElevator->stops[i].overrideSet = readU32();
+			infElevator->stops[i].relative = (bool)readU8();
+			infElevator->stops[i].value = readF32();
+			readString(infElevator->stops[i].fromSectorFloor);
+			infElevator->stops[i].delayType = (Editor_InfStopDelayType)readU32();
+			infElevator->stops[i].delay = readF32();
+			readString(infElevator->stops[i].page);
+			const s32 adjoinCount = readS32();
+			const s32 textureCount = readS32();
+			const s32 messageCount = readS32();
+			const s32 scriptCount = readS32();
+			infElevator->stops[i].adjoinCmd.resize(adjoinCount);
+			infElevator->stops[i].textureCmd.resize(textureCount);
+			infElevator->stops[i].msg.resize(messageCount);
+			infElevator->stops[i].scriptCall.resize(scriptCount);
+			for (s32 j = 0; j < adjoinCount; j++)
+			{
+				readString(infElevator->stops[i].adjoinCmd[j].sector0);
+				readString(infElevator->stops[i].adjoinCmd[j].sector1);
+				infElevator->stops[i].adjoinCmd[j].wallIndex0 = readS32();
+				infElevator->stops[i].adjoinCmd[j].wallIndex1 = readS32();
+			}
+			for (s32 j = 0; j < textureCount; j++)
+			{
+				readString(infElevator->stops[i].textureCmd[j].donorSector);
+				infElevator->stops[i].textureCmd[j].fromCeiling = (bool)readU8();
+			}
+			for (s32 j = 0; j < messageCount; j++)
+			{
+				readString(infElevator->stops[i].msg[j].targetSector);
+				infElevator->stops[i].msg[j].targetWall = readS32();
+				infElevator->stops[i].msg[j].type = (Editor_InfMessageType)readU32();
+				infElevator->stops[i].msg[j].eventFlags = readU32();
+				infElevator->stops[i].msg[j].arg[0] = readU32();
+				infElevator->stops[i].msg[j].arg[1] = readU32();
+			}
+			for (s32 j = 0; j < scriptCount; j++)
+			{
+				readString(infElevator->stops[i].scriptCall[j].funcName);
+				readString(infElevator->stops[i].scriptCall[j].arg[0].value);
+				readString(infElevator->stops[i].scriptCall[j].arg[1].value);
+				readString(infElevator->stops[i].scriptCall[j].arg[2].value);
+				readString(infElevator->stops[i].scriptCall[j].arg[3].value);
+			}
+		}
+	}
+
+	void readInfTriggerFromSnapshot(Editor_InfTrigger* infTrigger)
+	{
+		infTrigger->classId = (Editor_InfItemClass)readU32();
+		infTrigger->type = (TriggerType)readU32();
+		infTrigger->overrideSet = readU32();
+		const s32 clientCount = readS32();
+		infTrigger->clients.resize(clientCount);
+		for (s32 i = 0; i < clientCount; i++)
+		{
+			readString(infTrigger->clients[i].targetSector);
+			infTrigger->clients[i].targetWall = readS32();
+			infTrigger->clients[i].eventMask = readS32();
+		}
+		infTrigger->cmd = (Editor_InfMessageType)readU32();
+		readData(&infTrigger->arg, sizeof(u32) * 2);
+		readString(infTrigger->sound);
+		infTrigger->master = (bool)readU8();
+		infTrigger->textId = readU32();
+		infTrigger->eventMask = readS32();
+		infTrigger->entityMask = readS32();
+		infTrigger->event = readU32();
+	}
+
+	void readInfTeleporterFromSnapshot(Editor_InfTeleporter* infTeleporter)
+	{
+		infTeleporter->classId = (Editor_InfItemClass)readU32();
+		infTeleporter->type = (TeleportType)readU32();
+		readString(infTeleporter->target);
+		readData(&infTeleporter->dstPos, sizeof(Vec3f));
+		infTeleporter->dstAngle = readF32();
 	}
 }
