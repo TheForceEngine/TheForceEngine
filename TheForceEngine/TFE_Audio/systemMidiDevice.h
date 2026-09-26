@@ -16,8 +16,17 @@ namespace TFE_Audio
 		MidiDeviceType getType() override { return MIDI_TYPE_SYSTEM; }
 
 		void exit() override;
-		// The system device does not have proper global volume control.
-		bool hasGlobalVolumeCtrl() override { return false; }
+		// true: volume is sent as a standard GM/GS "Master Volume" Universal Real Time
+		// SysEx message (see setVolume() below) rather than by rewriting every outgoing
+		// Channel Volume (CC7) byte. The old approach (hasGlobalVolumeCtrl() == false)
+		// made TFE_MidiPlayer::sendMessageDirect() rewrite each outgoing CC7 value to
+		// u8(originalCC7 * masterVolumeScaled) before sending it - a multiply-and-truncate
+		// that disproportionately crushed deliberately quiet channels (e.g. a soft
+		// background/echo layer) toward zero, especially once the music volume slider was
+		// below 100%. That data corruption is gone: real/external MIDI devices now receive
+		// exactly the same untouched CC7 bytes SF2 and CLAP always have.
+
+		bool hasGlobalVolumeCtrl() override { return true; }
 		const char* getName() override;
 
 		// The System Midi device outputs commands to midi hardware or external programs and so never renders sound to the audio thread.
@@ -27,6 +36,9 @@ namespace TFE_Audio
 		void message(u8 type, u8 arg1, u8 arg2) override;
 		void message(const u8* msg, u32 len) override;
 		void noteAllOff() override;
+		// Sends the GM/GS Master Volume Universal Real Time SysEx (device ID 0x7F,
+		// i.e. broadcast to all devices) instead of touching any channel's Volume CC7 -
+		// see hasGlobalVolumeCtrl() above.
 		void setVolume(f32 volume) override;
 
 		u32  getOutputCount() override;
@@ -43,5 +55,10 @@ namespace TFE_Audio
 		
 		s32  m_outputId;
 		FileList m_outputs;
+
+		// Last Master Volume value (0-127) actually sent via setVolume()'s SysEx, or
+		// -1 if none has been sent yet. Used to avoid re-sending an unchanged value -
+		// see setVolume() in the .cpp for why that matters.
+		s32  m_lastSentVolume14 = -1;
 	};
 }

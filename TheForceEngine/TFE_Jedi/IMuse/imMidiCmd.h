@@ -61,6 +61,13 @@ namespace TFE_Jedi
 	void ImControlChange(s32 channelId, MidiController ctrl, s32 value);
 	void ImProgramChange(u8 channel, u8 msg);
 	void ImSetPanFine(s32 channel, s32 pan);
+	// Sends a raw 14-bit MIDI Pitch Bend message (0 - 16383, center = 8192).
+	void ImSendPitchBend(s32 channelId, s32 bend14);
+	// Configures the receiving device's Pitch Bend Sensitivity via the standard RPN 0
+	// (Pitch Bend Range), then sends RPN Null to guard against later Data Entry messages
+	// accidentally altering it. See ImHandleChannelDetuneChange() in imuse.cpp for why
+	// iMuse's own pitch bend math requires this to be set to a specific value.
+	void ImSetPitchBendRange(s32 channelId, s32 semitones);
 
 	// TODO: These are currently defined in imuse.cpp, move them over.
 	extern void ImMidiJumpSustainOpen_NoteOff(ImMidiPlayer* player, u8 channelId, u8 arg1, u8 arg2);
