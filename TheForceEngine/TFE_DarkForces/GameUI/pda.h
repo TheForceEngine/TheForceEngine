@@ -15,4 +15,7 @@ namespace TFE_DarkForces
 
 	JBool pda_isOpen();
 	void  pda_update();
+
+	// TFE
+	void pda_initHighResFont();
 }

@@ -12,9 +12,9 @@ namespace TFE_RenderShared
 	void quadDestroy();
 
 	void quadDraw2d_begin(u32 width, u32 height);
-	void quadDraw2d_add(u32 count, const Vec2f* vertices, const u32* colors, f32 u0, f32 u1, TextureGpu* texture);
-	void quadDraw2d_add(const Vec2f* vertices, const u32* colors, TextureGpu* texture);
-	void quadDraw2d_add(const Vec2f* vertices, const u32* colors, f32 u0, f32 u1, TextureGpu* texture);
+	void quadDraw2d_add(u32 count, const Vec2f* vertices, const u32* colors, f32 u0, f32 u1, TextureGpu* texture, bool greyScale = false);
+	void quadDraw2d_add(const Vec2f* vertices, const u32* colors, TextureGpu* texture, bool greyScale = false);
+	void quadDraw2d_add(const Vec2f* vertices, const u32* colors, f32 u0, f32 u1, TextureGpu* texture, bool greyScale = false);
 
 	void quadDraw2d_draw();
 }

@@ -90,6 +90,15 @@ namespace TFE_DarkForces
 		LActorCallback   callbackFunc;
 	};
 
+	// TFE - support for DF Remaster hi res assets
+	struct HighResActor
+	{
+		u32** array;			// holds the image data
+		u16 arraySize;			// number of images (should be 1 for a DELT, or match number of images in an ANIM)
+		u32 imageWidths[32];
+		u32 imageHeights[32];
+	};
+
 	struct LActorType
 	{
 		u32 type;
@@ -111,6 +120,9 @@ namespace TFE_DarkForces
 	LActor* lactor_alloc(s16 extend);
 	void lactor_free(LActor* actor);
 	void lactor_freeList(LActor* actor);
+
+	// High res assets
+	HighResActor* actorHighRes_alloc();
 
 	LActor* lactor_getList();
 	LActor* lactor_find(u32 type, const char* name);

@@ -321,6 +321,7 @@ namespace TFE_DarkForces
 		// TFE Specific
 		agentMenu_load(&s_sharedState.langKeys);
 		escapeMenu_load(&s_sharedState.langKeys);
+		pda_initHighResFont();
 		// Add texture callbacks.
 		renderer_addHudTextureCallback(TFE_Jedi::level_getLevelTextures);
 		renderer_addHudTextureCallback(TFE_Jedi::level_getObjectTextures);

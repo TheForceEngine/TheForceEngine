@@ -313,7 +313,7 @@ namespace TFE_DarkForces
 		{
 			if (xOffset)
 			{
-				screenGPU_addImageQuad(0, 0, dispWidth, dispHeight, (TextureGpu*)TFE_RenderBackend::getRenderTargetTexture(s_emState.renderTarget));
+				screenGPU_addImageQuad(0, 0, dispWidth, dispHeight, (TextureGpu*)TFE_RenderBackend::getRenderTargetTexture(s_emState.renderTarget), /*greyScale*/true);
 			}
 			else
 			{
@@ -327,7 +327,7 @@ namespace TFE_DarkForces
 				f32 offset = f32(imgOffset) / f32(displayInfo.width);
 				f32 u0 = offset;
 				f32 u1 = 1.0f - offset;
-				screenGPU_addImageQuad(0, 0, dispWidth, dispHeight, u0, u1, (TextureGpu*)TFE_RenderBackend::getRenderTargetTexture(s_emState.renderTarget));
+				screenGPU_addImageQuad(0, 0, dispWidth, dispHeight, u0, u1, (TextureGpu*)TFE_RenderBackend::getRenderTargetTexture(s_emState.renderTarget), /*greyScale*/true);
 			}
 		}
 
