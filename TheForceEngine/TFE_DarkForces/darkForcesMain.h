@@ -29,5 +29,6 @@ namespace TFE_DarkForces
 	extern void saveLevelStatus();
 	void enableCutscenes(JBool enable);
 	bool getCutscenesEnabled();
+	bool df_isCustomModLoaded();
 	void startMissionFromSave(s32 levelIndex);
 }
