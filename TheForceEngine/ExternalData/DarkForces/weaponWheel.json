@@ -1,0 +1,12 @@
+{
+    "weapon0": { "name": "Fists",             "image_unselected": "Fist.png",               "image_selected": "Fist_select.png" },
+    "weapon1": { "name": "Bryar Pistol",      "image_unselected": "Bryar_Pistol.png",       "image_selected": "Bryar_Pistol_select.png" },
+    "weapon2": { "name": "E-11 Blaster",      "image_unselected": "Stormtrooper_Rifle.png", "image_selected": "Stormtrooper_Rifle_select.png" },
+    "weapon3": { "name": "Thermal Detonator", "image_unselected": "Thermal_Detonator.png",  "image_selected": "Thermal_Detonator_select.png" },
+    "weapon4": { "name": "Repeater Gun",      "image_unselected": "Autogun.png",            "image_selected": "Autogun_select.png" },
+    "weapon5": { "name": "Fusion Cutter",     "image_unselected": "Fusion_Cutter.png",      "image_selected": "Fusion_Cutter_select.png" },
+    "weapon6": { "name": "Mortar Gun",        "image_unselected": "Mortar.png",             "image_selected": "Mortar_select.png" },
+    "weapon7": { "name": "I.M. Mines",        "image_unselected": "IM_Mine.png",            "image_selected": "IM_Mine_select.png" },
+    "weapon8": { "name": "Concussion Rifle",  "image_unselected": "Concussion_Rifle.png",   "image_selected": "Concussion_Rifle_select.png" },
+    "weapon9": { "name": "Assault Cannon",    "image_unselected": "Assault_Cannon.png",     "image_selected": "Assault_Cannon_select.png" }
+}
