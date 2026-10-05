@@ -19,8 +19,8 @@ namespace TFE_Jedi
 
 	void screenGPU_beginImageQuads(u32 width, u32 height);
 	void screenGPU_endImageQuads();
-	void screenGPU_addImageQuad(s32 x0, s32 z0, s32 x1, s32 z1, TextureGpu* texture);
-	void screenGPU_addImageQuad(s32 x0, s32 z0, s32 x1, s32 z1, f32 u0, f32 u1, TextureGpu* texture);
+	void screenGPU_addImageQuad(s32 x0, s32 z0, s32 x1, s32 z1, TextureGpu* texture, bool greyScale = false);
+	void screenGPU_addImageQuad(s32 x0, s32 z0, s32 x1, s32 z1, f32 u0, f32 u1, TextureGpu* texture, bool greyScale = false);
 
 	void screenGPU_beginQuads(u32 width, u32 height);
 	void screenGPU_endQuads();

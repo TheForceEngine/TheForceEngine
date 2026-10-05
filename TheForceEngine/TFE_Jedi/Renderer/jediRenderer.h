@@ -94,4 +94,8 @@ namespace TFE_Jedi
 	extern s32 s_drawnObjCount;
 	extern bool s_showWireframe;
 	extern SecObject* s_drawnObj[];
+	extern bool s_drawQuadsFirst;
+	extern bool s_clipLinesToRect;
+
+	void renderer_setClipRect(s32 x, s32 y, s32 width, s32 height);
 }

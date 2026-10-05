@@ -635,6 +635,8 @@ namespace TFE_Jedi
 
 	void copy8BitToTrueColorTexture(const TextureData* texData, const u8* srcImage, s32 paddingX, s32 paddingY, s32 offsetX, s32 offsetY, u32* output, Vec3f& halfTint)
 	{
+		if (!TFE_DarkForces::s_levelColorMap) { return; }
+
 		const s32 w = texData->width;
 		const s32 h = texData->height;
 		const s32 dstStrideInTexels = s_texturePacker->width;

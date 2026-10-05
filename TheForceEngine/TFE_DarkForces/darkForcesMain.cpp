@@ -51,6 +51,7 @@
 #include <TFE_Jedi/InfSystem/infSystem.h>
 #include <TFE_Jedi/Task/task.h>
 #include <TFE_Jedi/Renderer/jediRenderer.h>
+#include <TFE_RenderBackend/renderBackend.h>
 #include <TFE_Jedi/Task/task.h>
 #include <TFE_Jedi/IMuse/imuse.h>
 #include <TFE_Jedi/Serialization/serialization.h>
@@ -321,6 +322,7 @@ namespace TFE_DarkForces
 		// TFE Specific
 		agentMenu_load(&s_sharedState.langKeys);
 		escapeMenu_load(&s_sharedState.langKeys);
+		pda_initHighResFont();
 		// Add texture callbacks.
 		renderer_addHudTextureCallback(TFE_Jedi::level_getLevelTextures);
 		renderer_addHudTextureCallback(TFE_Jedi::level_getObjectTextures);
@@ -654,6 +656,8 @@ namespace TFE_DarkForces
 			if (!missionBriefing_update(&skill, &abort))
 			{
 				missionBriefing_cleanup();
+				TFE_Jedi::renderer_setType(RENDERER_SOFTWARE);
+				TFE_RenderBackend::bloomPostEnable(true);
 				TFE_Input::clearAccumulatedMouseMove();
 
 				if (abort)
@@ -1325,6 +1329,11 @@ namespace TFE_DarkForces
 		}
 
 		TFE_Settings::loadCustomModSettings();
+
+		// To date, the vast majority of mods do not have high res briefing or PDA assets
+		// We want players to see modded DELTs (briefings, inventory etc.) rather than having these replaced by the DF Remaster's PNGs
+		// TODO: add support for loading PNGs from mods
+		TFE_Settings::getEnhancementsSettings()->enableHdPda = false;
 	}
 
 	s32 loadLocalMessages()
