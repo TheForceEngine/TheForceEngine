@@ -50,6 +50,9 @@ namespace LevelEditor
 		LName_LevelNote_Delete,
 		LName_LevelNote_Move,
 		LName_LevelNote_Change,
+		LName_Inf_Create,
+		LName_Inf_Change,
+		LName_Inf_Delete,
 		LName_Count
 	};
 
@@ -71,4 +74,7 @@ namespace LevelEditor
 	void cmd_guidelineSnapshot(u32 name);
 	void cmd_levelNoteSnapshot(u32 name, bool idChanged);
 	void cmd_guidelineSingleSnapshot(u32 name, s32 index, bool idChanged);
+	void cmd_infCreateSnapshot(u32 name);
+	void cmd_infModifySnapshot(u32 name, s32 itemIndex);
+	// void cmd_infDeleteSnapshot(u32 name, u32 itemIndex);
 }
