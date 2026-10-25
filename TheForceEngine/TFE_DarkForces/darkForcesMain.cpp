@@ -25,6 +25,7 @@
 #include "Landru/lsystem.h"
 #include "Landru/lmusic.h"
 #include "Landru/cutscene_film.h"
+#include "Landru/modCutscene.h"
 #include <TFE_DarkForces/Landru/cutscene.h>
 #include <TFE_DarkForces/Landru/cutsceneList.h>
 #include <TFE_DarkForces/Actor/actor.h>
@@ -575,7 +576,6 @@ namespace TFE_DarkForces
 			s_runGameState.state = GSTATE_CUTSCENE;
 			s_invalidLevelIndex = JTRUE;
 
-			// Always force cutscenes off for demo playbac for cutscenes. 
 			if (isDemoPlayback())
 			{
 				s_runGameState.cutscenesEnabled = JFALSE;
@@ -583,7 +583,16 @@ namespace TFE_DarkForces
 
 			if (s_runGameState.cutscenesEnabled && !s_runGameState.startLevel)
 			{
-				cutscene_play(10);
+				// If running a mod from cutscene.json don't load LFD scenes
+				// Just play the mod's intro video instead.
+				if (modCutscene_isActive())
+				{
+					cutscene_playVideoFile(modCutscene_getGameIntro());
+				}
+				else
+				{
+					cutscene_play(10);
+				}
 			}
 			else
 			{
@@ -767,7 +776,42 @@ namespace TFE_DarkForces
 		} break;
 		case GMODE_CUTSCENE:
 		{
-			if (s_runGameState.cutscenesEnabled && cutscene_play(s_cutsceneData[s_runGameState.cutsceneIndex].cutscene))
+			JBool started = JFALSE;
+			if (s_runGameState.cutscenesEnabled)
+			{
+				// Play a mod cutscene in OGV format
+				if (modCutscene_isActive())
+				{
+					inputMapping_removeState(IADF_MENU_TOGGLE);
+					GameMode nextMode = s_cutsceneData[s_runGameState.cutsceneIndex + 1].nextGameMode;
+					const char* levelName = agent_getLevelName();
+
+					const char* baseName;
+
+					// Figure out which cutscene to play, mission intro/outro or game outro					
+					if (nextMode == GMODE_END)
+					{
+						baseName = modCutscene_getGameOutro();
+					}
+					else if (nextMode == GMODE_BRIEFING)
+					{						
+						baseName = modCutscene_getMissionIntro(levelName);
+					}
+					else
+					{
+						baseName = modCutscene_getMissionOutro(levelName);
+					}
+
+					started = cutscene_playVideoFile(baseName);
+				}
+				else
+				{
+					// Fall back to LFD cutscenes
+					started = cutscene_play(s_cutsceneData[s_runGameState.cutsceneIndex].cutscene);
+				}
+			}
+
+			if (started)
 			{
 				s_runGameState.state = GSTATE_CUTSCENE;
 			}
@@ -863,6 +907,7 @@ namespace TFE_DarkForces
 	{
 		s_sharedState.customGobName[0] = 0;
 		TFE_Settings::clearModSettings();
+		modCutscene_clear();
 
 		for (s32 i = 0; i < argCount; i++)
 		{
@@ -930,6 +975,11 @@ namespace TFE_DarkForces
 	bool getCutscenesEnabled()
 	{
 		return s_runGameState.cutscenesEnabled;
+	}
+
+	bool df_isCustomModLoaded()
+	{
+		return s_sharedState.customGobName[0] != 0;
 	}
 
 	void setInitialLevel(const char* levelName)
@@ -1325,6 +1375,7 @@ namespace TFE_DarkForces
 		}
 
 		TFE_Settings::loadCustomModSettings();
+		modCutscene_init();
 	}
 
 	s32 loadLocalMessages()

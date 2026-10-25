@@ -377,22 +377,9 @@ namespace TFE_DarkForces
 		return s_available;
 	}
 
-	// ------------------------------------------------------------------
-	// Per-scene lookups
-	// ------------------------------------------------------------------
-	//
-	// Each returns a pointer to one of our static buffers, or nullptr on
-	// miss. These are called per-frame at the start of a cutscene (not
-	// inside the hot loop), so performance isn't critical; readability
-	// wins.
-
-	const char* remasterCutscenes_getVideoPath(const CutsceneState* scene)
+	// Load the cutscene path using the path string instead of scene
+	const char* remasterCutscenes_getVideoPathFromBasename(string baseName)
 	{
-		if (!s_available || !scene) { return nullptr; }
-
-		std::string baseName = sceneBaseName(scene);
-		if (baseName.empty()) { return nullptr; }
-
 		// Try the language-specific variant first. The remaster only
 		// localizes videos that have baked-in text (notably logo.ogv
 		// which shows opening credits in English / German / etc.). Most
@@ -413,6 +400,24 @@ namespace TFE_DarkForces
 		// No OGV for this scene. The caller will fall back to the LFD
 		// FILM path.
 		return nullptr;
+	}
+
+	// ------------------------------------------------------------------
+	// Per-scene lookups
+	// ------------------------------------------------------------------
+	//
+	// Each returns a pointer to one of our static buffers, or nullptr on
+	// miss. These are called per-frame at the start of a cutscene (not
+	// inside the hot loop), so performance isn't critical; readability
+	// wins.
+
+	const char* remasterCutscenes_getVideoPath(const CutsceneState* scene)
+	{
+		if (!s_available || !scene) { return nullptr; }
+
+		std::string baseName = sceneBaseName(scene);
+		if (baseName.empty()) { return nullptr; }
+		return remasterCutscenes_getVideoPathFromBasename(baseName);
 	}
 
 	const char* remasterCutscenes_getDcssPath(const CutsceneState* scene)
