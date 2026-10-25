@@ -1600,17 +1600,41 @@ namespace LevelEditor
 
 	const char* c_infEntityMaskNames[] =
 	{
-		"Enemy",     // INF_ENTITY_AI_ACTOR,
-		"Weapon",    // INF_ENTITY_PROJECTILE,
+		"Enemy/NPC",     // INF_ENTITY_AI_ACTOR,
+		"Ground NPC",
+		"Flying NPC",
+		"Projectile",    // INF_ENTITY_PROJECTILE,
+		"VUE object",
+		"Pickup",
+		"Scenery",
+		"Corpse",
+		"Generator",
 		"Smart Obj", // INF_ENTITY_SMART_OBJ,
+		"Remote",
+		"Preplaced Mine",
+		"Boss corpse",
+		"Mohc",
+		"Mine",
 		"Player",    // INF_ENTITY_PLAYER,
 	};
 
 	const u32 c_infEntityMaskFlags[] =
 	{
 		u32(INF_ENTITY_AI_ACTOR),
+		u32(INF_ENTITY_HAS_GRAVITY),
+		u32(INF_ENTITY_FLYING),
 		u32(INF_ENTITY_PROJECTILE),
+		u32(INF_ENTITY_CAN_WAKE),
+		u32(INF_ENTITY_PICKUP),
+		u32(INF_ENTITY_SCENERY),
+		u32(INF_ENTITY_CORPSE),
+		u32(INF_ENTITY_CAN_DISABLE),
 		u32(INF_ENTITY_SMART_OBJ),
+		u32(INF_ENTITY_REMOTE),
+		u32(INF_ENTITY_LANDMINE),
+		u32(INF_ENTITY_KEEP_CORPSE),
+		u32(INF_ENTITY_GENERAL_MOHC),
+		u32(INF_ENTITY_LANDMINE_WPN),
 		u32(INF_ENTITY_PLAYER),
 	};
 
@@ -1737,8 +1761,8 @@ namespace LevelEditor
 
 				*propHeight = elemHeight * countBits(elev->overrideSet & IEO_VAR_MASK) + 16;
 				// Expand if flags are selected.
-				if (curClass && (s_infEditor.curPropIndex == IEV_FLAGS || s_infEditor.curPropIndex == IEV_ENTITY_MASK)) { *propHeight += elemHeight; }
-				else if (curClass && s_infEditor.curPropIndex == IEV_EVENT_MASK) { *propHeight += elemHeight * 3.0f; }
+				if (curClass && (s_infEditor.curPropIndex == IEV_FLAGS)) { *propHeight += elemHeight; }
+				else if (curClass && (s_infEditor.curPropIndex == IEV_EVENT_MASK || s_infEditor.curPropIndex == IEV_ENTITY_MASK)) { *propHeight += elemHeight * 4.0f; }
 
 				const s32 stopCount = (s32)elev->stops.size();
 				const s32 slaveCount = (s32)elev->slaves.size();
@@ -1782,7 +1806,7 @@ namespace LevelEditor
 
 				*propHeight = elemHeight * countBits(trigger->overrideSet & ITO_VAR_MASK) + 16;
 				// Expand if flags are selected.
-				if (curClass && s_infEditor.curPropIndex == ITV_ENTITY_MASK) { *propHeight += elemHeight; }
+				if (curClass && s_infEditor.curPropIndex == ITV_ENTITY_MASK) { *propHeight += elemHeight * 4.0f; }
 				else if (curClass && (s_infEditor.curPropIndex == ITV_EVENT_MASK || s_infEditor.curPropIndex == ITV_EVENT)) { *propHeight += elemHeight * 3.0f; }
 
 				const s32 clientCount = (s32)trigger->clients.size();
@@ -2166,7 +2190,7 @@ namespace LevelEditor
 					ImGui::SetNextItemWidth(128.0f);
 					ImGui::InputInt(editor_getUniqueLabel(""), &trigger->entityMask);
 
-					if (s_infEditor.curPropIndex == IEV_ENTITY_MASK && s_infEditor.curClassIndex == itemClassIndex)
+					if (s_infEditor.curPropIndex == ITV_ENTITY_MASK && s_infEditor.curClassIndex == itemClassIndex)
 					{
 						for (s32 i = 0; i < TFE_ARRAYSIZE(c_infEntityMaskNames); i++)
 						{
