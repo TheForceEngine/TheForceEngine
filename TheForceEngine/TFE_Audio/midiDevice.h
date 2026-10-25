@@ -9,6 +9,9 @@ enum MidiDeviceType
 #ifdef BUILD_SYSMIDI
 	MIDI_TYPE_SYSTEM,	// System midi device (hardware, midi server, GM midi on Windows).
 #endif
+#ifdef BUILD_CLAP
+	MIDI_TYPE_CLAP,		// Use a CLAP instrument plugin found at a standard install location.
+#endif
 	MIDI_TYPE_COUNT,
 	MIDI_TYPE_DEFAULT = MIDI_TYPE_OPL3
 };
@@ -31,6 +34,9 @@ namespace TFE_Audio
 		virtual void getOutputName(s32 index, char* buffer, u32 maxLength) = 0;
 		virtual bool selectOutput(s32 index) = 0;
 		virtual s32  getActiveOutput(void) = 0;
+		// Optional: refresh the output list (e.g. re-scan for newly installed CLAP plugins
+		// or newly connected MIDI ports). No-op by default.
+		virtual void rescanOutputs() {}
 
 		virtual bool render(f32* buffer, u32 sampleCount) = 0;
 		virtual bool canRender() = 0;

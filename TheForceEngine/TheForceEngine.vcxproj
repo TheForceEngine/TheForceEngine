@@ -131,7 +131,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ForceScript\Angelscript\angelscript\include;$(ProjectDir)\TFE_ForceScript\Angelscript\add_on;$(ProjectDir)\sdl2_win32\include;$(ProjectDir)\ogg_theora_win32\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ForceScript\Angelscript\angelscript\include;$(ProjectDir)\TFE_ForceScript\Angelscript\add_on;$(ProjectDir)\sdl2_win32\include;$(ProjectDir)\ogg_theora_win32\include;$(ProjectDir)\clap\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)\sdl2_win32\lib\x64;$(ProjectDir)\lib;$(ProjectDir)\ogg_theora_win32\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -145,17 +145,17 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ForceScript\Angelscript\angelscript\include;$(ProjectDir)\TFE_ForceScript\Angelscript\add_on;$(ProjectDir)\sdl2_win32\include;$(ProjectDir)\ogg_theora_win32\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ForceScript\Angelscript\angelscript\include;$(ProjectDir)\TFE_ForceScript\Angelscript\add_on;$(ProjectDir)\sdl2_win32\include;$(ProjectDir)\ogg_theora_win32\include;$(ProjectDir)\clap\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)\sdl2_win32\lib\x64;$(ProjectDir)\lib;$(ProjectDir)\ogg_theora_win32\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='BuildForRelease|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\angelscript\include;$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\add_on;$(ProjectDir)\devILx64\include;$(ProjectDir)\sdl2_win32\include;$(ProjectDir)\ogg_theora_win32\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\angelscript\include;$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\add_on;$(ProjectDir)\devILx64\include;$(ProjectDir)\sdl2_win32\include;$(ProjectDir)\ogg_theora_win32\include;$(ProjectDir)\clap\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)\sdl2_win32\lib\x64;$(ProjectDir)\lib;$(ProjectDir)\devILx64\lib\x64\Release;$(ProjectDir)\ogg_theora_win32\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\angelscript\include;$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\add_on;$(ProjectDir)\devILx64\include;$(ProjectDir)\sdl2_win32\include;$(ProjectDir)\ogg_theora_win32\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\angelscript\include;$(ProjectDir)\TFE_ScriptSystem\AngelScript\sdk\add_on;$(ProjectDir)\devILx64\include;$(ProjectDir)\sdl2_win32\include;$(ProjectDir)\ogg_theora_win32\include;$(ProjectDir)\clap\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)\sdl2_win32\lib\x64;$(ProjectDir)\lib;$(ProjectDir)\devILx64\lib\x64\Release;$(ProjectDir)\ogg_theora_win32\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -178,7 +178,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;BUILD_SYSMIDI;BUILD_EDITOR;WIN32_OPENGL;__WINDOWS_MM__;ASMJIT_EMBED;ASMJIT_STATIC;ASMJIT_NO_FOREIGN;ENABLE_OGV_CUTSCENES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;BUILD_SYSMIDI;BUILD_CLAP;BUILD_EDITOR;WIN32_OPENGL;__WINDOWS_MM__;ASMJIT_EMBED;ASMJIT_STATIC;ASMJIT_NO_FOREIGN;ENABLE_OGV_CUTSCENES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
@@ -257,7 +257,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;BUILD_SYSMIDI;BUILD_EDITOR;WIN32_OPENGL;__WINDOWS_MM__;ASMJIT_EMBED;ASMJIT_STATIC;ASMJIT_NO_FOREIGN;ENABLE_OGV_CUTSCENES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;BUILD_SYSMIDI;BUILD_CLAP;BUILD_EDITOR;WIN32_OPENGL;__WINDOWS_MM__;ASMJIT_EMBED;ASMJIT_STATIC;ASMJIT_NO_FOREIGN;ENABLE_OGV_CUTSCENES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
@@ -373,6 +373,9 @@ echo ^)";
     <ClInclude Include="TFE_Audio\MidiSynth\tsf.h" />
     <ClInclude Include="TFE_Audio\RtMidi.h" />
     <ClInclude Include="TFE_Audio\systemMidiDevice.h" />
+    <ClInclude Include="TFE_Audio\clapDevice.h" />
+    <ClInclude Include="TFE_Audio\clapModule.h" />
+    <ClInclude Include="TFE_Audio\clapPluginScanner.h" />
     <ClInclude Include="TFE_DarkForces\Actor\actor.h" />
     <ClInclude Include="TFE_DarkForces\Actor\actorEnhanced.h" />
     <ClInclude Include="TFE_DarkForces\Actor\actorInternal.h" />
@@ -800,6 +803,9 @@ echo ^)";
     <ClCompile Include="TFE_Audio\MidiSynth\soundFontDevice.cpp" />
     <ClCompile Include="TFE_Audio\RtMidi.cpp" />
     <ClCompile Include="TFE_Audio\systemMidiDevice.cpp" />
+    <ClCompile Include="TFE_Audio\clapDevice.cpp" />
+    <ClCompile Include="TFE_Audio\clapModule.cpp" />
+    <ClCompile Include="TFE_Audio\clapPluginScanner.cpp" />
     <ClCompile Include="TFE_DarkForces\Actor\actor.cpp" />
     <ClCompile Include="TFE_DarkForces\Actor\actorEnhanced.cpp" />
     <ClCompile Include="TFE_DarkForces\Actor\actorSerialization.cpp" />

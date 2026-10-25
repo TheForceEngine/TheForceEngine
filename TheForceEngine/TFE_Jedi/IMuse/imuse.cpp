@@ -1010,13 +1010,35 @@ namespace TFE_Jedi
 		midiChannel->player  = player;
 		midiChannel->channel = channel;
 
+		// FIX: a raw MIDI capture of the original engine's actual output showed that,
+		// the first time a channel is assigned to a part, it sends a full GM/GS
+		// "channel reset" sequence that this reimplementation was missing entirely:
+		// Bank Select, Pitch Bend Sensitivity (RPN), an explicit Sustain-off, All
+		// Notes Off, Reverb Send, and Chorus Send. A later Program Change on an
+		// already-assigned channel (an instrument switch mid-song) does NOT repeat
+		// this - only a fresh assignment does (see ImMidiProgramChange()). Without
+		// this, a receiving device is left at whatever bank/reverb/chorus/pitch-bend-
+		// range state it happened to already be in, which can audibly differ from
+		// the intended sound (e.g. missing the intended reverb/chorus send entirely).
+		ImControlChange(midiChannel->channelId, MID_BANK_SELECT_MSB, 0);
 		ImMidiChannelSetPgm(midiChannel, channel->partPgm);
+		ImSetPitchBendRange(midiChannel->channelId, 16);
+		ImControlChange(midiChannel->channelId, MID_SUSTAIN_SWITCH, 0);
+		ImControlChange(midiChannel->channelId, MID_ALL_NOTES_OFF, 0);
+		ImControlChange(midiChannel->channelId, MID_FX_REVERB, 64);
+		ImControlChange(midiChannel->channelId, MID_FX_CHORUS, 0);
+
 		ImMidiChannelSetPriority(midiChannel, channel->priority);
 		ImMidiChannelSetPartNoteReq(midiChannel, channel->partNoteReq);
 		ImMidiChannelSetVolume(midiChannel, channel->groupVolume);
 		ImMidiChannelSetPan(midiChannel, channel->partPan);
 		ImMidiChannelSetModulation(midiChannel, channel->modulation);
-		ImHandleChannelPan(midiChannel, channel->pan);
+		// FIX: this used to call ImHandleChannelPan(midiChannel, channel->pan), but
+		// channel->pan here is not a pan value at all - see ImHandleChannelDetuneChange()
+		// above. At this point (freshly assigned channel) it is always 0, so the
+		// intended effect is a Pitch Bend reset to center, matching what the original
+		// engine's capture showed (an explicit Pitch Bend = 8192 message right here).
+		ImHandleChannelDetuneChange(player, channel);
 		ImSetChannelSustain(midiChannel, channel->sustain);
 	}
 		
@@ -2009,11 +2031,33 @@ namespace TFE_Jedi
 		
 	void ImHandleChannelDetuneChange(ImMidiPlayer* player, ImMidiOutChannel* channel)
 	{
+		// FIX (confirmed upstream bug: "Pitch bend is being routed to the wrong function"):
+		// despite the field name, channel->pan here has never held a stereo pan value - it is
+		// a scratch field holding the combined pitch offset (transpose + detune + incoming
+		// pitch bend), in units of 1/256th of a semitone (see ImMidiPitchBend below). The call
+		// this used to make, ImHandleChannelPan(), is for genuine stereo pan (a completely
+		// different, unrelated per-channel value on a different struct), and its underlying
+		// ImSetPanFine() is a no-op - so every transpose/detune/pitch-bend change was silently
+		// discarded and never reached any synth. A melody's pitch-bent notes (e.g. a sustained
+		// note bent to sound like the next note in a run/legato phrase) would then just hold at
+		// their original pitch, which can sound like the "bent-to" note is missing entirely.
 		channel->pan = (player->transpose << 8) + player->detune + channel->pitchBend;
+
 		ImMidiChannel* data = channel->data;
 		if (data)
 		{
-			ImHandleChannelPan(data, channel->pan);
+			// channel->pan is in units of 1/256th of a semitone. A raw MIDI capture of
+			// the original engine's actual output showed it configures each channel's
+			// Pitch Bend Sensitivity to +/-16 semitones (RPN 0, Data Entry MSB = 16 -
+			// see ImSetPitchBendRange(), called from ImAssignMidiChannel()), NOT +/-1 as
+			// an earlier version of this fix assumed from ImMidiPitchBend()'s own math
+			// alone. With a full 14-bit pitch wheel sweep (0..16383, center 8192)
+			// spanning 16 semitones, 1 semitone = 8192/16 = 512 raw units, and since
+			// channel->pan is in 1/256-semitone units, the conversion is
+			// rawOffset = pan/256 * 512 = pan*2, i.e. a left shift of 1 (not 5 - that
+			// earlier, incorrect shift applied pitch bends roughly 16x too deep).
+			const s32 bend14 = clamp((imPanCenter << 7) + (channel->pan << 1), 0, 16383);
+			ImSendPitchBend(data->channelId, bend14);
 		}
 	}
 
@@ -2023,7 +2067,10 @@ namespace TFE_Jedi
 		s32 pitchBend = ((intValue << 7) | fractValue) - (imPanCenter << 7);
 		if (channel->outChannelCount)
 		{
-			channel->pan = (channel->outChannelCount * pitchBend) >> 5;	// range -256, 256
+			// Fix: this used to write to channel->pan (a completely different, unrelated field -
+			// see ImHandleChannelDetuneChange() below), so this reset/update never actually took
+			// effect. channel->pitchBend is what ImHandleChannelDetuneChange() actually reads.
+			channel->pitchBend = (channel->outChannelCount * pitchBend) >> 5;	// range -256, 256
 			ImHandleChannelDetuneChange(player, channel);
 		}
 	}
@@ -2178,6 +2225,23 @@ namespace TFE_Jedi
 				ImFreeMidiChannel(channel->data);
 			}
 		}
+		else
+		{
+			// FIX: forward any Control Change TFE doesn't need to intercept for its own
+			// internal bookkeeping (e.g. Expression #11, Reverb Send #91, Chorus Send #93,
+			// Bank Select #0/#32, Portamento/Sostenuto/Soft Pedal switches, and any other
+			// standard GM/GS controller) unmodified to the device, instead of silently
+			// dropping it. This is the same class of bug as the pitch bend routing fix above
+			// (see ImHandleChannelDetuneChange): this if/else chain had no fallback case, so
+			// any controller number not explicitly listed here never reached any backend at
+			// all - matching reports that general GM effects (reverb, chorus, etc.) didn't
+			// seem to work. MID_GPC1_MSB/MID_GPC2_MSB/MID_GPC3_MSB are deliberately excluded
+			// from this fallback - they're repurposed by iMuse itself as internal, in-band
+			// signaling (see MID_GPC1_MSB above triggering a pitch bend reset, not anything
+			// resembling a real "General Purpose Controller") and must stay intercepted, not
+			// forwarded as literal CC16/17/18 values.
+			ImControlChange(channelIndex, (MidiController)midiCmd, value);
+		}
 	}
 
 	void ImMidiNoteOff(ImMidiPlayer* player, u8 channelId, u8 arg1, u8 arg2)
@@ -2233,6 +2297,13 @@ namespace TFE_Jedi
 		{
 			ImMidiChannelSetPgm(channel->data, pgm);
 		}
+		// Note: pitch bend range and the rest of a channel's GM/GS "reset" state
+		// (Bank Select, Reverb/Chorus Send, Sustain, All Notes Off, ...) are NOT
+		// (re-)sent here. A raw MIDI capture of the original engine confirmed that
+		// full reset sequence is sent exactly once, when a channel is first assigned
+		// to a part (see ImAssignMidiChannel()) - a later Program Change on an
+		// already-assigned channel (e.g. a song switching instruments mid-track) only
+		// ever sends the bare Program Change, nothing else.
 	}
 
 	void ImMidiPitchBend(ImMidiPlayer* player, u8 channelId, u8 arg1, u8 arg2)
