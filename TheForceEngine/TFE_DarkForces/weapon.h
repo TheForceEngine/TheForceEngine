@@ -106,6 +106,9 @@ namespace TFE_DarkForces
 
 	void weapon_queueWeaponSwitch(s32 wpnId);
 
+	s32 weapon_getAmmoCount(s32 wpnId);
+	s32 weapon_getSecondaryAmmoCount(s32 wpnId);
+
 	// Serialization
 	void weapon_serialize(Stream* stream);
 
