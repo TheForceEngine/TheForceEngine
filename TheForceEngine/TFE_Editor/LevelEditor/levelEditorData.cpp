@@ -68,6 +68,23 @@ namespace LevelEditor
 	const char* c_newLine = "\r\n";
 	const f32 adjoinEps = 0.0001f;
 
+	const char* c_projectFiles[] =
+	{
+		"text.msg",
+		"briefing.lst",
+		"cutscene.lst",
+		"cutmuse.txt",
+	};
+
+	enum ProjectFiles
+	{
+		PROJFILE_TEXTMSG,
+		PROJFILE_BRIEFING,
+		PROJFILE_CUTSCENE,
+		PROJFILE_CUTMUSE,
+		PROJFILE_COUNT,
+	};
+
 	// Sector attributes, geometry not included.
 	struct SectorAttrib
 	{
@@ -2000,7 +2017,7 @@ namespace LevelEditor
 		"================================================================\r\n"
 		"%s\r\n";
 
-	bool exportGob(const char* workPath, const char* exportPath, const char* gobName, const std::vector<LevelExportInfo>& levelList, char* gobTempPath)
+	bool exportGob(const char* workPath, const char* exportPath, const char* projectPath, const char* gobName, const std::vector<LevelExportInfo>& levelList, char* gobTempPath)
 	{
 		const size_t count = levelList.size();
 		char baseName[TFE_MAX_PATH];
@@ -2061,6 +2078,8 @@ namespace LevelEditor
 
 			gatherAssetList(s_level.slot.c_str(), levFile, objFile, assetList);
 		}
+
+		// Write jedi.lvl
 		sprintf(jediLine, "LEVELS %d\r\n", levelCount);
 		jediLevel = jediLine + jediLevel;
 		jediLevel += "\r\n\r\n";
@@ -2068,6 +2087,7 @@ namespace LevelEditor
 		jediLevel += "//      This file contains the list of all the levels in Jedi,\r\n";
 		jediLevel += "//      and the DOS names for those levels.\r\n";
 
+		// Add assets
 		if (!assetList.empty())
 		{
 			char tmpDir[TFE_MAX_PATH];
@@ -2088,6 +2108,7 @@ namespace LevelEditor
 			}
 		}
 
+		// Add jedi.lvl
 		char jediLevelPath[TFE_MAX_PATH];
 		sprintf(jediLevelPath, "%s/jedi.lvl", workPath);
 		FileStream jediLvlFile;
@@ -2096,6 +2117,23 @@ namespace LevelEditor
 			jediLvlFile.writeBuffer(jediLevel.c_str(), (u32)jediLevel.length());
 			jediLvlFile.close();
 			fileList.push_back(jediLevelPath);
+		}
+
+		// Add other project files (eg. text.msg, briefing.lst) if they exist
+		// For now, just take what is in the project path. In the future, we can add support for creating & editing these in the TFE editor.
+		for (int i = 0; i < PROJFILE_COUNT; i++)
+		{
+			char projFilePath[TFE_MAX_PATH];
+			sprintf(projFilePath, "%s/%s", projectPath, c_projectFiles[i]);
+			if (FileUtil::exists(projFilePath))
+			{
+				char exportPath[TFE_MAX_PATH];
+				sprintf(exportPath, "%s/%s", workPath, c_projectFiles[i]);
+				if (AssetBrowser::readWriteFile(exportPath, c_projectFiles[i], projFilePath, nullptr, buffer))
+				{
+					fileList.push_back(exportPath);
+				}
+			}
 		}
 
 		char gobPath[TFE_MAX_PATH];
@@ -2116,15 +2154,15 @@ namespace LevelEditor
 	// TODO: Go through levels and include any resources not included in the base game.
 	bool exportLevels(const char* workPath, const char* exportPath, const char* gobName, const std::vector<LevelExportInfo>& levelList)
 	{
+		Project* project = project_get();
+
 		char gobTempPath[TFE_MAX_PATH];
-		if (!exportGob(workPath, exportPath, gobName, levelList, gobTempPath))
+		if (!exportGob(workPath, exportPath, project->path, gobName, levelList, gobTempPath))
 		{
 			return false;
 		}
 		FileList fileList;
 		fileList.push_back(gobTempPath);
-
-		Project* project = project_get();
 
 		char readme[4096];
 		sprintf(readme, c_modHeaderTemplate, project->name, project->authors.c_str(), project->desc.c_str(), project->credits.c_str());
@@ -2148,6 +2186,7 @@ namespace LevelEditor
 			"png",
 			"jpg",
 			"webp",
+			"json",
 		};
 		const size_t extLen = TFE_ARRAYSIZE(c_includeExt);
 		FileList list;

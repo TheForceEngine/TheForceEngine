@@ -234,7 +234,11 @@ namespace TFE_Editor
 	bool project_exportUi()
 	{
 		// Make sure a project is active.
-		if (!s_curProject.active) { return true; }
+		if (!s_curProject.active)
+		{
+			showMessageBox("Warning", "No project is currently open.");
+			return false;
+		}
 
 		pushFont(TFE_Editor::FONT_SMALL);
 		bool finished = false;
