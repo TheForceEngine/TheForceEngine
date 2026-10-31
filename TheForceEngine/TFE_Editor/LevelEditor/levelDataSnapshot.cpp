@@ -434,12 +434,32 @@ namespace LevelEditor
 		guideline_computeSubdivision(guideline);
 	}
 
-	void readInfItemFromSnapshot(Editor_InfItem* infItem)
+	void readInfItemFromSnapshot(Editor_InfItem* infItem, const Editor_LevelInf& infSnapshot)
 	{
 		readString(infItem->name);
 		infItem->wallNum = readS32();
 		s32 classCount = readS32();
 		infItem->classData.resize(classCount);
+
+		// the rest of the classData are stored as indexes in the snapshot data.
+		// these need conversion to the memory address, recast as an Editor_InfClass*.
+		for (size_t i = 0; i < infItem->classData.size(); i++)
+		{
+			Editor_InfItemClass itemClass = (Editor_InfItemClass)readU32();
+			s32 itemIndex = readS32();
+			if (itemClass == IIC_ELEVATOR)
+			{
+				infItem->classData[i] = ((Editor_InfClass*)infSnapshot.elevator[itemIndex]);
+			}
+			else if (itemClass == IIC_TRIGGER)
+			{
+				infItem->classData[i] = ((Editor_InfClass*)infSnapshot.trigger[itemIndex]);
+			}
+			else if (itemClass == IIC_TELEPORTER)
+			{
+				infItem->classData[i] = ((Editor_InfClass*)infSnapshot.teleport[itemIndex]);
+			}
+		}
 	}
 
 	void readInfElevatorFromSnapshot(Editor_InfElevator* infElevator)

@@ -171,6 +171,15 @@ namespace LevelEditor
 		std::vector<Editor_InfClass*> classData;
 	};
 
+	// Helper struct for inf undo operations
+	struct Editor_InfItemHistory
+	{
+		std::string name;
+		s32 wallNum = -1;
+		s32 totalItemCount = -1;
+		std::vector<Editor_InfClass*> classData;
+	};
+
 	// Commands
 	struct Editor_InfAdjoinCmd
 	{
@@ -294,14 +303,6 @@ namespace LevelEditor
 		std::vector<Editor_InfElevator*>      elevator;
 		std::vector<Editor_InfTrigger*>       trigger;
 		std::vector<Editor_InfTeleporter*>    teleport;
-	};
-
-	struct Editor_InfItemHistory
-	{
-		std::string name;
-		s32 wallNum = -1;
-		s32 infCount = -1;
-		std::vector<Editor_InfClass*> classData;
 	};
 
 	// Modify INF history, index tracking

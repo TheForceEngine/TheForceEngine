@@ -53,5 +53,5 @@ namespace LevelEditor
 	void readInfElevatorFromSnapshot(Editor_InfElevator* infElevator);
 	void readInfTriggerFromSnapshot(Editor_InfTrigger* infTrigger);
 	void readInfTeleporterFromSnapshot(Editor_InfTeleporter* infTeleporter);
-	void readInfItemFromSnapshot(Editor_InfItem* infItem);
+	void readInfItemFromSnapshot(Editor_InfItem* infItem, const Editor_LevelInf& infSnapshot);
 }

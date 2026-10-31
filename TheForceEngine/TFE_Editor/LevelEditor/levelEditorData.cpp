@@ -5101,7 +5101,7 @@ namespace LevelEditor
 	}
 
 	// Reimplemention of getClassIndex() for the snapshot
-	s32 getClassIndexSnapshot(Editor_InfItemClass classId, const void* classPtr)
+	s32 getInfSnapshotClassIndex(Editor_InfItemClass classId, const void* classPtr)
 	{
 		s32 index = -1;
 		if (classId == IIC_ELEVATOR)
@@ -5207,17 +5207,17 @@ namespace LevelEditor
 				Editor_InfItemClass classId = infClass->classId;
 				if (classId == IIC_ELEVATOR)
 				{
-					s32 index = getClassIndexSnapshot(classId, infClass);
+					s32 index = getInfSnapshotClassIndex(classId, infClass);
 					itemTo->classData[j] = (Editor_InfClass*)infTo->elevator[index];
 				}
 				else if (classId == IIC_TRIGGER)
 				{
-					s32 index = getClassIndexSnapshot(classId, infClass);
+					s32 index = getInfSnapshotClassIndex(classId, infClass);
 					itemTo->classData[j] = (Editor_InfClass*)infTo->trigger[index];
 				}
 				else if (classId == IIC_TELEPORTER)
 				{
-					s32 index = getClassIndexSnapshot(classId, infClass);
+					s32 index = getInfSnapshotClassIndex(classId, infClass);
 					itemTo->classData[j] = (Editor_InfClass*)infTo->teleport[index];
 				}
 				else
@@ -5446,30 +5446,7 @@ namespace LevelEditor
 			for (u32 i = 0; i < infItemCount; i++)
 			{
 				Editor_InfItem item;
-				readInfItemFromSnapshot(&item);
-				
-				// the rest of the classData are stored as indexes in the snapshot data.
-				// these need conversion to the memory address, recast as an Editor_InfClass*.
-				for (size_t i = 0; i < item.classData.size(); i++)
-				{
-					Editor_InfItemClass itemClass = (Editor_InfItemClass)readU32();
-					s32 itemIndex = readS32();
-					if (itemClass == IIC_ELEVATOR)
-					{
-						assert((s32)s_infSnapshot.elevator.size() > itemIndex);
-						item.classData[i] = ((Editor_InfClass*)s_infSnapshot.elevator[itemIndex]);
-					}
-					else if (itemClass == IIC_TRIGGER)
-					{
-						assert((s32)s_infSnapshot.trigger.size() > itemIndex);
-						item.classData[i] = ((Editor_InfClass*)s_infSnapshot.trigger[itemIndex]);
-					}
-					else if (itemClass == IIC_TELEPORTER)
-					{
-						assert((s32)s_infSnapshot.teleport.size() > itemIndex);
-						item.classData[i] = ((Editor_InfClass*)s_infSnapshot.teleport[itemIndex]);
-					}
-				}
+				readInfItemFromSnapshot(&item, s_infSnapshot);
 				s_infSnapshot.item.push_back(item);
 			}
 		}

@@ -1897,11 +1897,6 @@ namespace LevelEditor
 
 	void findInfChangesForHistory()
 	{
-		if (s_infEditor.item == nullptr)
-		{
-			return; // FIXME: deletions?
-		}
-
 		s32 editedItemIndex = -1;
 		s32 index = 0;
 		
@@ -1914,7 +1909,7 @@ namespace LevelEditor
 		if (s_infEditor.item != nullptr)
 		{
 			editedItemIndex = (s32)(s_infEditor.item - s_levelInf.item.data());
-			if (editedItemIndex >= s_infItemBaseline.infCount)
+			if (editedItemIndex >= s_infItemBaseline.totalItemCount)
 			{
 				// New item. Any class data is assumed new entries.
 				cmd_infCreateSnapshot(LName_Inf_Create);
@@ -4678,7 +4673,7 @@ namespace LevelEditor
 			if (!s_infEditor.wasSelecting)
 			{
 				clearInfItemTemp();
-				s_infItemBaseline.infCount = (s32)s_levelInf.item.size();
+				s_infItemBaseline.totalItemCount = (s32)s_levelInf.item.size();
 				if (s_infEditor.item)
 				{
 					setInfItemTemp(s_infEditor.item);
