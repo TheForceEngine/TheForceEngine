@@ -328,6 +328,7 @@ namespace LevelEditor
 		size_t wallCount = sector->walls.size();
 
 		StrandResult result = {};
+		result.isCircuit = false;
 		result.strand.push_back(startVert);
 
 		// Work leftward
