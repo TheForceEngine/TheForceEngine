@@ -506,33 +506,10 @@ namespace LevelEditor
 		return true;
 	}
 
-	void clearInfData(Editor_LevelInf* levelInf)
-	{
-		for (size_t i = 0; i < levelInf->elevator.size(); i++)
-		{
-			delete levelInf->elevator[i];
-		}
-
-		for (size_t i = 0; i < levelInf->trigger.size(); i++)
-		{
-			delete levelInf->trigger[i];
-		}
-
-		for (size_t i = 0; i < levelInf->teleport.size(); i++)
-		{
-			delete levelInf->teleport[i];
-		}
-
-		levelInf->item.clear();
-		levelInf->elevator.clear();
-		levelInf->trigger.clear();
-		levelInf->teleport.clear();
-	}
-
 	void levelClear()
 	{
 		// Clear the INF data.
-		clearInfData(&s_levelInf);
+		clearInfData(&s_levelInf, true);
 
 		// Clear selection state.
 		selection_clear();
@@ -551,7 +528,7 @@ namespace LevelEditor
 		FileUtil::stripExtension(asset->name.c_str(), slotName);
 
 		// Clear the INF data.
-		clearInfData(&s_levelInf);
+		clearInfData(&s_levelInf, true);
 
 		// Clear selection state.
 		selection_clear();
@@ -5172,7 +5149,7 @@ namespace LevelEditor
 
 	void copyInfData(Editor_LevelInf* infFrom, Editor_LevelInf* infTo)
 	{
-		clearInfData(infTo);
+		clearInfData(infTo, false); // Dont reset the inf serial counter.
 
 		size_t elevCount = infFrom->elevator.size();
 		infTo->elevator.resize(elevCount);
@@ -5430,7 +5407,7 @@ namespace LevelEditor
 			}
 
 			// Restore Inf data
-			clearInfData(&s_infSnapshot);
+			clearInfData(&s_infSnapshot, true);
 
 			const u32 infElevatorCount = readU32();
 			const u32 infTriggerCount = readU32();
@@ -5502,6 +5479,7 @@ namespace LevelEditor
 
 		// Repopulate the Inf struct
 		copyInfData(&s_infSnapshot, &s_levelInf);
+		debugInfSerialDuplicateExists(s_levelInf);
 
 		// For now until the way snapshot memory is handled is refactored, to avoid duplicate code that will be removed later.
 		// TODO: Handle edit state properly here too.
@@ -5714,6 +5692,8 @@ namespace LevelEditor
 				readInfTeleporterFromSnapshot(tele);
 			}
 		}
+
+		debugInfSerialDuplicateExists(s_levelInf);
 	}
 
 	void level_createInfItemSnapshot(SnapshotBuffer* buffer)

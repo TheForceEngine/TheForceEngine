@@ -445,6 +445,7 @@ namespace LevelEditor
 	void readInfElevatorFromSnapshot(Editor_InfElevator* infElevator)
 	{
 		infElevator->classId = (Editor_InfItemClass)readU32();
+		infElevator->uniqueId = newInfUniqueId(); // Not snapshot data but do it here anyway
 		infElevator->type = (Editor_InfElevType)readU32();
 		infElevator->overrideSet = (Editor_InfElevatorOverride)readU32();
 		infElevator->start = readS32();
@@ -523,6 +524,7 @@ namespace LevelEditor
 	void readInfTriggerFromSnapshot(Editor_InfTrigger* infTrigger)
 	{
 		infTrigger->classId = (Editor_InfItemClass)readU32();
+		infTrigger->uniqueId = newInfUniqueId();
 		infTrigger->type = (TriggerType)readU32();
 		infTrigger->overrideSet = readU32();
 		const s32 clientCount = readS32();
@@ -546,6 +548,7 @@ namespace LevelEditor
 	void readInfTeleporterFromSnapshot(Editor_InfTeleporter* infTeleporter)
 	{
 		infTeleporter->classId = (Editor_InfItemClass)readU32();
+		infTeleporter->uniqueId = newInfUniqueId();
 		infTeleporter->type = (TeleportType)readU32();
 		readString(infTeleporter->target);
 		readData(&infTeleporter->dstPos, sizeof(Vec3f));

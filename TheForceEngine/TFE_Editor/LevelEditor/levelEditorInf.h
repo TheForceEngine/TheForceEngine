@@ -161,6 +161,7 @@ namespace LevelEditor
 	struct Editor_InfClass
 	{
 		Editor_InfItemClass classId;
+		u32 uniqueId;
 	};
 
 	struct Editor_InfItem
@@ -240,6 +241,7 @@ namespace LevelEditor
 	struct Editor_InfElevator
 	{
 		Editor_InfItemClass classId = IIC_ELEVATOR;
+		u32 uniqueId;
 		Editor_InfElevType type;
 		u32 overrideSet = IEO_NONE;		// InfElevatorOverride - Which values were overriden from the defaults.
 
@@ -260,6 +262,7 @@ namespace LevelEditor
 	struct Editor_InfTrigger
 	{
 		Editor_InfItemClass classId = IIC_TRIGGER;
+		u32 uniqueId;
 		TriggerType type;
 		u32 overrideSet = ITO_NONE;
 		std::vector<Editor_InfClient> clients;
@@ -278,6 +281,7 @@ namespace LevelEditor
 	struct Editor_InfTeleporter
 	{
 		Editor_InfItemClass classId = IIC_TELEPORTER;
+		u32 uniqueId;
 		TeleportType type = TELEPORT_BASIC;
 		std::string target;
 		Vec3f dstPos = { 0 };
@@ -359,4 +363,8 @@ namespace LevelEditor
 	Editor_InfElevator* allocElev(Editor_InfItem* item);
 	Editor_InfTrigger* allocTrigger(Editor_InfItem* item);
 	Editor_InfTeleporter* allocTeleporter(Editor_InfItem* item);
+
+	u32 newInfUniqueId();
+	bool debugInfSerialDuplicateExists(const Editor_LevelInf& infData);
+	void clearInfData(Editor_LevelInf* levelInf, bool resetUniqueIdCounter = true);
 }

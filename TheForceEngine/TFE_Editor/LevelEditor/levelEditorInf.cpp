@@ -252,6 +252,7 @@ namespace LevelEditor
 
 	static ImVec2 s_popupPos;
 	static s32 s_restorePos = 0;
+	static u32 s_infClassSerial = 0;
 
 	// Animation
 	static InfSectorMod s_sectorMod = {};
@@ -274,12 +275,49 @@ namespace LevelEditor
 		editor_comboBoxInit();
 	}
 
+	u32 newInfUniqueId()
+	{
+		return ++s_infClassSerial;
+	}
+
+	bool debugInfSerialDuplicateExists(const Editor_LevelInf& infData)
+	{
+		if (infData.item.empty()) { return false; }
+
+		std::vector<const Editor_InfClass*> infClasses;
+		infClasses.reserve(infData.item.size() * 3);
+		for (const Editor_InfItem infItem : infData.item)
+		{
+			for (const Editor_InfClass* infClass : infItem.classData)
+			{
+				infClasses.push_back(infClass);
+			}
+		}
+
+		size_t classCount = infClasses.size();
+		if (classCount <= 1) { return false; }
+		for (size_t i = 0; i < classCount - 1; i++)
+		{
+			for (size_t j = i + 1; j < classCount; j++)
+			{
+				if (infClasses[i]->uniqueId == infClasses[j]->uniqueId)
+				{
+					LE_ERROR("Duplicate inf IDs: %d", infClasses[i]->uniqueId);
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	Editor_InfElevator* allocElev(Editor_InfItem* item)
 	{
 		Editor_InfElevator* elev = new Editor_InfElevator();
 		s_levelInf.elevator.push_back(elev);
 		elev->classId = IIC_ELEVATOR;
 		item->classData.push_back((Editor_InfClass*)elev);
+		elev->uniqueId = newInfUniqueId();
 		return elev;
 	}
 
@@ -289,6 +327,7 @@ namespace LevelEditor
 		s_levelInf.trigger.push_back(trigger);
 		trigger->classId = IIC_TRIGGER;
 		item->classData.push_back((Editor_InfClass*)trigger);
+		trigger->uniqueId = newInfUniqueId();
 		return trigger;
 	}
 
@@ -298,6 +337,7 @@ namespace LevelEditor
 		s_levelInf.teleport.push_back(teleport);
 		teleport->classId = IIC_TELEPORTER;
 		item->classData.push_back((Editor_InfClass*)teleport);
+		teleport->uniqueId = newInfUniqueId();
 		return teleport;
 	}
 
@@ -4835,6 +4875,7 @@ namespace LevelEditor
 			Editor_InfElevator* elev = new Editor_InfElevator();
 			s_levelInf.elevator[i] = elev;
 			elev->classId = IIC_ELEVATOR;
+			elev->uniqueId = newInfUniqueId();
 
 			s32 stopCount, slaveCount;
 			file.read((u32*)&elev->type);
@@ -4996,6 +5037,7 @@ namespace LevelEditor
 			Editor_InfTrigger* trigger = new Editor_InfTrigger();
 			s_levelInf.trigger[i] = trigger;
 			trigger->classId = IIC_TRIGGER;
+			trigger->uniqueId = newInfUniqueId();
 
 			s32 clientCount;
 			file.read(&clientCount);
@@ -5054,6 +5096,7 @@ namespace LevelEditor
 			Editor_InfTeleporter* teleporter = new Editor_InfTeleporter();
 			s_levelInf.teleport[i] = teleporter;
 			teleporter->classId = IIC_TELEPORTER;
+			teleporter->uniqueId = newInfUniqueId();
 
 			u32 type;
 			file.read(&type);
@@ -6193,5 +6236,29 @@ namespace LevelEditor
 		const f32 value = getValue(&elev->stops[stopIndex], sector, elev->type);
 		applySectorElevValue(sector, elev, value, false);
 		fixupSectors();
+	}
+
+	void clearInfData(Editor_LevelInf* levelInf, bool resetUniqueIdCounter)
+	{
+		for (size_t i = 0; i < levelInf->elevator.size(); i++)
+		{
+			delete levelInf->elevator[i];
+		}
+
+		for (size_t i = 0; i < levelInf->trigger.size(); i++)
+		{
+			delete levelInf->trigger[i];
+		}
+
+		for (size_t i = 0; i < levelInf->teleport.size(); i++)
+		{
+			delete levelInf->teleport[i];
+		}
+
+		levelInf->item.clear();
+		levelInf->elevator.clear();
+		levelInf->trigger.clear();
+		levelInf->teleport.clear();
+		if (resetUniqueIdCounter) { s_infClassSerial = 0; }
 	}
 }
