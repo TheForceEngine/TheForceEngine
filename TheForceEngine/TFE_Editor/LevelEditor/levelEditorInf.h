@@ -302,7 +302,6 @@ namespace LevelEditor
 		s32 wallNum = -1;
 		s32 infCount = -1;
 		std::vector<Editor_InfClass*> classData;
-		std::vector<void*> classPtr; // Pointers to original data for testing equality
 	};
 
 	// Modify INF history, index tracking

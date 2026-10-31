@@ -245,7 +245,7 @@ namespace LevelEditor
 		ITRIGGER_SINGLE
 	};
 
-	static Editor_InfItemHistory s_infItemTemp = {};
+	static Editor_InfItemHistory s_infItemBaseline = {};
 	static InfEditor s_infEditor = {};
 	static InfEditorState s_infEditorState;
 	InfModified s_infModified = {};
@@ -1840,9 +1840,9 @@ namespace LevelEditor
 
 	void clearInfItemTemp()
 	{
-		for (s32 i = (s32)s_infItemTemp.classData.size() - 1; i >= 0; i--)
+		for (s32 i = (s32)s_infItemBaseline.classData.size() - 1; i >= 0; i--)
 		{
-			Editor_InfClass* itemClass = s_infItemTemp.classData[i];
+			Editor_InfClass* itemClass = s_infItemBaseline.classData[i];
 			if (itemClass->classId == IIC_ELEVATOR)
 			{
 				Editor_InfElevator* elev = (Editor_InfElevator*)itemClass;
@@ -1859,39 +1859,37 @@ namespace LevelEditor
 				delete tele;
 			}
 		}
-		s_infItemTemp = {};
+		s_infItemBaseline = {};
 	}
 
 	void setInfItemTemp(Editor_InfItem* infItem)
 	{
-		s_infItemTemp.name = s_infEditor.item->name;
-		s_infItemTemp.wallNum = s_infEditor.item->wallNum;
+		s_infItemBaseline.name = s_infEditor.item->name;
+		s_infItemBaseline.wallNum = s_infEditor.item->wallNum;
 
 		// doing another set of allocs to compare against later feels a bit silly
 		for (size_t i = 0; i < s_infEditor.item->classData.size(); i++)
 		{
 			Editor_InfClass* infClass = s_infEditor.item->classData[i];
-			s_infItemTemp.classPtr.push_back((void*)infClass);
 			if (infClass->classId == IIC_ELEVATOR)
 			{
 				Editor_InfElevator* elev = new Editor_InfElevator();
 				elev->classId = IIC_ELEVATOR;
-				s_infItemTemp.classData.push_back((Editor_InfClass*)elev);
+				s_infItemBaseline.classData.push_back((Editor_InfClass*)elev);
 				*elev = *(Editor_InfElevator*)s_infEditor.item->classData[i];
-
 			}
 			else if (infClass->classId == IIC_TRIGGER)
 			{
 				Editor_InfTrigger* trig = new Editor_InfTrigger();
 				trig->classId = IIC_TRIGGER;
-				s_infItemTemp.classData.push_back((Editor_InfClass*)trig);
+				s_infItemBaseline.classData.push_back((Editor_InfClass*)trig);
 				*trig = *(Editor_InfTrigger*)s_infEditor.item->classData[i];
 			}
 			else if (infClass->classId == IIC_TELEPORTER)
 			{
 				Editor_InfTeleporter* tele = new Editor_InfTeleporter();
 				tele->classId = IIC_TELEPORTER;
-				s_infItemTemp.classData.push_back((Editor_InfClass*)tele);
+				s_infItemBaseline.classData.push_back((Editor_InfClass*)tele);
 				*tele = *(Editor_InfTeleporter*)s_infEditor.item->classData[i];
 			}
 		}
@@ -1899,39 +1897,12 @@ namespace LevelEditor
 
 	void findInfChangesForHistory()
 	{
-		// INF class definitions and each item's reference to it are behind heap allocated
-		// pointers. Fine while in memory but for serialisation we need indexes instead.
-		// For saving to TFL export that's easy just capture the order at point in time.
-		
-		// For history functions, we assume all changes are limited in scope
-		// to the Editor_InfItem that the UI is pointing to, and its classData[]. Within
-		// that scope, capture the changes. Actions within here will change the index of
-		// classData members around it, so being able to identify which classData before editing
-		// matches which classData after editing is essential. As there is, currently, no
-		// unique identifier within each INF class, the next best thing to match on 
-		// is the pointer address.
-
-		// We can't just clone the pointers into a new Editor_InfItem and compare later
-		// because those pointers will also point to the modified future state which doesn't
-		// work. This is why Editor_InfItemHistory was made, to take coipes the pointer addresses
-		// and save to classPtr[]. Then we can manually alloc copies of the original data
-		// and do deep comparisons to test for modifications later.
-
-		// FIXME: Possible bug if allocElev/Trig allocs the same address while in the UI?
-		// Maybe this is a good reason for a uniqueId/serial in the class itself?
-
-
 		if (s_infEditor.item == nullptr)
 		{
 			return; // FIXME: deletions?
 		}
 
-		void* classPtr = nullptr;
-		Editor_InfItem* infItem = s_levelInf.item.data();
-
-		std::vector<IndexPair> currentClasses;
-
-		s32 currentItemIndex = -1;
+		s32 editedItemIndex = -1;
 		s32 index = 0;
 		
 		s_infModified.matches.clear();
@@ -1942,36 +1913,33 @@ namespace LevelEditor
 
 		if (s_infEditor.item != nullptr)
 		{
-			currentItemIndex = (s32)(s_infEditor.item - s_levelInf.item.data());
-			if (currentItemIndex >= s_infItemTemp.infCount)
+			editedItemIndex = (s32)(s_infEditor.item - s_levelInf.item.data());
+			if (editedItemIndex >= s_infItemBaseline.infCount)
 			{
 				// New item. Any class data is assumed new entries.
 				cmd_infCreateSnapshot(LName_Inf_Create);
 			}
 			else
 			{
-				// Modified item.
-				// 1. Test for deletions.
-				Editor_InfClass* beforeItemClass;
-				Editor_InfClass* afterItemClass;
-				void* beforeItemPtr;
-				void* afterItemPtr;
+				// Modified item. Walk all Ids to find missing Ids (deletions) or
+				// matching Ids (test for equality for capturing deltas).
+				Editor_InfClass* beforeItemClass = nullptr;
+				Editor_InfClass* afterItemClass = nullptr;
+				u32 beforeItemId = 0;
+				u32 afterItemId = 0;
 
 				bool found = false;
-				s32 oldClassDataSize = (s32)s_infItemTemp.classData.size();
-				s32 newClassDataSize = (s32)s_levelInf.item[currentItemIndex].classData.size();
+				s32 oldClassDataSize = (s32)s_infItemBaseline.classData.size();
+				s32 newClassDataSize = (s32)s_levelInf.item[editedItemIndex].classData.size();
 				for (s32 oldClassIndex = oldClassDataSize - 1; oldClassIndex >= 0; oldClassIndex--) // Store in the vec in descending order
 				{
 					found = false;
-					beforeItemPtr = s_infItemTemp.classPtr[oldClassIndex];
+					beforeItemId = s_infItemBaseline.classData[oldClassIndex]->uniqueId;
 					for (s32 newClassIndex = 0; newClassIndex < newClassDataSize; newClassIndex++)
 					{
-						afterItemPtr = (void*)s_levelInf.item[currentItemIndex].classData[newClassIndex];
-						
-						// There is no unique identifier within each class. So the only way to find matching
-						// classes before and after, assuming the index can shuffle around, is by comparing 
-						// the pointer addresses.
-						if (beforeItemPtr == afterItemPtr) 
+						afterItemId = s_levelInf.item[editedItemIndex].classData[newClassIndex]->uniqueId;
+
+						if (beforeItemId == afterItemId)
 						{
 							assert(oldClassIndex >= newClassIndex); // Deletions may demote order in classData, but should never be higher.
 							s_infModified.matches.push_back({ oldClassIndex, newClassIndex });
@@ -1988,8 +1956,8 @@ namespace LevelEditor
 				// 2. Test for equality of matches
 				for (s32 i = 0; i < s_infModified.matches.size(); i++)
 				{
-					beforeItemClass = s_infItemTemp.classData[s_infModified.matches[i].i0];
-					afterItemClass = s_levelInf.item[currentItemIndex].classData[s_infModified.matches[i].i1];
+					beforeItemClass = s_infItemBaseline.classData[s_infModified.matches[i].i0];
+					afterItemClass = s_levelInf.item[editedItemIndex].classData[s_infModified.matches[i].i1];
 					if (!isInfClassEqual(beforeItemClass, afterItemClass))
 					{
 						s_infModified.modifiedIndexes.push_back(s_infModified.matches[i].i1);
@@ -1999,12 +1967,12 @@ namespace LevelEditor
 				// 3. Test for additions. classData in after that wasn't in before.
 				for (s32 newClassIndex = 0; newClassIndex < newClassDataSize; newClassIndex++)
 				{
-					afterItemPtr = (void*)s_levelInf.item[currentItemIndex].classData[newClassIndex];
+					afterItemId = s_levelInf.item[editedItemIndex].classData[newClassIndex]->uniqueId;
 					found = false;
 					for (s32 oldClassIndex = 0; oldClassIndex < oldClassDataSize; oldClassIndex++)
 					{
-						beforeItemPtr = s_infItemTemp.classPtr[oldClassIndex];
-						if (afterItemPtr == beforeItemPtr)
+						beforeItemId = s_infItemBaseline.classData[oldClassIndex]->uniqueId;
+						if (afterItemId == beforeItemId)
 						{
 							found = true;
 							break;
@@ -2024,7 +1992,7 @@ namespace LevelEditor
 					return; // no changes
 				}
 				
-				cmd_infModifySnapshot(LName_Inf_Change, currentItemIndex);
+				cmd_infModifySnapshot(LName_Inf_Change, editedItemIndex);
 			}
 		}
 		else
@@ -4710,7 +4678,7 @@ namespace LevelEditor
 			if (!s_infEditor.wasSelecting)
 			{
 				clearInfItemTemp();
-				s_infItemTemp.infCount = (s32)s_levelInf.item.size();
+				s_infItemBaseline.infCount = (s32)s_levelInf.item.size();
 				if (s_infEditor.item)
 				{
 					setInfItemTemp(s_infEditor.item);
