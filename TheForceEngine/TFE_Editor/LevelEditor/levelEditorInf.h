@@ -161,12 +161,22 @@ namespace LevelEditor
 	struct Editor_InfClass
 	{
 		Editor_InfItemClass classId;
+		u32 uniqueId;
 	};
 
 	struct Editor_InfItem
 	{
 		std::string name;
 		s32 wallNum = -1;
+		std::vector<Editor_InfClass*> classData;
+	};
+
+	// Helper struct for inf undo operations
+	struct Editor_InfItemHistory
+	{
+		std::string name;
+		s32 wallNum = -1;
+		s32 totalItemCount = -1;
 		std::vector<Editor_InfClass*> classData;
 	};
 
@@ -240,6 +250,7 @@ namespace LevelEditor
 	struct Editor_InfElevator
 	{
 		Editor_InfItemClass classId = IIC_ELEVATOR;
+		u32 uniqueId;
 		Editor_InfElevType type;
 		u32 overrideSet = IEO_NONE;		// InfElevatorOverride - Which values were overriden from the defaults.
 
@@ -260,6 +271,7 @@ namespace LevelEditor
 	struct Editor_InfTrigger
 	{
 		Editor_InfItemClass classId = IIC_TRIGGER;
+		u32 uniqueId;
 		TriggerType type;
 		u32 overrideSet = ITO_NONE;
 		std::vector<Editor_InfClient> clients;
@@ -278,6 +290,7 @@ namespace LevelEditor
 	struct Editor_InfTeleporter
 	{
 		Editor_InfItemClass classId = IIC_TELEPORTER;
+		u32 uniqueId;
 		TeleportType type = TELEPORT_BASIC;
 		std::string target;
 		Vec3f dstPos = { 0 };
@@ -290,6 +303,15 @@ namespace LevelEditor
 		std::vector<Editor_InfElevator*>      elevator;
 		std::vector<Editor_InfTrigger*>       trigger;
 		std::vector<Editor_InfTeleporter*>    teleport;
+	};
+
+	// Modify INF history, index tracking
+	struct InfModified
+	{
+		std::vector<IndexPair>matches;
+		std::vector<s32>deleteIndexes; // temp var refs
+		std::vector<s32>modifiedIndexes; // s_levelInf refs
+		std::vector<s32>newIndexes; //s_levelInf refs
 	};
 
 	enum InfVpControlType
@@ -311,6 +333,7 @@ namespace LevelEditor
 	};
 
 	extern Editor_LevelInf s_levelInf;
+	extern InfModified s_infModified;
 
 	bool loadLevelInfFromAsset(const TFE_Editor::Asset* asset);
 	void editor_infEditBegin(const char* sectorName, s32 wallIndex = -1);
@@ -328,7 +351,20 @@ namespace LevelEditor
 
 	void editor_infGetViewportControl(Editor_InfVpControl* ctrl);
 
+	s32 getClassIndex(Editor_InfItemClass classId, const void* classPtr);
+
+	bool compareLevelInfs(Editor_LevelInf& left, Editor_LevelInf& right);
+
 	const Editor_InfElevator* getElevFromClassData(const Editor_InfClass* data);
 	const Editor_InfTrigger* getTriggerFromClassData(const Editor_InfClass* data);
 	const Editor_InfTeleporter* getTeleporterFromClassData(const Editor_InfClass* data);
+
+	void freeInfClass(Editor_InfClass* infClass);
+	Editor_InfElevator* allocElev(Editor_InfItem* item);
+	Editor_InfTrigger* allocTrigger(Editor_InfItem* item);
+	Editor_InfTeleporter* allocTeleporter(Editor_InfItem* item);
+
+	u32 newInfUniqueId();
+	bool debugInfSerialDuplicateExists(const Editor_LevelInf& infData);
+	void clearInfData(Editor_LevelInf* levelInf, bool resetUniqueIdCounter = true);
 }
