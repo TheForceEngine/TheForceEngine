@@ -449,4 +449,6 @@ namespace LevelEditor
 	extern std::vector<u8> s_fileData;
 	extern std::vector<IndexPair> s_pairs;
 	extern std::vector<IndexPair> s_prevPairs;
+
+	extern std::vector<s32> s_brokenSectorIds; // Easier than updating the signature for edit_cleanSectorList()
 }
