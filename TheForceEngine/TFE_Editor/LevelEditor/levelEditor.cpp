@@ -996,6 +996,8 @@ namespace LevelEditor
 
 	void edit_cleanSectorList(std::vector<s32>& selectedSectors, bool addToHistory)
 	{
+		s_brokenSectorIds.clear();
+
 		// Re-check to make sure we have at least one sector.
 		const s32 sectorCount = (s32)selectedSectors.size();
 		if (sectorCount < 1)
@@ -1006,7 +1008,6 @@ namespace LevelEditor
 
 		s_searchKey++;
 		std::vector<s32> changedSet;
-		s_brokenSectorIds.clear();
 
 		const s32* indices = selectedSectors.data();
 		for (s32 s = 0; s < sectorCount; s++)
