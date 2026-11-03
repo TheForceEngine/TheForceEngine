@@ -23,8 +23,11 @@ bool osShellExecute(const char* pathToExe, const char* exeDir, const char* param
 	ShExecInfo.lpFile = pathToExe;
 	ShExecInfo.lpParameters = param;
 	ShExecInfo.lpDirectory = exeDir;
-	ShExecInfo.nShow = SW_SHOW;
+	ShExecInfo.nShow = SW_SHOWNORMAL;
 	ShExecInfo.hInstApp = NULL;
+
+	// Get window handle for hide/show
+	HWND tfeWindow = GetActiveWindow();
 
 	// Execute the file with the parameters
 	if (!ShellExecuteEx(&ShExecInfo))
@@ -34,8 +37,10 @@ bool osShellExecute(const char* pathToExe, const char* exeDir, const char* param
 
 	if (waitForCompletion)
 	{
+		ShowWindow(tfeWindow, SW_MINIMIZE);
 		WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
 		CloseHandle(ShExecInfo.hProcess);
+		ShowWindow(tfeWindow, SW_RESTORE);
 	}
 	return true;
 #endif
