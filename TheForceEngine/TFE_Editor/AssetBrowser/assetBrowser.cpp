@@ -2276,6 +2276,8 @@ namespace AssetBrowser
 				writeGpuTextureAsPng(sprite->texGpu, pngFile);
 			}
 		}
+
+		showMessageBox("Export complete", "Attempted to export %d assets to %s", count, path);
 	}
 
 	bool readWriteFile(const char* outFilePath, const char* assetName, const char* assetPath, Archive* archive, WorkBuffer& buffer)
