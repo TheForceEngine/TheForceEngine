@@ -38,6 +38,7 @@ namespace TFE_Editor
 	{
 		EDIT_ASSET_BROWSER = 0,
 		EDIT_ASSET,
+		EDIT_LEVEL_BROWSER,
 	};
 	
 	const ImVec4 c_textColors[] =
@@ -114,7 +115,8 @@ namespace TFE_Editor
 	void enable()
 	{
 		// Ui begin/render is called so we have a "UI Frame" in which to setup UI state.
-		s_editorMode = EDIT_ASSET_BROWSER;
+		s_editorMode = EDIT_LEVEL_BROWSER;
+		AssetBrowser::setBrowseLevels(true);
 		s_exitEditor = false;
 		s_programExiting = false;
 		loadFonts();
@@ -587,7 +589,7 @@ namespace TFE_Editor
 		handlePopupBegin();
 		menu();
 
-		if (s_editorMode == EDIT_ASSET_BROWSER)
+		if (s_editorMode == EDIT_ASSET_BROWSER || s_editorMode == EDIT_LEVEL_BROWSER)
 		{
 			AssetBrowser::update();
 		}
@@ -771,6 +773,7 @@ namespace TFE_Editor
 					else
 					{
 						s_editorMode = EDIT_ASSET_BROWSER;
+						AssetBrowser::setBrowseLevels(false);
 					}
 				}
 
@@ -785,6 +788,12 @@ namespace TFE_Editor
 				}
 				if (disable) { enableNextItem(); }
 
+				ImGui::Separator();
+				if (ImGui::MenuItem("Levels", NULL, s_editorMode == EDIT_LEVEL_BROWSER))
+				{
+					s_editorMode = EDIT_LEVEL_BROWSER;
+					AssetBrowser::setBrowseLevels(true);
+				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("Return to Game", NULL, (bool*)NULL))
 				{
