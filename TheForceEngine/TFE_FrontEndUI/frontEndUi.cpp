@@ -3357,6 +3357,30 @@ namespace TFE_FrontEndUI
 			ImGui::SliderFloat("Spread", &graphics->bloomSpread, 0.0f, 1.0f);
 		}
 
+		// 2D-Scaler - edge-aware resample + deblur filter (ported from a
+		// ReShade shader), applied only to the game framebuffer after it has
+		// been scaled to the window - never to TFE's own ImGui front-end or
+		// main menu.
+		bool scaler2DChanged = ImGui::Checkbox("2D-Scaler", &graphics->scaler2DEnabled);
+		if (graphics->scaler2DEnabled)
+		{
+			if (ImGui::Button("Reset To Default###Scaler2D"))
+			{
+				graphics->scaler2DFilterWidth = 0.750f;
+				graphics->scaler2DDeblur = 3.000f;
+				scaler2DChanged = true;
+			}
+
+			ImGui::SetNextItemWidth(196 * s_uiScale);
+			scaler2DChanged |= ImGui::SliderFloat("Filter Width", &graphics->scaler2DFilterWidth, 0.25f, 2.0f);
+			ImGui::SetNextItemWidth(196 * s_uiScale);
+			scaler2DChanged |= ImGui::SliderFloat("Deblur", &graphics->scaler2DDeblur, 1.0f, 5.0f);
+		}
+		if (scaler2DChanged)
+		{
+			TFE_RenderBackend::setScaler2DOptions(graphics->scaler2DEnabled, graphics->scaler2DFilterWidth, graphics->scaler2DDeblur);
+		}
+
 		const ColorCorrection colorCorrection = { graphics->brightness, graphics->contrast, graphics->saturation, graphics->gamma };
 		TFE_RenderBackend::setColorCorrection(graphics->colorCorrection, &colorCorrection, bloomChanged);
 	}
