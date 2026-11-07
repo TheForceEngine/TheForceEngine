@@ -27,6 +27,12 @@ enum ModelFlags
 	MFLAG_DRAW_VERTICES = (1 << 2),
 };
 
+// TFE
+enum TextureFlags : s32
+{
+	TEXFLAG_TRANSPARENT = FLAG_BIT(0),		// colour 0 will be rendered transparent for texture and gourtex shading
+};
+
 struct vec2
 {
 	s32 x, y;
@@ -49,7 +55,7 @@ struct JmPolygon
 	s32* indices;
 	vec2* uv;
 	union { s32 zAve; f32 zAvef; };
-	s32 p24;
+	s32 textureFlags;	// this was an unused variable in original DF
 };
 
 struct JediModel

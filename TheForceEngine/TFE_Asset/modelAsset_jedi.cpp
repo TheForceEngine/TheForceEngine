@@ -359,6 +359,7 @@ namespace TFE_Model_Jedi
 		polygon->vertexCount = vertexCount;
 		polygon->uv = nullptr;
 		polygon->indices = (s32*)model_alloc(vertexCount * sizeof(s32));
+		polygon->textureFlags = 0;
 	}
 	
 	bool parseModel(JediModel* model, const char* name, AssetPool pool)
@@ -549,7 +550,8 @@ namespace TFE_Model_Jedi
 			buffer = parser.readLine(bufferPos, true);
 			if (!buffer) { return false; }
 			s32 textureId;
-			if (sscanf(buffer, " TEXTURE %d", &textureId) != 1)
+			char transparency[32];
+			if (sscanf(buffer, " TEXTURE %d %s ", &textureId, transparency) < 1)
 			{
 				TFE_System::logWrite(LOG_ERROR, "Object3D_Load", "'%s' unable to parse TEXTURE ID.", name);
 				assert(0);
@@ -559,6 +561,13 @@ namespace TFE_Model_Jedi
 			if (textureId != -1 && model->textures)
 			{
 				texture = model->textures[textureId];
+			}
+
+			// TFE - texture transparency information
+			s32 texFlags = 0;
+			if (strcasecmp(transparency, "TRANSPARENT") == 0)
+			{
+				texFlags |= TEXFLAG_TRANSPARENT;
 			}
 
 			buffer = parser.readLine(bufferPos, true);
@@ -639,6 +648,7 @@ namespace TFE_Model_Jedi
 					polygon->indices[1] = b;
 					polygon->indices[2] = c;
 					polygon->color = color;
+					polygon->textureFlags = texFlags;
 
 					model->polygonCount++;
 
@@ -727,6 +737,7 @@ namespace TFE_Model_Jedi
 					polygon->indices[2] = c;
 					polygon->indices[3] = d;
 					polygon->color = color;
+					polygon->textureFlags = texFlags;
 
 					model->polygonCount++;
 
