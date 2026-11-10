@@ -148,26 +148,45 @@ namespace TFE_Editor
 		return newIdx;
 	}
 
-	s32 loadEditorObj3D(Obj3DSourceType type, Archive* archive, const char* filename, const u32* palette, s32 palIndex, s32 id)
+	s32 loadEditorObj3D(Obj3DSourceType type, Archive* archive, const char* filename, const char* filePath, const u32* palette, s32 palIndex, s32 id)
 	{
 		s_vertexMap.clear();
 		if (!archive && !filename) { return -1; }
 
-		if (!archive->openFile(filename))
-		{
-			return -1;
-		}
-		size_t len = archive->getFileLength();
-		if (!len)
-		{
-			archive->closeFile();
-			return -1;
-		}
 		WorkBuffer buffer;
-		buffer.resize(len+1);
-		memset(buffer.data(), 0, len+1);
-		archive->readFile(buffer.data(), len);
-		archive->closeFile();
+		size_t len;
+
+		if (archive)
+		{
+			if (!archive->openFile(filename))
+			{
+				return -1;
+			}
+			len = archive->getFileLength();
+			if (!len)
+			{
+				archive->closeFile();
+				return -1;
+			}
+			buffer.resize(len + 1);
+			memset(buffer.data(), 0, len + 1);
+			archive->readFile(buffer.data(), len);
+			archive->closeFile();
+		}
+		else
+		{
+			FileStream file;
+			if (!filePath || !file.open(filePath, Stream::MODE_READ))
+			{
+				return -1;
+			}
+
+			len = file.getSize();
+			buffer.resize(len + 1);
+			memset(buffer.data(), 0, len + 1);
+			file.readBuffer(buffer.data(), len);
+			file.close();
+		}
 
 		if (!len) { return false; }
 		if (id < 0) { id = allocateObj3D(filename); }

@@ -2081,7 +2081,7 @@ namespace LevelEditor
 				// Export
 				char exportPath[TFE_MAX_PATH];
 				sprintf(exportPath, "%s/%s", tmpDir, asset->name.c_str());
-				if (AssetBrowser::readWriteFile(exportPath, asset->name.c_str(), asset->archive, buffer))
+				if (AssetBrowser::readWriteFile(exportPath, asset->name.c_str(), asset->filePath.c_str(), asset->archive, buffer))
 				{
 					fileList.push_back(exportPath);
 				}
@@ -2421,7 +2421,7 @@ namespace LevelEditor
 				// Export
 				char exportPath[TFE_MAX_PATH];
 				sprintf(exportPath, "%s/%s", tmpDir, asset->name.c_str());
-				if (AssetBrowser::readWriteFile(exportPath, asset->name.c_str(), asset->archive, buffer))
+				if (AssetBrowser::readWriteFile(exportPath, asset->name.c_str(), asset->filePath.c_str(), asset->archive, buffer))
 				{
 					fileList.push_back(exportPath);
 				}

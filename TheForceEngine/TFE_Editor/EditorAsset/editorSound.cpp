@@ -41,18 +41,34 @@ namespace TFE_Editor
 		return index;
 	}
 
-	s32 loadEditorSound(SoundSourceType type, Archive* archive, const char* filename)
+	s32 loadEditorSound(SoundSourceType type, Archive* archive, const char* filename, const char* filePath)
 	{
 		if (!archive && !filename) { return -1; }
-		if (!archive->openFile(filename))
+
+		size_t len;
+		if (archive)
 		{
-			return -1;
+			if (!archive->openFile(filename))
+			{
+				return -1;
+			}
+			len = archive->getFileLength();
+			if (!len)
+			{
+				archive->closeFile();
+				return -1;
+			}
 		}
-		size_t len = archive->getFileLength();
-		if (!len)
+		else
 		{
-			archive->closeFile();
-			return -1;
+			FileStream file;
+			if (!filePath || !file.open(filePath, Stream::MODE_READ))
+			{
+				return -1;
+			}
+
+			len = file.getSize();
+			file.close();
 		}
 
 		// Allocate
