@@ -405,11 +405,11 @@ namespace TFE_FrontEndUI
 			return true;
 		}
 
-		char programDirModDir[TFE_MAX_PATH];
-		sprintf(programDirModDir, "%sMods/%s", TFE_Paths::getPath(PATH_PROGRAM), modName);
-		TFE_Paths::fixupPathAsDirectory(programDirModDir);
+		char programDirModPath[TFE_MAX_PATH];
+		sprintf(programDirModPath, "%sMods/%s", TFE_Paths::getPath(PATH_PROGRAM), modName);
+		FileUtil::fixupPath(programDirModPath);
 
-		if (FileUtil::exists(programDirModDir))
+		if (FileUtil::exists(programDirModPath))
 		{
 			return true;
 		}
