@@ -491,6 +491,11 @@ namespace TFE_FrontEndUI
 		TFE_ProfilerView::enable(!isEnabled);
 	}
 
+	bool isProfilerEnabled()
+	{
+		return TFE_ProfilerView::isEnabled();
+	}
+
 	void showNoGameDataUI()
 	{
 		char settingsPath[TFE_MAX_PATH];
@@ -603,7 +608,7 @@ namespace TFE_FrontEndUI
 		{
 			TFE_Console::update();
 		}
-		if (TFE_ProfilerView::isEnabled())
+		if (TFE_ProfilerView::isEnabled() && s_game != NULL && !s_game->isPaused())
 		{
 			TFE_ProfilerView::update();
 		}
