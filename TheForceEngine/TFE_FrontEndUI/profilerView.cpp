@@ -69,7 +69,7 @@ namespace TFE_ProfilerView
 			}
 
 			ImGui::Text("%0.3fms (%6.03f%%)", info.timeInZoneAve * 1000.0, info.fractOfParentAve * 100.0);
-			ImGui::SameLine(f32(180 + 16*(info.level + 1)));
+			ImGui::SameLine(f32(220 + 16*(info.level + 1)));
 			ImGui::Text("%s  [%s:%u]", info.name, info.func, info.lineNumber);
 
 			for (u32 l = 0; l < info.level; l++)
