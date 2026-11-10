@@ -1573,8 +1573,12 @@ namespace TFE_DarkForces
 		s_disablePlayerRotation = JFALSE;
 		s_disablePlayerFire = JFALSE;
 
-		s_externalCameraMode = JFALSE;
-		player_setupEyeObject(s_playerObject);
+		// TFE - if the player dies in external camera mode, move the camera back to the player
+		if (s_externalCameraMode == JTRUE)
+		{
+			s_externalCameraMode = JFALSE;
+			player_setupEyeObject(s_playerObject);
+		}
 	}
 
 	void player_changeSector(RSector* newSector)
