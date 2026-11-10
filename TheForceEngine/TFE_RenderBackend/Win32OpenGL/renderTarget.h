@@ -18,7 +18,7 @@ public:
 	void clear(const f32* color, f32 depth, u8 stencil = 0, bool clearColor = true);
 	void clearDepth(f32 depth);
 	void clearStencil(u8 stencil);
-	static void copy(RenderTarget* dst, RenderTarget* src);
+	static void copy(RenderTarget* dst, RenderTarget* src, MagFilter filter = MAG_FILTER_NONE);
 	static void copyBackbufferToTarget(RenderTarget* dst);
 	static void unbind();
 
