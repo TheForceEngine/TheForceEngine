@@ -1466,12 +1466,6 @@ namespace TFE_DarkForces
 
 			if (inputMapping_getActionState(IADF_HD_ASSET_TOGGLE) == STATE_PRESSED)
 			{
-				const char* msg = TFE_System::getMessage(TFE_MSG_HD);
-				if (msg)
-				{
-					hud_sendTextMessage(msg, 1);	// HD assets
-				}
-
 				// Ensure the return state is in the game otherwise it won't render in FrontEndUI 
 				// Does the render call need the state check?
 				TFE_FrontEndUI::setMenuReturnState(APP_STATE_GAME);

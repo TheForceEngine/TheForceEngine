@@ -2,11 +2,14 @@
 
 #include "missionBriefing.h"
 #include "menu.h"
+#include "pda.h"
+#include "uiDraw.h"
 #include <TFE_DarkForces/Landru/lactorDelt.h>
 #include <TFE_DarkForces/Landru/lactorAnim.h>
 #include <TFE_DarkForces/Landru/lpalette.h>
 #include <TFE_DarkForces/Landru/lcanvas.h>
 #include <TFE_DarkForces/Landru/ldraw.h>
+#include <TFE_DarkForces/Landru/highResActor.h>
 #include <TFE_Archive/lfdArchive.h>
 #include <TFE_DarkForces/agent.h>
 #include <TFE_DarkForces/util.h>
@@ -16,6 +19,8 @@
 #include <TFE_RenderBackend/renderBackend.h>
 #include <TFE_Jedi/Math/core_math.h>
 #include <TFE_Jedi/Level/rtexture.h>
+#include <TFE_Jedi/Renderer/jediRenderer.h>
+#include <TFE_Jedi/Renderer/RClassic_GPU/screenDrawGPU.h>
 #include <TFE_System/system.h>
 #include <TFE_Jedi/Renderer/virtualFramebuffer.h>
 
@@ -49,6 +54,12 @@ namespace TFE_DarkForces
 	static u8* s_framebuffer = nullptr;
 	static LangHotkeys* s_langKeys;
 
+	// High res graphics
+	static TextureGpu* s_brfHighResTex;
+	static u32 s_highResBitmap[640 * 400];
+	static HighResActor* s_briefHigh = nullptr;
+	static HighResActor* s_menuHigh = nullptr;
+
 	s16 s_briefY;
 	s32 s_briefingMaxY;
 	LRect s_overlayRect;
@@ -78,6 +89,11 @@ namespace TFE_DarkForces
 		-1, //		MENU_TYPE_BUTTON,
 		-1, //		MENU_TYPE_BUTTON_UP,
 	};
+
+	///////////////////////////////////////////
+	// Forward Declarations
+	///////////////////////////////////////////
+	void missionBriefing_drawHighRes();
 
 	///////////////////////////////////////////
 	// API Implementation
@@ -125,6 +141,19 @@ namespace TFE_DarkForces
 			vfb_forceToBlack();
 			lcanvas_clear();
 			return;
+		}
+
+		// High res assets
+		bool highRes = TFE_Settings::getEnhancementsSettings()->enableHdPda &&
+			TFE_Settings::getGraphicsSettings()->colorMode == COLORMODE_TRUE_COLOR;
+
+		if (highRes)
+		{
+			s_brfHighResTex = TFE_RenderBackend::createTexture(640, 400, TEX_RGBA8);
+			s_briefHigh = highResActor_loadFromPng("dfbrief", mission, 1, false);
+			s_menuHigh = highResActor_loadFromPng("dfbrief", bgAnim, s_menuActor->arraySize);
+			TFE_Jedi::renderer_setType(RENDERER_HARDWARE);
+			TFE_RenderBackend::bloomPostEnable(false); // disable bloom in briefing screen
 		}
 
 		s16 state_btn_index = 600;
@@ -188,6 +217,13 @@ namespace TFE_DarkForces
 		s_briefActor = nullptr;
 		s_menuActor = nullptr;
 		s_palette = nullptr;
+
+		// High res
+		highResActor_free(s_briefHigh);
+		highResActor_free(s_menuHigh);
+		s_briefHigh = nullptr;
+		s_menuHigh = nullptr;
+		s_brfHighResTex = nullptr;
 	}
 		
 	void drawButton(BriefingButton id)
@@ -406,6 +442,16 @@ namespace TFE_DarkForces
 			return JFALSE;
 		}
 
+		bool highRes = TFE_Settings::getEnhancementsSettings()->enableHdPda &&
+			TFE_Settings::getGraphicsSettings()->colorMode == COLORMODE_TRUE_COLOR;
+
+		if (highRes && TFE_Jedi::renderer_getType() == RENDERER_HARDWARE)
+		{
+			memset(s_highResBitmap, 0, sizeof(s_highResBitmap));
+			missionBriefing_drawHighRes();
+			return JTRUE;
+		}
+
 		// Background
 		lcanvas_eraseRect(&s_viewBounds);
 		lactor_setState(s_menuActor, 0, 0);
@@ -435,4 +481,133 @@ namespace TFE_DarkForces
 	///////////////////////////////////////////
 	// Internal Implementation
 	///////////////////////////////////////////
+
+	//////////////////////
+	// High res mode
+	//////////////////////
+
+	void missionBriefing_copyHighResImageToBitmap(LActor* lactor, HighResActor* hiResActor)
+	{
+		s16 index = lactor->state;
+
+		// This may happen if any PNGs failed to load
+		if (!hiResActor || hiResActor->arraySize <= index)
+		{
+			return;
+		}
+
+		u32 width = min((u32)lactor->w * 2, hiResActor->imageWidths[index]);
+		u32 height = min((u32)lactor->h * 2, hiResActor->imageHeights[index]);
+		s16* deltData = (s16*)lactor->array[index];
+		s16 xOffset = deltData[0] * 2;
+		s16 yOffset = deltData[1] * 2;
+
+		for (s32 y = 0; y < height; y++)
+		{
+			for (s32 x = 0; x < width; x++)
+			{
+				u32 srcPixel = hiResActor->array[index][y * hiResActor->imageWidths[index] + x];
+				u32 dstPixel = s_highResBitmap[(yOffset + y) * 640 + xOffset + x];
+				s_highResBitmap[(yOffset + y) * 640 + xOffset + x] = pda_blendRgbPixels(srcPixel, dstPixel);
+			}
+		}
+	}
+
+	void missionBriefing_copyHighResBriefingToBitmap()
+	{
+		if (!s_briefHigh || s_briefHigh->arraySize < 1)
+		{
+			return;
+		}
+
+		// We have to add 1 here to get the correct dimensions, see the DELT format
+		s32 origWidth = s_briefActor->w + 1;
+		s32 origHeight = s_briefActor->h + 1;
+
+		s32 margin = (s_missionTextRect.right - s_missionTextRect.left - origWidth) >> 1;
+		s32 xOffset = (margin + s_missionTextRect.left) * 2;
+		s32 yOffset = s_missionTextRect.top * 2;
+		u32 width = min((u32)origWidth * 2, s_briefHigh->imageWidths[0]);
+		u32 height = min((u32)origHeight * 2, s_briefHigh->imageHeights[0]);
+		s32 clipTop = min((u32)s_briefY * 2, height);
+		s32 clipBot = min((u32)(s_missionTextRect.bottom - s_missionTextRect.top + s_briefY) * 2, height);
+
+		for (s32 y = clipTop; y < clipBot; y++)
+		{
+			for (s32 x = 0; x < width; x++)
+			{
+				u32 srcPixel = s_briefHigh->array[0][y * s_briefHigh->imageWidths[0] + x];
+				u32 dstPixel = s_highResBitmap[(yOffset + y - clipTop) * 640 + xOffset + x];
+				s_highResBitmap[(yOffset + y - clipTop) * 640 + xOffset + x] = pda_blendRgbPixels(srcPixel, dstPixel);
+			}
+		}
+	}
+
+	void missionBriefing_drawHighResButton(BriefingButton id)
+	{
+		s32 pressed = 0;
+		if ((s_buttonHover && id == s_buttonPressed) || (id == s_keyPressed))
+		{
+			pressed = 1;
+		}
+		else if (id >= BRIEF_BTN_EASY && s_skill == id - BRIEF_BTN_EASY)
+		{
+			pressed = 1;
+		}
+
+		lactor_setState(s_menuActor, 2 * (1 + id) + (pressed ? 0 : 1), 0);
+		missionBriefing_copyHighResImageToBitmap(s_menuActor, s_menuHigh);
+	}
+
+	void missionBriefing_drawHighRes()
+	{
+		ScreenRect* uiRect = vfb_getScreenRect(VFB_RECT_UI);
+		fixed16_16 xScale = vfb_getXScale();
+		fixed16_16 yScale = vfb_getYScale();
+		s32 uiWidth = uiRect->right - uiRect->left + 1;
+		s32 virtualWidth = floor16(mul16(intToFixed16(320), xScale));
+		s32 virtualHeight = floor16(mul16(intToFixed16(200), yScale));
+		s32 xOffset = max(0, (uiWidth - virtualWidth) / 2);
+
+		// Background
+		lactor_setState(s_menuActor, 0, 0);
+		missionBriefing_copyHighResImageToBitmap(s_menuActor, s_menuHigh);
+
+		// Buttons
+		for (s32 i = 0; i < BRIEF_BTN_COUNT; i++)
+		{
+			missionBriefing_drawHighResButton(BriefingButton(i));
+		}
+
+		// Briefing text
+		missionBriefing_copyHighResBriefingToBitmap();
+
+		// Cursor (hack)
+		TextureData* cursorTex = &s_cursor.texture;
+		for (s32 y = 0; y < cursorTex->height; y++)
+		{
+			u32 yPos = s_cursorPos.z * 2 + y;
+			if (yPos >= 400) { continue; }
+
+			for (s32 x = 0; x < cursorTex->width; x++)
+			{
+				u32 xPos = s_cursorPos.x * 2 + x;
+				if (xPos >= 640) { continue; }
+
+				u8 pixel = cursorTex->image[y * cursorTex->width + x];
+				if (pixel == 0) { continue; }
+				u32 r = s_palette->colors[pixel].r << 2;
+				u32 g = s_palette->colors[pixel].g << 2;
+				u32 b = s_palette->colors[pixel].b << 2;
+				s_highResBitmap[yPos * 640 + xPos] = r | (g << 8u) | (b << 16u) | (0xff << 24);
+			}
+		}
+
+		// Draw the bitmap
+		TFE_Jedi::beginRender();
+		s_brfHighResTex->update(s_highResBitmap, sizeof(s_highResBitmap));
+		vfb_forceToBlack();
+		screenGPU_addImageQuad(xOffset, 0, xOffset + virtualWidth, virtualHeight, s_brfHighResTex);
+		TFE_Jedi::endRender();
+	}
 }
