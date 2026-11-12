@@ -2123,7 +2123,7 @@ namespace TFE_FrontEndUI
 		DisplayInfo displayInfo;
 		TFE_RenderBackend::getDisplayInfo(&displayInfo);
 
-		f32 leftColumn = displayInfo.width < 1200 ? 196.0f * s_uiScale : 256.0f * s_uiScale;
+		f32 leftColumn = displayInfo.width < 1200 ? 196.0f * s_uiScale : 228.0f * s_uiScale;
 		f32 rightColumn = leftColumn + ((f32)TFE_SaveSystem::SAVE_IMAGE_WIDTH + 32.0f) * s_uiScale;
 		const s32 listOffset = 0;
 
@@ -2216,7 +2216,6 @@ namespace TFE_FrontEndUI
 
 			ImGui::BeginChild("##InfoWithBorderRecord", size, true);
 			{
-				ImGui::TextWrapped("When this checkbox is pressed simply start any mission and the game will record the mission for replay.");
 				ImGui::Spacing();
 
 				// Change the colors if recording all.
@@ -2234,6 +2233,7 @@ namespace TFE_FrontEndUI
 					gameSettings->df_enableReplay = false;
 					TFE_DarkForces::enableCutscenes(true);
 				}
+				Tooltip("After checking this box, simply start any mission and the game will record the mission for replay.");
 
 				if (enableRecordAll)
 				{
@@ -2243,7 +2243,6 @@ namespace TFE_FrontEndUI
 					ImGui::PopStyleColor();
 					gameSettings->df_enableRecording = true;
 				}
-				ImGui::SameLine(0.0f);
 				if (ImGui::Checkbox("Always Record missions", &enableRecordAll))
 				{
 					gameSettings->df_enableRecordingAll = enableRecordAll;
