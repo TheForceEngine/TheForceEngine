@@ -97,8 +97,7 @@ namespace LevelEditor
 		s32 comboElevCmdIndex = 0;
 		s32 comboTrigTypeIndex = 0;
 		s32 comboTrigVarIndex = 0;
-		s32 comboTrigMsgIndex = 0; // Max == IMT_TRIGGER
-		s32 comboPortTypeIndex = 0;
+		s32 comboTeleportTypeIndex = 0;
 		s32 curClassIndex = -1;
 		s32 curPropIndex = -1;
 		s32 curContentIndex = -1;
@@ -1863,7 +1862,7 @@ namespace LevelEditor
 			s32 count = (s32)TFE_ARRAYSIZE(c_infTeleporterTypeName);
 			for (s32 t = 0; t < count; t++)
 			{
-				if (ImGui::Selectable(c_infTeleporterTypeName[t], t == s_infEditor.comboPortTypeIndex))
+				if (ImGui::Selectable(c_infTeleporterTypeName[t], t == s_infEditor.comboTeleportTypeIndex))
 				{
 					teleporter->type = TeleportType(t);
 				}
