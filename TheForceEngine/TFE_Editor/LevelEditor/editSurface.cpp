@@ -196,6 +196,17 @@ namespace LevelEditor
 		}
 	}
 
+	// Convert wall selections into vertex selections and pass it onto edit_deleteVertices()
+	void edit_deleteWalls(FeatureId* walls, u32 wallCount)
+	{
+		selection_clear(SEL_VERTEX);
+		selection_buildDerived();
+		FeatureId* vtxList;
+		u32 vtxCount = selection_getList(vtxList, SEL_VERTEX);
+
+		edit_deleteVertices(vtxList, vtxCount, LName_DeleteWall);
+	}
+
 	void edit_applyTextureToSelection(s32 texIndex, Vec2f* offset)
 	{
 		if (!selection_hasHovered()) { return; }

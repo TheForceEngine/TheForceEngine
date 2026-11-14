@@ -103,6 +103,7 @@ namespace LevelEditor
 
 	extern AssetList s_levelTextureList;
 	extern u32 s_viewFrame;
+	std::vector<s32> s_brokenSectorIds;
 
 	enum Constants
 	{

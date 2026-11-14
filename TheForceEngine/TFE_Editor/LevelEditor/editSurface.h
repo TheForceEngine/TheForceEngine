@@ -31,6 +31,7 @@ namespace LevelEditor
 	void edit_removeAdjoin(s32 sectorId, s32 wallId);
 	void edit_checkForWallHit2d(Vec2f& worldPos, EditorSector*& wallSector, s32& wallIndex, HitPart& part, EditorSector* hoverSector);
 	void edit_checkForWallHit3d(RayHitInfo* info, EditorSector*& wallSector, s32& wallIndex, HitPart& part, const EditorSector* hoverSector);
+	void edit_deleteWalls(FeatureId* walls, u32 wallCount);
 
 	// Transforms
 	
