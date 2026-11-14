@@ -420,14 +420,14 @@ namespace TFE_DarkForces
 				s_playerTick = s_curTick;
 				s_levelComplete = JFALSE;
 			}
-		
+
 			// When loading from a save the main task has already been created by mission_createMainTask(),
 			// so that the task order matches a new mission (see startMissionFromSave()).
 			if (!s_loadingFromSave)
 			{
 				s_mainTask = createTask("main task", mission_mainTaskFunc);
 			}
- 
+
 			s_invalidLevelIndex = JFALSE;
 			s_exitLevel = JFALSE;
 
@@ -464,7 +464,7 @@ namespace TFE_DarkForces
 						reticle_enable(true);
 
 						// Now that the display is ready, let the main task (created asleep) run.
-						task_makeActive(s_mainTask);						
+						task_makeActive(s_mainTask);
 					}
 					s_flatLighting = JFALSE;
 					// Note: I am not sure why this is there but it overrides all player settings
