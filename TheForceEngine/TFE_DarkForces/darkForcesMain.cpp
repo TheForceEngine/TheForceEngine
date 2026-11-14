@@ -1571,6 +1571,8 @@ namespace TFE_DarkForces
 		gameMusic_start(levelIndex);
 
 		s_runGameState.state = GSTATE_MISSION;
+		// Match the task order of a new mission: main task first, then the mission tasks.
+		mission_createMainTask();
 		mission_setupTasks();
 	}
 
