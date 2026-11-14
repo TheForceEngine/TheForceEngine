@@ -190,6 +190,11 @@ namespace TFE_FrontEndUI
 		"True Color",           // COLORMODE_TRUE_COLOR
 	};
 
+	static const f32 c_menuWidth = 160;
+	static const f32 c_saveLoadLeftPadding = 12.0f;
+	static const f32 c_saveLoadTopMargin = 40;
+	static const f32 c_saveLoadPadding = 8;
+
 	typedef void(*MenuItemSelected)();
 
 	static s32 s_resIndex = 0;
@@ -601,8 +606,6 @@ namespace TFE_FrontEndUI
 		TFE_RenderBackend::getDisplayInfo(&display);
 		u32 w = display.width;
 		u32 h = display.height;
-		u32 menuWidth = 156;
-		u32 menuHeight = 306;
 
 		if (TFE_Console::isOpen())
 		{
@@ -833,7 +836,7 @@ namespace TFE_FrontEndUI
 			TFE_Input::clearAccumulatedMouseMove();
 
 			ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-			ImGui::SetNextWindowSize(ImVec2(160.0f*s_uiScale, f32(h)));
+			ImGui::SetNextWindowSize(ImVec2(c_menuWidth * s_uiScale, f32(h)));
 			ImGui::Begin("##Sidebar", &active, window_flags);
 
 			ImVec2 sideBarButtonSize(144*s_uiScale, 24*s_uiScale);
@@ -1762,8 +1765,8 @@ namespace TFE_FrontEndUI
 		DisplayInfo displayInfo;
 		TFE_RenderBackend::getDisplayInfo(&displayInfo);
 
-		f32 leftColumn = displayInfo.width < 1200 ? 196.0f*s_uiScale : 228.0f*s_uiScale;
-		f32 rightColumn = leftColumn + ((f32)TFE_SaveSystem::SAVE_IMAGE_WIDTH + 64.0f)*s_uiScale;
+		f32 leftColumn = (c_menuWidth + c_saveLoadLeftPadding) * s_uiScale;
+		f32 rightColumn = leftColumn + ((f32)TFE_SaveSystem::SAVE_IMAGE_WIDTH + c_saveLoadPadding)*s_uiScale;
 		const s32 listOffset = save ? 1 : 0;
 
 		string saveLoadText = save ? "Save" : "Load";
@@ -1774,7 +1777,7 @@ namespace TFE_FrontEndUI
 		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 2.0f);
 
 		// Left Column
-		ImGui::SetNextWindowPos(ImVec2(leftColumn, 64.0f * s_uiScale));
+		ImGui::SetNextWindowPos(ImVec2(leftColumn, c_saveLoadTopMargin * s_uiScale));
 		ImGui::BeginChild("##ImageAndInfo");
 		{
 			// Image
@@ -1829,7 +1832,7 @@ namespace TFE_FrontEndUI
 		}
 
 		f32 rheight = displayInfo.height - 80.0f;
-		ImGui::SetNextWindowPos(ImVec2(rightColumn, 64.0f*s_uiScale));
+		ImGui::SetNextWindowPos(ImVec2(rightColumn, c_saveLoadTopMargin * s_uiScale));
 		ImGui::BeginChild("##FileList", ImVec2(rwidth, rheight), true);
 		{
 			const size_t count = s_saveDir.size() + size_t(listOffset);
@@ -2123,12 +2126,12 @@ namespace TFE_FrontEndUI
 		DisplayInfo displayInfo;
 		TFE_RenderBackend::getDisplayInfo(&displayInfo);
 
-		f32 leftColumn = displayInfo.width < 1200 ? 196.0f * s_uiScale : 256.0f * s_uiScale;
-		f32 rightColumn = leftColumn + ((f32)TFE_SaveSystem::SAVE_IMAGE_WIDTH + 32.0f) * s_uiScale;
+		f32 leftColumn = (c_menuWidth + c_saveLoadLeftPadding) * s_uiScale;
+		f32 rightColumn = leftColumn + ((f32)TFE_SaveSystem::SAVE_IMAGE_WIDTH + c_saveLoadPadding) * s_uiScale;
 		const s32 listOffset = 0;
 
 		// Left Column
-		ImGui::SetNextWindowPos(ImVec2(leftColumn, floorf(displayInfo.height * 0.07f)));
+		ImGui::SetNextWindowPos(ImVec2(leftColumn, c_saveLoadTopMargin * s_uiScale));
 
 		ImGui::BeginChild("##ImageAndInfo");
 		{
@@ -2216,7 +2219,6 @@ namespace TFE_FrontEndUI
 
 			ImGui::BeginChild("##InfoWithBorderRecord", size, true);
 			{
-				ImGui::TextWrapped("When this checkbox is pressed simply start any mission and the game will record the mission for replay.");
 				ImGui::Spacing();
 
 				// Change the colors if recording all.
@@ -2234,6 +2236,7 @@ namespace TFE_FrontEndUI
 					gameSettings->df_enableReplay = false;
 					TFE_DarkForces::enableCutscenes(true);
 				}
+				Tooltip("After checking this box, simply start any mission and the game will record the mission for replay.");
 
 				if (enableRecordAll)
 				{
@@ -2243,7 +2246,6 @@ namespace TFE_FrontEndUI
 					ImGui::PopStyleColor();
 					gameSettings->df_enableRecording = true;
 				}
-				ImGui::SameLine(0.0f);
 				if (ImGui::Checkbox("Always Record missions", &enableRecordAll))
 				{
 					gameSettings->df_enableRecordingAll = enableRecordAll;
@@ -2322,7 +2324,7 @@ namespace TFE_FrontEndUI
 		}
 
 		f32 rheight = displayInfo.height - 100.0f;
-		ImGui::SetNextWindowPos(ImVec2(rightColumn, 64.0f * s_uiScale));
+		ImGui::SetNextWindowPos(ImVec2(rightColumn, c_saveLoadTopMargin* s_uiScale));
 		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(1.0f, 0.0f, 0.0f, 0.0f));
 		ImGui::BeginChild("##FileList", ImVec2(rwidth, rheight), true);
 		{
