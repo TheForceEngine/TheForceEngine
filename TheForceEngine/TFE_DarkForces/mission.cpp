@@ -277,6 +277,17 @@ namespace TFE_DarkForces
 		s_loadingFromSave = JTRUE;
 	}
 
+	// TFE: The task order matters - tasks are inserted at the head of the list, so the main task must be created
+	// *before* mission_setupTasks() (weapon, player, projectiles, etc.) so that those tasks run before it each frame.
+	// A new mission gets this order from mission_startTaskFunc(); the load-from-save path must reproduce it.
+	void mission_createMainTask()
+	{
+		s_mainTask = createTask("main task", mission_mainTaskFunc);
+		// Keep it asleep until mission_startTaskFunc() has finished setting up the display (see the load branch there),
+		// otherwise it would draw on the first task pass, before the render display exists.
+		task_setNextTick(s_mainTask, TASK_SLEEP);
+	}
+
 	char s_colormapName[TFE_MAX_PATH] = { 0 };
 
 	void mission_loadColormap()
@@ -409,7 +420,13 @@ namespace TFE_DarkForces
 				s_playerTick = s_curTick;
 				s_levelComplete = JFALSE;
 			}
-			s_mainTask = createTask("main task", mission_mainTaskFunc);
+
+			// When loading from a save the main task has already been created by mission_createMainTask(),
+			// so that the task order matches a new mission (see startMissionFromSave()).
+			if (!s_loadingFromSave)
+			{
+				s_mainTask = createTask("main task", mission_mainTaskFunc);
+			}
 
 			s_invalidLevelIndex = JFALSE;
 			s_exitLevel = JFALSE;
@@ -445,6 +462,9 @@ namespace TFE_DarkForces
 						hud_startup(JFALSE);
 
 						reticle_enable(true);
+
+						// Now that the display is ready, let the main task (created asleep) run.
+						task_makeActive(s_mainTask);
 					}
 					s_flatLighting = JFALSE;
 					// Note: I am not sure why this is there but it overrides all player settings

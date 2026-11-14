@@ -23,6 +23,7 @@ namespace TFE_DarkForces
 	};
 		
 	void mission_setLoadingFromSave();
+	void mission_createMainTask();
 	void mission_startTaskFunc(MessageType msg);
 	void mission_setLoadMissionTask(Task* task);
 	void mission_exitLevel();
