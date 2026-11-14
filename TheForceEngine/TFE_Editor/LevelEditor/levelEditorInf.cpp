@@ -95,6 +95,9 @@ namespace LevelEditor
 		s32 comboElevVarIndex = 0;
 		s32 comboElevAddContentIndex = 0;
 		s32 comboElevCmdIndex = 0;
+		s32 comboTrigTypeIndex = 0;
+		s32 comboTrigVarIndex = 0;
+		s32 comboTeleportTypeIndex = 0;
 		s32 curClassIndex = -1;
 		s32 curPropIndex = -1;
 		s32 curContentIndex = -1;
@@ -1840,7 +1843,7 @@ namespace LevelEditor
 			s32 count = (s32)TFE_ARRAYSIZE(c_selectableTriggerTypes);
 			for (s32 t = 0; t < count; t++)
 			{
-				if (ImGui::Selectable(c_selectableTriggerTypes[t], t == s_infEditor.comboElevTypeIndex))
+				if (ImGui::Selectable(c_selectableTriggerTypes[t], t == s_infEditor.comboTrigTypeIndex))
 				{
 					trigger->type = t == 0 ? TriggerType(t) : TriggerType(t+1);
 				}
@@ -1859,7 +1862,7 @@ namespace LevelEditor
 			s32 count = (s32)TFE_ARRAYSIZE(c_infTeleporterTypeName);
 			for (s32 t = 0; t < count; t++)
 			{
-				if (ImGui::Selectable(c_infTeleporterTypeName[t], t == s_infEditor.comboElevTypeIndex))
+				if (ImGui::Selectable(c_infTeleporterTypeName[t], t == s_infEditor.comboTeleportTypeIndex))
 				{
 					teleporter->type = TeleportType(t);
 				}
@@ -2318,9 +2321,9 @@ namespace LevelEditor
 	{
 		if (editor_button("+"))
 		{
-			if (s_infEditor.comboElevVarIndex >= 0)
+			if (s_infEditor.comboTrigVarIndex >= 0)
 			{
-				trigger->overrideSet |= (1 << s_infEditor.comboElevVarIndex);
+				trigger->overrideSet |= (1 << s_infEditor.comboTrigVarIndex);
 			}
 			editor_infSelectEditClass(itemClassIndex);
 		}
@@ -2340,15 +2343,15 @@ namespace LevelEditor
 		ImGui::SameLine(0.0f, 16.0f);
 		ImGui::SetNextItemWidth(128.0f);
 		s32 startIndex = trigger->type == ITRIGGER_SECTOR ? 1 : 0;
-		s_infEditor.comboElevVarIndex = max(startIndex, s_infEditor.comboElevVarIndex);
-		if (ImGui::BeginCombo(editor_getUniqueLabel(""), c_infTriggerVarName[s_infEditor.comboElevVarIndex]))
+		s_infEditor.comboTrigVarIndex = max(startIndex, s_infEditor.comboTrigVarIndex);
+		if (ImGui::BeginCombo(editor_getUniqueLabel(""), c_infTriggerVarName[s_infEditor.comboTrigVarIndex]))
 		{
 			s32 count = (s32)TFE_ARRAYSIZE(c_infTriggerVarName);
 			for (s32 i = startIndex; i < count; i++)
 			{
-				if (ImGui::Selectable(c_infTriggerVarName[i], i == s_infEditor.comboElevVarIndex))
+				if (ImGui::Selectable(c_infTriggerVarName[i], i == s_infEditor.comboTrigVarIndex))
 				{
-					s_infEditor.comboElevVarIndex = i;
+					s_infEditor.comboTrigVarIndex = i;
 				}
 				//setTooltip(c_infClassName[i].tooltip.c_str());
 			}
