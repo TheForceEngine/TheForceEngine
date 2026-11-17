@@ -1,4 +1,5 @@
 #include <cstring>
+#include <filesystem>
 
 #include "darkForcesMain.h"
 #include "agent.h"
@@ -1100,8 +1101,8 @@ namespace TFE_DarkForces
 						TFE_Paths::addLocalArchive(gobArchive);
 					}
 
-					char tempPath[TFE_MAX_PATH];
-					sprintf(tempPath, "%sTemp/", TFE_Paths::getPath(PATH_PROGRAM_DATA));
+					char tempPath[TFE_MAX_PATH] = { 0 };
+					sprintf(tempPath, std::filesystem::temp_directory_path().c_str());
 					// Extract and copy the briefing.
 					if (briefingIndex >= 0)
 					{
