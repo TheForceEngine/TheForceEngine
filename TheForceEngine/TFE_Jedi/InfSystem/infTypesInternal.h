@@ -52,11 +52,24 @@ namespace TFE_Jedi
 	// Note: These values correspond to object EntityTypeFlags
 	enum InfEntityMask
 	{
-		INF_ENTITY_AI_ACTOR   = FLAG_BIT(0),
-		INF_ENTITY_PROJECTILE = FLAG_BIT(3),
-		INF_ENTITY_SMART_OBJ = FLAG_BIT(11),
-		INF_ENTITY_PLAYER    = FLAG_BIT(31),
-		INF_ENTITY_ANY = 0xffffffffu
+		INF_ENTITY_AI_ACTOR     = FLAG_BIT(0),
+		INF_ENTITY_HAS_GRAVITY  = FLAG_BIT(1),  // Ground based NPC
+		INF_ENTITY_FLYING       = FLAG_BIT(2),  // Flying NPC
+		INF_ENTITY_PROJECTILE   = FLAG_BIT(3),
+		INF_ENTITY_CAN_WAKE     = FLAG_BIT(6),  // VUE object
+		INF_ENTITY_PICKUP       = FLAG_BIT(7),
+		INF_ENTITY_SCENERY      = FLAG_BIT(8),
+		INF_ENTITY_CORPSE       = FLAG_BIT(9),
+		INF_ENTITY_CAN_DISABLE  = FLAG_BIT(10),	// Generator.
+		INF_ENTITY_SMART_OBJ    = FLAG_BIT(11),
+		INF_ENTITY_REMOTE       = FLAG_BIT(12),
+		INF_ENTITY_LANDMINE     = FLAG_BIT(13),	// Specifically set if a pre-placed landmine.
+		INF_ENTITY_KEEP_CORPSE  = FLAG_BIT(14),
+		INF_ENTITY_GENERAL_MOHC = FLAG_BIT(15),
+		INF_ENTITY_LANDMINE_WPN = FLAG_BIT(16),
+
+		INF_ENTITY_PLAYER       = FLAG_BIT(31),
+		INF_ENTITY_ANY          = 0xffffffffu
 	};
 
 	enum InfElevatorFlags
