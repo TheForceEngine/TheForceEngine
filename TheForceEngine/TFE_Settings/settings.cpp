@@ -469,6 +469,10 @@ namespace TFE_Settings
 		writeKeyValue_Float(settings, "bloomStrength", s_graphicsSettings.bloomStrength);
 		writeKeyValue_Float(settings, "bloomSpread", s_graphicsSettings.bloomSpread);
 
+		writeKeyValue_Bool(settings, "scaler2DEnabled", s_graphicsSettings.scaler2DEnabled);
+		writeKeyValue_Float(settings, "scaler2DFilterWidth", s_graphicsSettings.scaler2DFilterWidth);
+		writeKeyValue_Float(settings, "scaler2DDeblur", s_graphicsSettings.scaler2DDeblur);
+
 		writeKeyValue_Int(settings, "renderer", s_graphicsSettings.rendererIndex);
 		writeKeyValue_Int(settings, "colorMode", s_graphicsSettings.colorMode);
 		writeKeyValue_Int(settings, "skyMode", s_graphicsSettings.skyMode);
@@ -895,6 +899,18 @@ namespace TFE_Settings
 		else if (strcasecmp("bloomSpread", key) == 0)
 		{
 			s_graphicsSettings.bloomSpread = parseFloat(value);
+		}
+		else if (strcasecmp("scaler2DEnabled", key) == 0)
+		{
+			s_graphicsSettings.scaler2DEnabled = parseBool(value);
+		}
+		else if (strcasecmp("scaler2DFilterWidth", key) == 0)
+		{
+			s_graphicsSettings.scaler2DFilterWidth = parseFloat(value);
+		}
+		else if (strcasecmp("scaler2DDeblur", key) == 0)
+		{
+			s_graphicsSettings.scaler2DDeblur = parseFloat(value);
 		}
 		else if (strcasecmp("renderer", key) == 0)
 		{

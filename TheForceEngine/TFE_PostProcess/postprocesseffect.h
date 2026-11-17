@@ -39,6 +39,9 @@ public:
 	virtual void setEffectState() = 0;
 
 public:
-	Shader* m_shader;
-	s32 m_scaleOffsetId;
+	// Defaulted to null/-1 so that an effect whose init() fails partway
+	// (e.g. a shader that failed to compile) leaves m_shader in a safely
+	// checkable state instead of uninitialized garbage.
+	Shader* m_shader = nullptr;
+	s32 m_scaleOffsetId = -1;
 };
