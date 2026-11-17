@@ -663,6 +663,12 @@ namespace TFE_Jedi
 						ctx.modelTrans = true;
 					}
 
+					// Vanilla DF does not support transparency on TEXTURE shading, but TFE will support it using a flag set in the 3DO file
+					if (poly->texture && (poly->texture->flags & OPACITY_TRANS) && (poly->textureFlags & TEXFLAG_TRANSPARENT) && (poly->shading & PSHADE_TEXTURE))
+					{
+						ctx.modelTrans = true;
+					}
+
 					switch (poly->shading)
 					{
 						case PSHADE_FLAT:

@@ -39,6 +39,7 @@ namespace RClassic_Float
 	static vec3_float* s_polyProjVtx;
 	static const u8*   s_polyColorMap;
 	static TextureData* s_polyTexture;
+	static s32 s_polyTexFlags;		// TFE
 
 	// Column
 	static s32 s_columnX;
@@ -447,11 +448,11 @@ namespace RClassic_Float
 				{
 					lightLevel = robj3d_computePolygonLightLevel(&s_polygonNormalsVS[polygon->index], polygon->zAvef);
 				}
-				robj3d_drawFlatTexturePolygon(s_polygonVerticesProj, s_polygonUv, polyVertexCount, polygon->texture, lightLevel);
+				robj3d_drawFlatTexturePolygon(s_polygonVerticesProj, s_polygonUv, polyVertexCount, polygon->texture, lightLevel, polygon->textureFlags);
 			} break;
 			case PSHADE_GOURAUD_TEXTURE:
 			{
-				robj3d_drawShadedTexturePolygon(s_polygonVerticesProj, s_polygonUv, s_polygonIntensity, polyVertexCount, polygon->texture);
+				robj3d_drawShadedTexturePolygon(s_polygonVerticesProj, s_polygonUv, s_polygonIntensity, polyVertexCount, polygon->texture, polygon->textureFlags);
 			} break;
 			case PSHADE_PLANE:
 			{

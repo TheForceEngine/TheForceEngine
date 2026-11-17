@@ -225,7 +225,14 @@ void robj3d_drawColumnFlatTexture()
 	for (s32 i = end; i >= 0; i--, offset -= s_width)
 	{
 		const u8 colorIndex = textureData[(floor20(U)&texWidthMask)*texHeight + (floor20(V)&texHeightMask)];
-		s_pcolumnOut[offset] = colorMap[colorIndex];
+
+		// TFE - do not draw colour 0 if the texture has OPACITY_TRANS flag set and the polygon has TEXFLAG_TRANSPARENT flag set
+		// DOS did not support transparency with texture shading, but TFE will support it with a flag set in the 3DO file
+		bool trans = (s_polyTexture->flags & OPACITY_TRANS) && (s_polyTexFlags & TEXFLAG_TRANSPARENT);
+		if (colorIndex || !trans)
+		{
+			s_pcolumnOut[offset] = colorMap[colorIndex];
+		}
 
 		U += s_col_dUVdY.x;
 		V += s_col_dUVdY.z;
@@ -252,7 +259,14 @@ void robj3d_drawColumnShadedTexture()
 	{
 		const u8 colorIndex = textureData[(floor20(U)&texWidthMask)*texHeight + (floor20(V)&texHeightMask)];
 		const s32 pixelIntensity = floor20(I)&31;
-		s_pcolumnOut[offset] = colorMap[pixelIntensity*256 + colorIndex];
+
+		// TFE - do not draw colour 0 if the texture has OPACITY_TRANS flag set and the polygon has TEXFLAG_TRANSPARENT flag set
+		// DOS did not support transparency with texture shading, but TFE will support it with a flag set in the 3DO file
+		bool trans = (s_polyTexture->flags & OPACITY_TRANS) && (s_polyTexFlags & TEXFLAG_TRANSPARENT);
+		if (colorIndex || !trans)
+		{
+			s_pcolumnOut[offset] = colorMap[pixelIntensity * 256 + colorIndex];
+		}
 
 		I += s_col_dIdY;
 		U += s_col_dUVdY.x;
@@ -285,9 +299,9 @@ void robj3d_drawColumnShadedTexture()
 #if defined(POLY_INTENSITY) && !defined(POLY_UV)
 void robj3d_drawShadedColorPolygon(vec3_float* projVertices, f32* intensity, s32 vertexCount, u8 color)
 #elif !defined(POLY_INTENSITY) && defined(POLY_UV)
-void robj3d_drawFlatTexturePolygon(vec3_float* projVertices, vec2_float* uv, s32 vertexCount, TextureData* texture, u8 color)
+void robj3d_drawFlatTexturePolygon(vec3_float* projVertices, vec2_float* uv, s32 vertexCount, TextureData* texture, u8 color, s32 texFlags)
 #elif defined(POLY_INTENSITY) && defined(POLY_UV)
-void robj3d_drawShadedTexturePolygon(vec3_float* projVertices, vec2_float* uv, f32* intensity, s32 vertexCount, TextureData* texture)
+void robj3d_drawShadedTexturePolygon(vec3_float* projVertices, vec2_float* uv, f32* intensity, s32 vertexCount, TextureData* texture, s32 texFlags)
 #else
 void robj3d_drawFlatColorPolygon(vec3_float* projVertices, s32 vertexCount, u8 color)
 #endif
@@ -303,6 +317,7 @@ void robj3d_drawFlatColorPolygon(vec3_float* projVertices, s32 vertexCount, u8 c
 	#if defined(POLY_UV)
 		s_polyUv = uv;
 		s_polyTexture = texture;
+		s_polyTexFlags = texFlags;
 	#endif
 
 	s32 yMax = xMax;
