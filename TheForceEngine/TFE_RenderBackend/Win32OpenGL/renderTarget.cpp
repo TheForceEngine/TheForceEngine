@@ -3,6 +3,7 @@
 #include <TFE_RenderBackend/renderBackend.h>
 #include "gl.h"
 #include <assert.h>
+#include <algorithm>
 
 namespace
 {
@@ -66,6 +67,7 @@ bool RenderTarget::create(s32 textureCount, TextureGpu** textures, bool depthBuf
 	assert(status == GL_FRAMEBUFFER_COMPLETE);
 	if (status != GL_FRAMEBUFFER_COMPLETE)
 	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		return false;
 	}
 
@@ -124,17 +126,33 @@ void RenderTarget::unbind()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void RenderTarget::copy(RenderTarget* dst, RenderTarget* src)
+void RenderTarget::copy(RenderTarget* dst, RenderTarget* src, MagFilter filter)
 {
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, src->m_gpuHandle);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dst->m_gpuHandle);
 
-	glBlitFramebuffer(0, 0, src->getTexture()->getWidth(), src->getTexture()->getHeight(),	// src rect
-					  0, 0, dst->getTexture()->getWidth(), dst->getTexture()->getHeight(),	// dst rect
-					  GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	const GLenum glFilter = filter == MAG_FILTER_LINEAR ? GL_LINEAR : GL_NEAREST;
+	const u32 count = std::min(src->m_textureCount, dst->m_textureCount);
+	for (u32 i = 0; i < count; i++)
+	{
+		glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0 + i);
+		glBlitFramebuffer(0, 0, src->getTexture(i)->getWidth(), src->getTexture(i)->getHeight(),	// src rect
+						  0, 0, dst->getTexture(i)->getWidth(), dst->getTexture(i)->getHeight(),	// dst rect
+						  GL_COLOR_BUFFER_BIT, glFilter);
+	}
+
+	GLenum drawBuffers[MAX_ATTACHMENT] = { 0 };
+	for (u32 i = 0; i < dst->m_textureCount; i++)
+	{
+		drawBuffers[i] = GL_COLOR_ATTACHMENT0 + i;
+	}
+	glDrawBuffers(dst->m_textureCount, drawBuffers);
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glReadBuffer(GL_BACK);
+	glDrawBuffer(GL_BACK);
 }
 
 void RenderTarget::copyBackbufferToTarget(RenderTarget* dst)
