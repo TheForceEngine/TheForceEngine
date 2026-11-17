@@ -38,6 +38,12 @@ namespace TFE_Jedi
 	bool s_showWireframe = false;
 	TFE_Sectors* s_sectorRenderer = nullptr;
 	RendererType s_rendererType = RENDERER_SOFTWARE;
+	bool s_drawQuadsFirst = true;
+	bool s_clipLinesToRect = false;
+	s32 s_clipX;
+	s32 s_clipY;
+	s32 s_clipW;
+	s32 s_clipH;
 
 	/////////////////////////////////////////////
 	// Forward Declarations
@@ -469,7 +475,15 @@ namespace TFE_Jedi
 		RClassic_Float::computeCameraTransform(sector, f32(clampedPitch), f32(yaw), fixed16ToFloat(camX), fixed16ToFloat(camY), fixed16ToFloat(camZ));
 		RClassic_GPU::computeCameraTransform(sector, f32(pitch), f32(yaw), fixed16ToFloat(camX), fixed16ToFloat(camY), fixed16ToFloat(camZ));
 	}
-		
+
+	void renderer_setClipRect(s32 x, s32 y, s32 width, s32 height)
+	{
+		s_clipX = x;
+		s_clipY = y;
+		s_clipW = width;
+		s_clipH = height;
+	}
+
 	void beginRender()
 	{
 		if (!s_sectorRenderer)
@@ -492,8 +506,30 @@ namespace TFE_Jedi
 	{
 		if (s_subRenderer == TSR_CLASSIC_GPU)
 		{
-			screenDraw_endQuads();
+			// Draw quads before lines: the automap will be drawn over the top of weapon and HUD textures
+			if (s_drawQuadsFirst)
+			{
+				screenDraw_endQuads();
+			}
+
+			if (s_clipLinesToRect)
+			{
+				TFE_RenderBackend::setScissorRect(true, s_clipX, s_clipY, s_clipW, s_clipH);
+			}
+
 			screenDraw_endLines();
+
+			if (s_clipLinesToRect)
+			{
+				TFE_RenderBackend::setScissorRect(false);
+			}
+
+			// Draw quads after lines: the automap will be drawn behind PDA graphics
+			if (!s_drawQuadsFirst)
+			{
+				screenDraw_endQuads();
+			}
+
 			vfb_unbindRenderTarget();
 		}
 	}

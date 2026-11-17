@@ -15,4 +15,8 @@ namespace TFE_DarkForces
 
 	JBool pda_isOpen();
 	void  pda_update();
+
+	// TFE
+	void pda_initHighResFont();
+	u32 pda_blendRgbPixels(u32 srcPixel, u32 dstPixel);
 }
