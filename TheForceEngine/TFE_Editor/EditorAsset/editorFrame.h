@@ -36,6 +36,6 @@ namespace TFE_Editor
 	void freeFrame(const char* name);
 
 	EditorFrame* getFrameData(u32 index);
-	s32 loadEditorFrame(FrameSourceType type, Archive* archive, const char* filename, const u32* palette, s32 palIndex, s32 id = -1);
+	s32 loadEditorFrame(FrameSourceType type, Archive* archive, const char* filename, const char* filePath, const u32* palette, s32 palIndex, s32 id = -1);
 	bool loadEditorFrameLit(FrameSourceType type, Archive* archive, const u32* palette, s32 palIndex, const u8* colormap, s32 lightLevel, u32 index);
 }

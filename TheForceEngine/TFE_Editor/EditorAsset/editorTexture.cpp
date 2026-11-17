@@ -114,24 +114,42 @@ namespace TFE_Editor
 		return &s_textureList[index];
 	}
 
-	s32 loadEditorTexture(SourceType type, Archive* archive, const char* filename, const u32* palette, s32 palIndex, s32 id)
+	s32 loadEditorTexture(SourceType type, Archive* archive, const char* filename, const char* filePath, const u32* palette, s32 palIndex, s32 id)
 	{
 		if (!archive && !filename) { return -1; }
 
-		if (!archive->openFile(filename))
-		{
-			return -1;
-		}
-		size_t len = archive->getFileLength();
-		if (!len)
-		{
-			archive->closeFile();
-			return -1;
-		}
 		WorkBuffer& buffer = getWorkBuffer();
-		buffer.resize(len);
-		archive->readFile(buffer.data(), len);
-		archive->closeFile();
+		size_t len;
+
+		if (archive)
+		{
+			if (!archive->openFile(filename))
+			{
+				return -1;
+			}
+			len = archive->getFileLength();
+			if (!len)
+			{
+				archive->closeFile();
+				return -1;
+			}
+			buffer.resize(len);
+			archive->readFile(buffer.data(), len);
+			archive->closeFile();
+		}
+		else
+		{
+			FileStream file;
+			if (!filePath || !file.open(filePath, Stream::MODE_READ))
+			{
+				return -1;
+			}
+
+			len = file.getSize();
+			buffer.resize(len);
+			file.readBuffer(buffer.data(), len);
+			file.close();
+		}
 
 		if (type == TEX_BM)
 		{
@@ -241,7 +259,7 @@ namespace TFE_Editor
 		strcpy(name, texture->name);
 		freeTexture(name);
 
-		bool result = loadEditorTexture(type, archive, name, palette, palIndex, (s32)index);
+		bool result = loadEditorTexture(type, archive, name, nullptr, palette, palIndex, (s32)index);
 		if (result)
 		{
 			texture->lightLevel = lightLevel;
@@ -251,24 +269,41 @@ namespace TFE_Editor
 		return result;
 	}
 
-	s32 loadPaletteAsTexture(Archive* archive, const char* filename, const u8* colormapData, s32 id)
+	s32 loadPaletteAsTexture(Archive* archive, const char* filename, const char* filePath, const u8* colormapData, s32 id)
 	{
 		if (!archive && !filename) { return -1; }
 
-		if (!archive->openFile(filename))
-		{
-			return -1;
-		}
-		size_t len = archive->getFileLength();
-		if (!len)
-		{
-			archive->closeFile();
-			return -1;
-		}
 		WorkBuffer& buffer = getWorkBuffer();
-		buffer.resize(len);
-		archive->readFile(buffer.data(), len);
-		archive->closeFile();
+		size_t len;
+
+		if (archive)
+		{
+			if (!archive->openFile(filename))
+			{
+				return -1;
+			}
+			len = archive->getFileLength();
+			if (!len)
+			{
+				archive->closeFile();
+				return -1;
+			}
+			buffer.resize(len);
+			archive->readFile(buffer.data(), len);
+			archive->closeFile();
+		}
+		else
+		{
+			FileStream file;
+			if (!filePath || !file.open(filePath, Stream::MODE_READ))
+			{
+				return -1;
+			}
+			len = file.getSize();
+			buffer.resize(len);
+			file.readBuffer(buffer.data(), len);
+			file.close();
+		}
 
 		if (id < 0) { id = allocateTexture(filename); }
 		strcpy(s_textureList[id].name, filename);

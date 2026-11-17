@@ -101,6 +101,8 @@ namespace AssetBrowser
 	static AssetList s_viewAssetList;
 	static AssetList s_projectAssetList[TYPE_COUNT];
 
+	static bool s_browseLevels = false;
+
 	// Forward Declarations
 	void updateAssetList();
 	void reloadAsset(Asset* asset, s32 palId, s32 lightLevel = 32);
@@ -187,7 +189,13 @@ namespace AssetBrowser
 			*index = lvlIndex - 1;
 		}
 	}
-		
+
+	void setBrowseLevels(bool value)
+	{
+		s_browseLevels = value;
+		s_viewInfo.type = s_browseLevels ? TYPE_LEVEL : TYPE_TEXTURE;
+	}
+
 	void infoPanel(u32 infoWidth, u32 infoHeight)
 	{
 		DisplayInfo displayInfo;
@@ -202,16 +210,23 @@ namespace AssetBrowser
 			h += (u32)UI_SCALE(40);
 		}
 
-		ImGui::SetWindowPos("Asset Browser##Settings", { 0.0f, f32(s_menuHeight) });
-		ImGui::SetWindowSize("Asset Browser##Settings", { f32(w), f32(h) });
+		const char* panelName = s_browseLevels ? "Level Browser##Settings" : "Asset Browser##Settings" ;
+
+		ImGui::SetWindowPos(panelName, { 0.0f, f32(s_menuHeight) });
+		ImGui::SetWindowSize(panelName, { f32(w), f32(h) });
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 
 		bool active = true;
 		s32 levelSource = s_viewInfo.levelSource;
-		ImGui::Begin("Asset Browser##Settings", &active, window_flags);
+		ImGui::Begin(panelName, &active, window_flags);
 		LIST_SELECT("Game", c_games, s_viewInfo.game);
-		LIST_SELECT("Asset Type", c_assetType, s_viewInfo.type);
-		listSelectionLevel("Level", s_levelAssets, &levelSource);
+
+		if (!s_browseLevels)
+		{
+			LIST_SELECT("Asset Type", c_assetType, s_viewInfo.type);
+			listSelectionLevel("Level", s_levelAssets, &levelSource);
+		}
+
 		ImGui::Separator();
 
 		bool listChanged = false;
@@ -287,12 +302,14 @@ namespace AssetBrowser
 			infoHeight += (u32)UI_SCALE(40);
 		}
 
-		ImGui::SetWindowPos("Asset Info", { 0.0f, f32(infoHeight + s_menuHeight) });
-		ImGui::SetWindowSize("Asset Info", { f32(w), f32(h) });
+		const char* panelName = s_browseLevels ? "Level Info" : "Asset Info" ;
+
+		ImGui::SetWindowPos(panelName, { 0.0f, f32(infoHeight + s_menuHeight) });
+		ImGui::SetWindowSize(panelName, { f32(w), f32(h) });
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 
 		bool active = true;
-		ImGui::Begin("Asset Info", &active, window_flags);
+		ImGui::Begin(panelName, &active, window_flags);
 		if (multiselect)
 		{
 			AssetType type = s_viewAssetList[s_selected[0]].type;
@@ -677,6 +694,7 @@ namespace AssetBrowser
 		const Asset* asset = s_viewAssetList.data();
 
 		s32 textWidth = (s32)ImGui::CalcTextSize("12345678.123").x;
+		s32 textHeight = (s32)ImGui::CalcTextSize("12345678.123").y;
 		s32 fontSize = (s32)ImGui::GetFontSize();
 
 		char buttonLabel[32];
@@ -708,6 +726,21 @@ namespace AssetBrowser
 		s32 a = 0, yOffset = 0;
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0.0f, 0.0f });
 		AssetSource src = s_viewAssetList[0].assetSource;
+
+		if (s_viewAssetList[0].assetSource == ASRC_PROJECT)
+		{
+			ImGui::Text("PROJECT");
+		}
+		else if (s_viewAssetList[0].assetSource == ASRC_VANILLA)
+		{
+			ImGui::Text("GAME");
+		}
+		else if (s_viewAssetList[0].assetSource == ASRC_EXTERNAL)
+		{
+			ImGui::Text("RESOURCES");
+		}
+
+		yOffset += textHeight * 1.5;
 		for (s32 y = 0; a < count; y++)
 		{
 			for (s32 x = 0; x < columnCount && a < count; x++, a++)
@@ -716,9 +749,24 @@ namespace AssetBrowser
 				if (src != s_viewAssetList[a].assetSource)
 				{
 					src = s_viewAssetList[a].assetSource;
+					ImGui::NewLine();
 					ImGui::Separator();
+					ImGui::NewLine();
 
-					yOffset += 10;
+					if (s_viewAssetList[a].assetSource == ASRC_PROJECT)
+					{
+						ImGui::Text("PROJECT");
+					}
+					else if (s_viewAssetList[a].assetSource == ASRC_VANILLA)
+					{
+						ImGui::Text("GAME");
+					}
+					else if (s_viewAssetList[a].assetSource == ASRC_EXTERNAL)
+					{
+						ImGui::Text("RESOURCES");
+					}
+
+					yOffset += textHeight * 4.5;
 					if (x != 0) { y++; }
 					x = 0;
 				}
@@ -902,12 +950,14 @@ namespace AssetBrowser
 		s32 h = displayInfo.height - s_menuHeight;
 		if (w <= 0 || h <= 0) { return; }
 
-		ImGui::SetWindowPos("Asset List", { f32(infoWidth), f32(s_menuHeight) });
-		ImGui::SetWindowSize("Asset List", { f32(w), f32(h) });
+		const char* panelName = s_browseLevels ? "Level List" : "Asset List";
+
+		ImGui::SetWindowPos(panelName, { f32(infoWidth), f32(s_menuHeight) });
+		ImGui::SetWindowSize(panelName, { f32(w), f32(h) });
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 
 		bool active = true;
-		ImGui::Begin("Asset List", &active, window_flags);
+		ImGui::Begin(panelName, &active, window_flags);
 
 		// Draw items
 		if (!s_viewAssetList.empty())
@@ -1110,7 +1160,7 @@ namespace AssetBrowser
 		return Archive::getArchive(ARCHIVE_GOB, name, filePath);
 	}
 		
-	void addPalette(const char* name, Archive* archive)
+	void addPalette(const char* name, Archive* archive, const char* filePath)
 	{
 		s32 id = -1;
 		const size_t count = s_palettes.size();
@@ -1123,12 +1173,26 @@ namespace AssetBrowser
 			}
 		}
 
-		if (!archive->openFile(name)) { return; }
 		WorkBuffer& buffer = getWorkBuffer();
-		const size_t len = archive->getFileLength();
-		buffer.resize(len);
-		archive->readFile(buffer.data(), len);
-		archive->closeFile();
+		size_t len;
+		if (archive)
+		{
+			if (!archive->openFile(name)) { return; }
+			len = archive->getFileLength();
+			buffer.resize(len);
+			archive->readFile(buffer.data(), len);
+			archive->closeFile();
+		}
+		else
+		{
+			// Load from path
+			FileStream file;
+			if (!filePath || !file.open(filePath, Stream::MODE_READ)) {	return;	}
+			len = file.getSize();
+			buffer.resize(len);
+			file.readBuffer(buffer.data(), len);
+			file.close();
+		}
 
 		const u8* pal666 = buffer.data();
 		Palette dstPalette;
@@ -1262,7 +1326,7 @@ namespace AssetBrowser
 		const Asset* projAsset = s_projectAssetList[TYPE_PALETTE].data();
 		for (u32 f = 0; f < count; f++, projAsset++)
 		{
-			addPalette(projAsset->name.c_str(), projAsset->archive);
+			addPalette(projAsset->name.c_str(), projAsset->archive, projAsset->filePath.c_str());
 		}
 
 		// Then for levels.
@@ -1661,7 +1725,7 @@ namespace AssetBrowser
 				FileUtil::getFileExtension(fileName, ext);
 
 				char filepath[TFE_MAX_PATH];
-				sprintf(filepath, "%s%s", pathOS, fileName);
+				sprintf(filepath, "%s%s", dir.c_str(), fileName);
 				FileUtil::fixupPath(filepath);
 
 				// Exported results are archives too, so this doesn't work correctly for project directories.
@@ -1841,7 +1905,7 @@ namespace AssetBrowser
 	{
 		s32 palId = getAssetPalette(asset->name.c_str());
 		AssetColorData colorData = { s_palettes[palId].data, nullptr, palId, 32 };
-		return loadAssetData(asset->type, asset->archive, &colorData, asset->name.c_str());
+		return loadAssetData(asset->type, asset->archive, &colorData, asset->name.c_str(), asset->filePath.c_str());
 	}
 
 	void loadAsset(const Asset* projAsset)
@@ -1859,7 +1923,7 @@ namespace AssetBrowser
 		s32 palId = getAssetPalette(projAsset->name.c_str());
 
 		AssetColorData colorData = { s_palettes[palId].data, nullptr, palId, 32 };
-		asset.handle = loadAssetData(projAsset->type, projAsset->archive, &colorData, projAsset->name.c_str());
+		asset.handle = loadAssetData(projAsset->type, projAsset->archive, &colorData, projAsset->name.c_str(), projAsset->filePath.c_str());
 		// For now allow stubbed types to squeak through...
 		// TODO: Make this more strict once those are properly loaded.
 		if (asset.handle != NULL_ASSET || asset.type == TYPE_3DOBJ || asset.type == TYPE_LEVEL)
@@ -1915,7 +1979,7 @@ namespace AssetBrowser
 			s32 palId = getAssetPalette(projAsset->name.c_str());
 
 			AssetColorData colorData = { s_palettes[palId].data, nullptr, palId, 32 };
-			asset.handle = loadAssetData(projAsset->type, projAsset->archive, &colorData, projAsset->name.c_str());
+			asset.handle = loadAssetData(projAsset->type, projAsset->archive, &colorData, projAsset->name.c_str(), projAsset->filePath.c_str());
 			list.push_back(asset);
 		}
 	}
@@ -2053,7 +2117,7 @@ namespace AssetBrowser
 				}
 
 				AssetColorData colorData = { nullptr, hasColormap ? colormapData : nullptr, 0, 32 };
-				asset.handle = loadAssetData(TYPE_PALETTE, archive, &colorData, projAsset->name.c_str());
+				asset.handle = loadAssetData(TYPE_PALETTE, archive, &colorData, projAsset->name.c_str(), projAsset->filePath.c_str());
 				s_viewAssetList.push_back(asset);
 			}
 		}
@@ -2214,15 +2278,29 @@ namespace AssetBrowser
 		}
 	}
 
-	bool readWriteFile(const char* outFilePath, const char* assetName, Archive* archive, WorkBuffer& buffer)
+	bool readWriteFile(const char* outFilePath, const char* assetName, const char* assetPath, Archive* archive, WorkBuffer& buffer)
 	{
-		if (!archive->openFile(assetName)) { return false; }
-
+		size_t len;
 		bool success = false;
-		size_t len = archive->getFileLength();
-		buffer.resize(len);
-		archive->readFile(buffer.data(), len);
-		archive->closeFile();
+
+		if (archive)
+		{
+			if (!archive->openFile(assetName)) { return false; }
+			len = archive->getFileLength();
+			buffer.resize(len);
+			archive->readFile(buffer.data(), len);
+			archive->closeFile();
+		}
+		else
+		{
+			FileStream file;
+			if (!assetPath || !file.open(assetPath, Stream::MODE_READ)) { return false; }
+			len = file.getSize();
+			buffer.resize(len);
+			file.readBuffer(buffer.data(), len);
+			file.close();
+		}
+
 
 		FileStream outFile;
 		if (outFile.open(outFilePath, FileStream::MODE_WRITE))
@@ -2264,7 +2342,7 @@ namespace AssetBrowser
 
 			// Write files to the temp directory.
 			WorkBuffer buffer;
-			if (!readWriteFile(levPath, asset->name.c_str(), archive, buffer)) { continue; }
+			if (!readWriteFile(levPath, asset->name.c_str(), asset->filePath.c_str(), archive, buffer)) { continue; }
 
 			char objPath[TFE_MAX_PATH];
 			char infPath[TFE_MAX_PATH];
@@ -2277,8 +2355,8 @@ namespace AssetBrowser
 			FileUtil::replaceExtension(asset->name.c_str(), "INF", assetInf);
 
 			// These are mostly optional, so we continue even if they don't exist.
-			readWriteFile(objPath, assetObj, archive, buffer);
-			readWriteFile(infPath, assetInf, archive, buffer);
+			readWriteFile(objPath, assetObj, nullptr, archive, buffer);
+			readWriteFile(infPath, assetInf, nullptr, archive, buffer);
 
 			// Then copy them into the project directory.
 			char dstLevPath[TFE_MAX_PATH];

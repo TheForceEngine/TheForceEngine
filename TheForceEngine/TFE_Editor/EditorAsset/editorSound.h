@@ -24,7 +24,7 @@ namespace TFE_Editor
 		// TODO
 	};
 
-	s32 loadEditorSound(SoundSourceType type, Archive* archive, const char* filename);
+	s32 loadEditorSound(SoundSourceType type, Archive* archive, const char* filename, const char* filePath);
 	EditorSound* getSoundData(u32 index);
 	void freeCachedSounds();
 }
