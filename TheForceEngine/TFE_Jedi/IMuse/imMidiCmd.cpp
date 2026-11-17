@@ -192,4 +192,22 @@ namespace TFE_Jedi
 		// General Midi uses MID_PAN_MSB, so this is a no-op.
 	}
 
+	void ImSendPitchBend(s32 channelId, s32 bend14)
+	{
+		bend14 = clamp(bend14, 0, 16383);
+		TFE_MidiPlayer::sendMessageDirect(u8(MID_PITCH_BEND | channelId), u8(bend14 & 0x7f), u8((bend14 >> 7) & 0x7f));
+	}
+
+	void ImSetPitchBendRange(s32 channelId, s32 semitones)
+	{
+		// Standard RPN 0 (Pitch Bend Sensitivity): select RPN 0/0, then write the range
+		// in semitones via Data Entry MSB. This exact 3-message sequence (RPN LSB, RPN
+		// MSB, Data Entry MSB - no Data Entry LSB/cents, no RPN Null reset afterward)
+		// was verified against a raw MIDI capture of the original engine's actual
+		// output, byte for byte, so it is intentionally NOT "more thorough" than that.
+		ImControlChange(channelId, MID_RPN_LSB, 0);
+		ImControlChange(channelId, MID_RPN_MSB, 0);
+		ImControlChange(channelId, MID_DATA_ENTRY_MSB, semitones);
+	}
+
 }  // namespace TFE_Jedi

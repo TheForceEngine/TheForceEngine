@@ -1,3 +1,21 @@
+include(FetchContent)
+
+# CLAP instrument plugin support as a music synthesis backend (alternative to SF2
+# soundfonts, OPL3 emulation, and System Midi). ENABLE_CLAP is declared once, at the
+# top-level CMakeLists.txt, right next to ENABLE_SYSMIDI - not redeclared here.
+if(ENABLE_CLAP)
+	# Pull in the official, header-only CLAP SDK (https://github.com/free-audio/clap).
+	# This only provides the plugin ABI headers - plugins themselves are loaded
+	# dynamically at runtime (see TFE_Audio/clapModule.cpp), so no linking is
+	# required beyond the interface include directories.
+	FetchContent_Declare(
+		clap
+		GIT_REPOSITORY https://github.com/free-audio/clap.git
+		GIT_TAG        1.2.6
+	)
+	FetchContent_MakeAvailable(clap)
+endif()
+
 add_subdirectory(TFE_A11y/)
 add_subdirectory(TFE_Archive/)
 add_subdirectory(TFE_Asset/)

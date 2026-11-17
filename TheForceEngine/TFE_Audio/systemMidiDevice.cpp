@@ -91,7 +91,28 @@ namespace TFE_Audio
 
 	void SystemMidiDevice::setVolume(f32 volume)
 	{
-		// No-op.
+		// GM/GS "Master Volume" Universal Real Time SysEx: F0 7F <device-id> 04 01 <vol-lsb> <vol-msb> F7.
+		// Device ID 0x7F = broadcast to all devices, the standard convention for a sequencer's
+		// single master volume control. This directly sets the receiving device's overall
+		// output level without touching or overwriting any per-channel Volume (CC7) data -
+		// see hasGlobalVolumeCtrl() in systemMidiDevice.h for why that matters.
+		const f32 clamped = std::min(std::max(volume, 0.0f), 1.0f);
+		const s32 vol14 = s32(clamped * 127.0f + 0.5f);
+
+		// FIX: TFE_MidiPlayer::setVolume()/changeVolume() can be called far more often
+		// than the actual volume setting changes (e.g. every frame during loading). The
+		// old, unconditional version of this function sent the 8-byte SysEx below on
+		// every single call - a raw MIDI capture showed this flooding the output with
+		// hundreds of byte-identical messages just milliseconds apart before a single
+		// note had even played. Only send when the value has actually changed.
+		if (vol14 == m_lastSentVolume14)
+		{
+			return;
+		}
+		m_lastSentVolume14 = vol14;
+
+		const u8 sysex[] = { MID_EXCLUSIVE_START, 0x7F, 0x7F, 0x04, 0x01, 0x00, u8(vol14), MID_EXCLUSIVE_END };
+		message(sysex, sizeof(sysex));
 	}
 
 	u32 SystemMidiDevice::getOutputCount()
