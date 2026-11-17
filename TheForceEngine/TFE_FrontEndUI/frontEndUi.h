@@ -31,6 +31,15 @@ struct IGame;
 
 namespace TFE_FrontEndUI
 {
+	struct UiImage
+	{
+		void* image = nullptr;	// ImTextureID-compatible GPU handle, null if unavailable.
+		u32   width = 0;
+		u32   height = 0;
+	};
+
+	bool loadGpuImage(const char* localPath, UiImage* uiImage);
+
 	void init();
 	void initConsole();
 	void shutdown();

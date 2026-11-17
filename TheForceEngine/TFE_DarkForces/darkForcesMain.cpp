@@ -16,6 +16,7 @@
 #include "random.h"
 #include "time.h"
 #include "weapon.h"
+#include "weaponWheel.h"
 #include "vueLogic.h"
 #include "GameUI/menu.h"
 #include "GameUI/agentMenu.h"
@@ -56,6 +57,7 @@
 #include <TFE_Jedi/Serialization/serialization.h>
 #include <TFE_ExternalData/weaponExternal.h>
 #include <TFE_ExternalData/pickupExternal.h>
+#include <TFE_ExternalData/weaponWheelExternal.h>
 #include <assert.h>
 
 // Add texture callbacks.
@@ -86,6 +88,7 @@ namespace TFE_DarkForces
 	{
 		MAX_MOD_LFD = 16,
 		MAX_MOD_OGV = 32,
+		MAX_MOD_PNG = 32,
 	};
 
 	enum GameState
@@ -841,6 +844,8 @@ namespace TFE_DarkForces
 			agent_setLevelComplete(JFALSE);
 			agent_readSavedDataForLevel(s_agentId, levelIndex);
 
+			weaponWheel_init();
+
 			// The load mission task should begin immediately once the Task System updates,
 			// so launchCurrentTask() is not required here.
 			// In the original, the task system would simply loop here.
@@ -963,6 +968,9 @@ namespace TFE_DarkForces
 		s32 ogvIndex[MAX_MOD_OGV];
 		s32 ogvCount = 0;
 
+		s32 pngIndex[MAX_MOD_PNG];
+		s32 pngCount = 0;
+
 		strcpy(s_sharedState.customGobName, gobName);
 
 		if (TFE_Paths::getFilePath(gobName, &archivePath))
@@ -1011,6 +1019,10 @@ namespace TFE_DarkForces
 						{
 							ogvIndex[ogvCount++] = i;
 						}
+						else if (strcasecmp(zext, "png") == 0 && pngCount < MAX_MOD_PNG)
+						{
+							pngIndex[pngCount++] = i;
+						}
 						else if (strcasecmp(zext4, "json") == 0)
 						{
 							// Load external data overrides
@@ -1039,6 +1051,12 @@ namespace TFE_DarkForces
 							{
 								char* buffer = extractTextFileFromZip(*zipArchive, i);
 								TFE_ExternalData::parseExternalWeapons(buffer, true);
+								free(buffer);
+							}
+							else if (strcasecmp(fname, "weaponWheel.json") == 0)
+							{
+								char* buffer = extractTextFileFromZip(*zipArchive, i);
+								TFE_ExternalData::parseWeaponWheelOverrides(buffer, true);
 								free(buffer);
 							}
 							else
@@ -1169,6 +1187,33 @@ namespace TFE_DarkForces
 						free(buffer);
 
 						TFE_Paths::addSingleFilePath(zipArchive->getFileName(ogvIndex[i]), ogvPath);
+					}
+
+					// Extract and copy any PNG overrides (currently used for
+					// weapon wheel icons - see TFE_ExternalData/weaponWheelExternal.h).
+					// Registered under their original zip name/path so a mod can
+					// either reference a custom name via weaponWheel.json, or
+					// shadow one of the base UI_Images/weaponWheel/*.png names
+					// directly to override it without any JSON at all.
+					for (s32 i = 0; i < pngCount; i++)
+					{
+						u32 bufferLen = (u32)zipArchive->getFileLength(pngIndex[i]);
+						u8* buffer = (u8*)malloc(bufferLen);
+						zipArchive->openFile(pngIndex[i]);
+						zipArchive->readFile(buffer, bufferLen);
+						zipArchive->closeFile();
+
+						char pngPath[TFE_MAX_PATH];
+						sprintf(pngPath, "%simage%d.png", tempPath, i);
+						FileStream file;
+						if (file.open(pngPath, Stream::MODE_WRITE))
+						{
+							file.writeBuffer(buffer, bufferLen);
+							file.close();
+						}
+						free(buffer);
+
+						TFE_Paths::addSingleFilePath(zipArchive->getFileName(pngIndex[i]), pngPath);
 					}
 
 					// Add the ZIP archive itself.
@@ -1317,6 +1362,24 @@ namespace TFE_DarkForces
 							data[size] = 0;
 							file.close();
 							TFE_ExternalData::parseExternalWeapons(data, true);
+							free(data);
+						}
+					}
+
+					sprintf(jsonPath, "%s%s", modPath, "weaponWheel.json");
+					if (FileUtil::exists(jsonPath))
+					{
+						FileStream file;
+						if (!file.open(jsonPath, FileStream::MODE_READ)) { return; }
+						const size_t size = file.getSize();
+						char* data = (char*)malloc(size + 1);
+
+						if (size > 0 && data)
+						{
+							file.readBuffer(data, (u32)size);
+							data[size] = 0;
+							file.close();
+							TFE_ExternalData::parseWeaponWheelOverrides(data, true);
 							free(data);
 						}
 					}
@@ -1491,6 +1554,8 @@ namespace TFE_DarkForces
 		{
 			TFE_System::logWrite(LOG_ERROR, "EXTERNAL_DATA", "Warning: Weapon data is incomplete. WEAPONS.JSON may have been altered. Weapons may not behave as expected.");
 		}
+
+		TFE_ExternalData::loadWeaponWheelOverrides();
 
 		TFE_ExternalData::loadCustomLogics();
 
